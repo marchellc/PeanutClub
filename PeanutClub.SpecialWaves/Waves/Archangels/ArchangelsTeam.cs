@@ -84,7 +84,7 @@ public class ArchangelsTeam : CustomTeamHandler<ArchangelsWave>
         
         LoadoutManager.EnsureLoadout("Archangels3",  new LoadoutInfo()
             .WithHealth(250f)
-            .WithGameAmmo(ItemType.Ammo556x45, 81)
+            .WithGameAmmo(ItemType.Ammo556x45, 120)
             .WithGameAmmo(ItemType.GunCOM18, 120)
             .WithGameItems(ItemType.GunCOM18, ItemType.GunE11SR, ItemType.KeycardChaosInsurgency, ItemType.Medkit, ItemType.Adrenaline, ItemType.ArmorHeavy));
         

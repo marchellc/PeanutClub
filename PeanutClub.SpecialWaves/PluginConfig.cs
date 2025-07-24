@@ -71,12 +71,24 @@ public class PluginConfig
     /// </summary>
     [Description("Sets the name of the Red Right Hand Button position.")]
     public string RedRightHandButtonPositionName { get; set; } = "RedRightHandButton";
+    
+    /// <summary>
+    /// Name of the button animator.
+    /// </summary>
+    [Description("Sets the name of the Red Right Hand Button animator.")]
+    public string RedRightHandButtonAnimatorName { get; set; } = "Button_press";
 
     /// <summary>
     /// Name of the button press animation.
     /// </summary>
     [Description("Sets the name of the Red Right Hand Button press animation.")]
-    public string RedRightHandButtonAnimationName { get; set; } = "ButtonPress";
+    public string RedRightHandButtonPressAnimationName { get; set; } = "Press";
+    
+    /// <summary>
+    /// Name of the button idle animation.
+    /// </summary>
+    [Description("Sets the name of the Red Right Hand Button idle animation.")]
+    public string RedRightHandButtonIdleAnimationName { get; set; } = "Idle";
 
     /// <summary>
     /// Player loadouts.

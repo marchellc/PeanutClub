@@ -1,6 +1,6 @@
 using LabExtended.API;
 using LabExtended.API.CustomTeams;
-
+using LabExtended.Utilities;
 using PeanutClub.SpecialWaves.Loadouts;
 
 namespace PeanutClub.SpecialWaves.Waves.SerpentsHand;
@@ -15,10 +15,13 @@ public class SerpentsHandWave : CustomTeamInstance<SerpentsHandTeam>
     {
         base.OnSpawned();
 
-        for (var i = 0; i < AlivePlayers.Count; i++)
+        TimingUtils.AfterSeconds(() =>
         {
-            SetupPlayer(AlivePlayers[i]);
-        }
+            for (var i = 0; i < AlivePlayers.Count; i++)
+            {
+                SetupPlayer(AlivePlayers[i]);
+            }
+        }, 0.3f);
     }
 
     private void SetupPlayer(ExPlayer player)

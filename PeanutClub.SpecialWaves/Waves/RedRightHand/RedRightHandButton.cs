@@ -2,7 +2,7 @@ using AdminToys;
 
 using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Events.Handlers;
-using LabApi.Loader.Features.Plugins;
+
 using LabExtended.API;
 using LabExtended.API.Toys;
 using LabExtended.API.Hints;
@@ -35,9 +35,19 @@ public static class RedRightHandButton
     public static string PositionName => PluginCore.StaticConfig.RedRightHandButtonPositionName;
 
     /// <summary>
+    /// Gets the name of the button animator.
+    /// </summary>
+    public static string AnimatorName => PluginCore.StaticConfig.RedRightHandButtonAnimatorName;
+
+    /// <summary>
     /// Gets the name of the button press animation.
     /// </summary>
-    public static string AnimationName => PluginCore.StaticConfig.RedRightHandButtonAnimationName;
+    public static string PressAnimationName => PluginCore.StaticConfig.RedRightHandButtonPressAnimationName;
+    
+    /// <summary>
+    /// Gets the name of the button press animation.
+    /// </summary>
+    public static string IdleAnimationName => PluginCore.StaticConfig.RedRightHandButtonIdleAnimationName;
 
     /// <summary>
     /// The maximum amount of players to spawn.
@@ -87,8 +97,15 @@ public static class RedRightHandButton
 
         if (args.Player is not ExPlayer player)
             return;
-        
-        ButtonObject?.AnimationController.Play(AnimationName);
+
+        try
+        {
+            ButtonObject?.AnimationController.Play(PressAnimationName, AnimatorName);
+        }
+        catch
+        {
+            ApiLog.Warn("Red Right Hand Button", "Could not play the button press animation!");
+        }
 
         if (!player.Inventory!.HasItem(ItemType.KeycardO5))
         {
@@ -121,24 +138,6 @@ public static class RedRightHandButton
         }
     }
     
-    // Cylinder
-    // Clip (0): button3
-    // Layer (0): Base Layer
-    // State Full Path Hash: -631838814
-    // State Name Hash: 897631270
-    
-    // Cylinder (1)
-    // Clip (0): button2
-    // Layer (0): Base Layer
-    // State Full Path Hash: -1387145420
-    // State Name Hash: 1116206256
-    
-    // Cylinder (2)
-    // Clip (0): button
-    // Layer (0): Base Layer
-    // State Full Path Hash: 959775358
-    // State Name Hash: 973515837
-    
     private static void Internal_Started()
     {
         WasUsed = false;
@@ -150,6 +149,15 @@ public static class RedRightHandButton
             if (ObjectSpawner.TrySpawnSchematic(SchematicName, position, rotation, out var schematic))
             {
                 ButtonObject = schematic;
+                
+                try
+                {
+                    ButtonObject?.AnimationController.Play(IdleAnimationName, AnimatorName);
+                }
+                catch
+                {
+                    ApiLog.Warn("Red Right Hand Button", "Could not play the button idle animation!");
+                }
 
                 ButtonInteractable = new(position, rotation) { Scale = Vector3.one / 8.5f };
                 ButtonInteractable.Shape = InvisibleInteractableToy.ColliderShape.Box;

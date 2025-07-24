@@ -83,7 +83,7 @@ public class RedRightHandTeam : CustomTeamHandler<RedRightHandWave>
         
         LoadoutManager.EnsureLoadout("Hand2", new LoadoutInfo()
             .WithHealth(250f)
-            .WithGameAmmo(ItemType.Ammo556x45, 81)
+            .WithGameAmmo(ItemType.Ammo556x45, 120)
             .WithGameAmmo(ItemType.Ammo9x19, 120)
             .WithGameItems(ItemType.GunCOM18, ItemType.GunE11SR, ItemType.GrenadeHE, ItemType.KeycardMTFCaptain, ItemType.Medkit, ItemType.Adrenaline, ItemType.Radio, ItemType.ArmorHeavy));
         

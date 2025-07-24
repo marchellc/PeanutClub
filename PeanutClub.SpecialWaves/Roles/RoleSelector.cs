@@ -82,13 +82,8 @@ public class RoleSelector
         var range = SelectRange();
 
         if (range is null)
-        {
-            ApiLog.Debug("Role Selector", "Range: (null)");
             return;
-        }
         
-        ApiLog.Debug("Role Selector", $"Range: MinPlayers={range.MinPlayers}; MaxPlayers={range.MaxPlayers} ({ExPlayer.Count}); MinSpawnCount={range.MinSpawnCount}; MaxSpawnCount={range.MaxSpawnCount}; OverallChance={range.OverallChance}");
-
         var buffer = ListPool<ExPlayer>.Shared.Rent();
 
         foreach (var pair in args.Roles)
@@ -99,13 +94,9 @@ public class RoleSelector
             buffer.Add(pair.Key!);
         }
         
-        ApiLog.Debug("Role Selector", $"Selecting a list of players from {buffer.Count} valid player(s)");
-        
         SelectPlayers(range, buffer);
 
         ListPool<ExPlayer>.Shared.Return(buffer);
-        
-        ApiLog.Debug("Role Selector", $"Selected {Players.Count} player(s)");
 
         for (var x = 0; x < Players.Count; x++)
         {
@@ -144,8 +135,6 @@ public class RoleSelector
                 playerCount = range.MaxSpawnCount;
             }
         }
-        
-        ApiLog.Debug("Role Selector", $"Target Player Count: {playerCount}");
 
         if (players.Count <= playerCount)
         {

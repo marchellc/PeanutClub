@@ -75,26 +75,17 @@ public static class SniperRifleHandler
     {
         firearm.SetTag(ItemTag);
         firearm.SetAttachments(x => x.IsEnabled && !BlacklistedAttachments.Contains(x.Name));
-
+        
         if (firearm.TryGetModule<MagazineModule>(out var magazineModule))
         {
             magazineModule._defaultCapacity = SniperChambered;
             
+            if (firearm.TryGetModule<AutomaticActionModule>(out var actionModule) && actionModule.AmmoStored > 0)
+                actionModule.ServerCycleAction();
+            
             if (magazineModule.AmmoStored > SniperChambered)
-            {
-                var amount = magazineModule.AmmoStored - SniperChambered;
-                
-                magazineModule.ServerModifyAmmo(-amount);
-                
-                firearm.Owner.inventory.ServerAddAmmo(magazineModule._ammoType, amount);
-            }
+                magazineModule.ServerModifyAmmo(-(magazineModule.AmmoStored - SniperChambered));
         }
-
-        if (!firearm.TryGetModule<AutomaticActionModule>(out var actionModule))
-            return;
-
-        if (actionModule.AmmoStored > 0)
-            actionModule.ServerCycleAction();
     }
 
     internal static void Internal_LoadoutApplied(string loadoutName, LoadoutInfo loadoutInfo, ExPlayer player)

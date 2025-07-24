@@ -150,8 +150,8 @@ public class SerpentsHandTeam : CustomTeamHandler<SerpentsHandWave>
     {
         if (WasSpawned)
             return;
-        
-        if (!args.Player.Role.IsScp(false))
+
+        if (!args.OldRole.IsScp(false))
             return;
 
         WasSpawned = Spawn(MaxPlayers, false, false) != null;
