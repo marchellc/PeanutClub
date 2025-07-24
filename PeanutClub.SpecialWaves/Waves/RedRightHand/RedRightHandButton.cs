@@ -1,9 +1,10 @@
 using AdminToys;
+
 using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Events.Handlers;
-using LabApi.Features.Wrappers;
-
+using LabApi.Loader.Features.Plugins;
 using LabExtended.API;
+using LabExtended.API.Toys;
 using LabExtended.API.Hints;
 
 using LabExtended.Core;
@@ -11,14 +12,10 @@ using LabExtended.Events;
 using LabExtended.Extensions;
 using LabExtended.Utilities;
 
-using MapGeneration;
-
 using ProjectMER.Features;
 using ProjectMER.Features.Objects;
 
 using UnityEngine;
-
-using PlayerInteractedToyEventArgs = LabApi.Events.Arguments.PlayerEvents.PlayerInteractedToyEventArgs;
 
 namespace PeanutClub.SpecialWaves.Waves.RedRightHand;
 
@@ -30,12 +27,27 @@ public static class RedRightHandButton
     /// <summary>
     /// Gets the name of the button schematic.
     /// </summary>
-    public const string SchematicName = "RedRightHandButton";
+    public static string SchematicName => PluginCore.StaticConfig.RedRightHandButtonSchematicName;
+    
+    /// <summary>
+    /// Gets the name of the button position.
+    /// </summary>
+    public static string PositionName => PluginCore.StaticConfig.RedRightHandButtonPositionName;
+
+    /// <summary>
+    /// Gets the name of the button press animation.
+    /// </summary>
+    public static string AnimationName => PluginCore.StaticConfig.RedRightHandButtonAnimationName;
 
     /// <summary>
     /// The maximum amount of players to spawn.
     /// </summary>
-    public const int MaxPlayers = 6;
+    public static int MaxPlayers => PluginCore.StaticConfig.RedRightHandMaxPlayers;
+
+    /// <summary>
+    /// The spawn angle of the button.
+    /// </summary>
+    public static float ButtonAngle => PluginCore.StaticConfig.RedRightHandButtonAngle;
     
     /// <summary>
     /// Whether or not the button was used this round.
@@ -52,6 +64,16 @@ public static class RedRightHandButton
     /// </summary>
     public static InteractableToy? ButtonInteractable { get; private set; }
 
+    /// <summary>
+    /// Gets called once the button is succesfully used.
+    /// </summary>
+    public static event Action<ExPlayer>? Used;
+
+    /// <summary>
+    /// Gets called once the button is used resulting in a fail (missing O5 keycard, not enough players to spawn etc.).
+    /// </summary>
+    public static event Action<ExPlayer>? Failed; 
+
     private static void Internal_Interacted(PlayerSearchedToyEventArgs args)
     {
         if (WasUsed)
@@ -65,12 +87,16 @@ public static class RedRightHandButton
 
         if (args.Player is not ExPlayer player)
             return;
+        
+        ButtonObject?.AnimationController.Play(AnimationName);
 
-        if (!player.Inventory.HasItem(ItemType.KeycardO5))
+        if (!player.Inventory!.HasItem(ItemType.KeycardO5))
         {
             ApiLog.Debug("Red Right Hand Button", $"Player &3{player.Nickname}&r (&6{player.UserId}&r) tried to spawn a wave without an O5 keycard.");
             
             player.SendHint("<color=red>Potřebuješ O5 kartu pro zavolání Red Right Hand!</color>", 5, true);
+            
+            Failed?.InvokeSafe(player);
             return;
         }
 
@@ -80,6 +106,8 @@ public static class RedRightHandButton
             
             player.ShowHint("<b>Zavolal jsi <color=red>Red Right Hand</color>!</b>", 10);
             
+            Used?.InvokeSafe(player);
+            
             ApiLog.Debug("Red Right Hand Button",
                 $"Player &3{player.Nickname}&r (&6{player.UserId}&r) called a new wave!");
         }
@@ -87,9 +115,29 @@ public static class RedRightHandButton
         {
             player.ShowHint("<b>Nelze zavolat <color=red>Red Right Hand</color>, zkus to později!</b>", 10);
             
+            Failed?.InvokeSafe(player);
+            
             ApiLog.Debug("Red Right Hand Button", "Could not spawn a new wave");
         }
     }
+    
+    // Cylinder
+    // Clip (0): button3
+    // Layer (0): Base Layer
+    // State Full Path Hash: -631838814
+    // State Name Hash: 897631270
+    
+    // Cylinder (1)
+    // Clip (0): button2
+    // Layer (0): Base Layer
+    // State Full Path Hash: -1387145420
+    // State Name Hash: 1116206256
+    
+    // Cylinder (2)
+    // Clip (0): button
+    // Layer (0): Base Layer
+    // State Full Path Hash: 959775358
+    // State Name Hash: 973515837
     
     private static void Internal_Started()
     {
@@ -97,26 +145,15 @@ public static class RedRightHandButton
 
         ButtonObject = null;
         
-        if (MapUtilities.TryGet(SchematicName, out MapUtilities.NamedPosition namedPosition))
+        if (MapUtilities.TryGet(PositionName, ButtonAngle, out Vector3 position, out Quaternion rotation))
         {
-            if (!RoomUtils.TryFindRoom(namedPosition.RoomName, namedPosition.RoomZone, namedPosition.RoomShape,
-                    out var room))
-            {
-                ApiLog.Warn("Special Waves", $"Could not find the target room for the Red Right Hand spawn point!");
-                return;
-            }
-
-            var position = room.transform.TransformPoint(namedPosition.Position.Vector);
-            var rotation = Quaternion.Euler(0f, room.transform.rotation.eulerAngles.y + 180f, 0f);
-            
             if (ObjectSpawner.TrySpawnSchematic(SchematicName, position, rotation, out var schematic))
             {
                 ButtonObject = schematic;
-                ButtonObject.AnimationController.Animators.ForEach(anim => ButtonObject.AnimationController.Stop(anim.name));
-                
-                ButtonInteractable = InteractableToy.Create(position, rotation, Vector3.one * 5f);
+
+                ButtonInteractable = new(position, rotation) { Scale = Vector3.one / 8.5f };
                 ButtonInteractable.Shape = InvisibleInteractableToy.ColliderShape.Box;
-                ButtonInteractable.InteractionDuration = 0.1f;
+                ButtonInteractable.InteractionDuration = 1f;
 
                 ApiLog.Debug("Special Waves", $"Spawned the Red Right Hand button schematic at &3{position.ToPreciseString()}&r!");
             }

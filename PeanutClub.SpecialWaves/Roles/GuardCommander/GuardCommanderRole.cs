@@ -24,9 +24,9 @@ namespace PeanutClub.SpecialWaves.Roles.GuardCommander;
 public static class GuardCommanderRole
 {
     /// <summary>
-    /// The player chosen as the Guard Commander.
+    /// Gets the guard commander role selector.
     /// </summary>
-    public static ExPlayer? ChosenCommander { get; private set; }
+    public static RoleSelector RoleSelector { get; private set; }
     
     /// <summary>
     /// Sets a specific player as the Guard Commander.
@@ -49,18 +49,6 @@ public static class GuardCommanderRole
         
         ApiLog.Debug("Guard Commander Role", $"Spawned player &3{player.Nickname}&r (&6{player.UserId}&r) as the Guard Commander");
     }
-    
-    private static void Internal_Started()
-    {
-        TimingUtils.AfterSeconds(() =>
-        {
-            if (ChosenCommander?.ReferenceHub != null)
-            {
-                ChosenCommander.SetCommander();
-                ChosenCommander = null;
-            }
-        }, 0.2f);
-    }
 
     private static void Internal_RoleChanged(PlayerChangedRoleEventArgs args)
     {
@@ -70,52 +58,14 @@ public static class GuardCommanderRole
             args.Player.InfoArea &= ~PlayerInfoArea.CustomInfo;
         }
     }
-
-    private static void Internal_AssigningRoles(AssigningRolesEventArgs args)
-    {
-        ChosenCommander = null;
-
-        var validPairs = ListPool<KeyValuePair<ExPlayer, RoleTypeId>>.Shared.Rent();
-
-        foreach (var pair in args.Roles)
-        {
-            if (pair.Value != RoleTypeId.FacilityGuard)
-                continue;
-            
-            validPairs.Add(pair);
-        }
-        
-        if (validPairs.Count > 0)
-        {
-            if (validPairs.Count == 1)
-            {
-                if (WeightUtils.GetBool(50f, 50f))
-                {
-                    ChosenCommander = validPairs[0].Key;
-                }
-            }
-            else
-            {
-                ChosenCommander = validPairs.GetRandomItem().Key;
-            }
-
-            if (ChosenCommander?.ReferenceHub != null)
-            {
-                args.Roles.Remove(ChosenCommander);
-            }
-        }
-        
-        ListPool<KeyValuePair<ExPlayer, RoleTypeId>>.Shared.Return(validPairs);
-    }
     
     internal static void Internal_Init()
     {
+        RoleSelector = new(PluginCore.StaticConfig.GuardCommanderSpawns, SetCommander, (_, role) => role is RoleTypeId.FacilityGuard);
+        
         LoadoutManager.EnsureLoadout("GuardCommander", new LoadoutInfo()
             .WithGameAmmo(ItemType.Ammo556x45, 120)
             .WithGameItems(ItemType.GunE11SR, ItemType.KeycardMTFPrivate, ItemType.Medkit, ItemType.Adrenaline, ItemType.GrenadeFlash, ItemType.Radio, ItemType.ArmorCombat));
-        
-        ExRoundEvents.Started += Internal_Started;
-        ExRoundEvents.AssigningRoles += Internal_AssigningRoles;
         
         PlayerEvents.ChangedRole += Internal_RoleChanged;
     }

@@ -5,11 +5,7 @@ using LabExtended.API;
 using LabExtended.API.Hints;
 
 using LabExtended.Core;
-using LabExtended.Utilities;
 using LabExtended.Extensions;
-
-using LabExtended.Events;
-using LabExtended.Events.Round;
 
 using PeanutClub.SpecialWaves.Loadouts;
 
@@ -23,9 +19,9 @@ namespace PeanutClub.SpecialWaves.Roles.Janitor;
 public static class JanitorRole
 {
     /// <summary>
-    /// Gets the spawned janitor.
+    /// Gets the role selector used to select Janitor players.
     /// </summary>
-    public static ExPlayer? Janitor { get; private set; }
+    public static RoleSelector RoleSelector { get; private set; }
 
     /// <summary>
     /// Sets a player as the Janitor.
@@ -50,17 +46,6 @@ public static class JanitorRole
         ApiLog.Debug("Janitor Role", $"Made player &3{player.Nickname}&r (&6{player.UserId}&r) the Janitor.");
     }
 
-    private static void Internal_RoundStarted()
-    {
-        TimingUtils.AfterSeconds(() =>
-        {
-            if (Janitor?.ReferenceHub != null)
-            {
-                SetJanitor(Janitor);
-            }
-        }, 0.2f);
-    }
-
     private static void Internal_ChangedRole(PlayerChangedRoleEventArgs args)
     {
         if (!string.IsNullOrEmpty(args.Player.CustomInfo) && args.Player.CustomInfo == "Janitor")
@@ -69,37 +54,13 @@ public static class JanitorRole
             args.Player.InfoArea &= ~PlayerInfoArea.CustomInfo;
         }
     }
-
-    private static void Internal_AssigningRoles(AssigningRolesEventArgs args)
-    {
-        if (args.Roles.Count > 0)
-        {
-            if (args.Roles.Count == 1)
-            {
-                if (!WeightUtils.GetBool(50f, 50f))
-                    return;
-
-                Janitor = args.Roles.First().Key;
-            }
-            else
-            {
-                Janitor = args.Roles.GetRandomItem(x => x.Value is RoleTypeId.ClassD).Key;
-            }
-        }
-
-        if (Janitor?.ReferenceHub != null)
-        {
-            args.Roles.Remove(Janitor);
-        }
-    }
     
     internal static void Internal_Init()
     {
+        RoleSelector = new(PluginCore.StaticConfig.JanitorSpawns, SetJanitor, (_, role) => role is RoleTypeId.ClassD);
+        
         LoadoutManager.EnsureLoadout("Janitor", new LoadoutInfo()
             .WithGameItems(ItemType.Medkit, ItemType.KeycardJanitor));
-        
-        ExRoundEvents.Started += Internal_RoundStarted;
-        ExRoundEvents.AssigningRoles += Internal_AssigningRoles;
 
         PlayerEvents.ChangedRole += Internal_ChangedRole;
     }

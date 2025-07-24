@@ -72,9 +72,9 @@ public class RedRightHandTeam : CustomTeamHandler<RedRightHandWave>
     {
         base.OnRegistered();
         
-        RedRightHandButton.Internal_Init();
-
         Singleton = this;
+        
+        RedRightHandButton.Internal_Init();
         
         LoadoutManager.EnsureLoadout("Hand1", new LoadoutInfo()
             .WithHealth(250f)

@@ -33,12 +33,22 @@ public class SerpentsHandTeam : CustomTeamHandler<SerpentsHandWave>
     /// <summary>
     /// Gets the maximum amount of players in a wave.
     /// </summary>
-    public const int MaxPlayers = 3;
+    public static int MaxPlayers => PluginCore.StaticConfig.SerpentsHandMaxPlayers;
 
     /// <summary>
     /// Gets the name of the hole schematic.
     /// </summary>
-    public const string HoleSchematicName = "SerpentsHandHole";
+    public static string HoleSchematicName => PluginCore.StaticConfig.SerpentsHandHoleSchematicName;
+
+    /// <summary>
+    /// Gets the name of the hole position.
+    /// </summary>
+    public static string HolePositionName => PluginCore.StaticConfig.SerpentsHandHolePositionName;
+    
+    /// <summary>
+    /// Gets the name of the spawn position.
+    /// </summary>
+    public static string SpawnPositionName => PluginCore.StaticConfig.SerpentsHandSpawnPositionName;
     
     /// <summary>
     /// Gets the spawn point bounds.
@@ -96,8 +106,8 @@ public class SerpentsHandTeam : CustomTeamHandler<SerpentsHandWave>
 
         while (true)
         {
-            var centerName = $"SerpentsHandCenter{index}";
-            var holeName = $"SerpentsHandHole{index}";
+            var centerName = $"{SpawnPositionName}{index}";
+            var holeName = $"{HolePositionName}{index}";
 
             if (!MapUtilities.Positions.ContainsKey(centerName))
             {

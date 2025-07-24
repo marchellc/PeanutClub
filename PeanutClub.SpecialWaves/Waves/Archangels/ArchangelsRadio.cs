@@ -30,7 +30,7 @@ public static class ArchangelsRadio
     /// <summary>
     /// The maximum amount of players to summon once used.
     /// </summary>
-    public const int MaxPlayers = 6;
+    public static int MaxPlayers => PluginCore.StaticConfig.ArchangelsMaxPlayers;
     
     /// <summary>
     /// Gets the spawned radio item.
@@ -42,24 +42,39 @@ public static class ArchangelsRadio
     /// </summary>
     public static bool WasUsed { get; private set; }
 
+    /// <summary>
+    /// Gets called once a player succesfully uses the radio.
+    /// </summary>
+    public static event Action<ExPlayer>? Used;
+
+    /// <summary>
+    /// Gets called once a player fails to use the radio (not enough players to spawn a wave, etc.)
+    /// </summary>
+    public static event Action<ExPlayer>? Failed; 
+    
     private static void Internal_Using(PlayerUsingRadioEventArgs args)
     {
         if (WasUsed || args.RadioItem?.Base == null || !args.RadioItem.HasTag(ItemTag))
+            return;
+
+        if (args.Player is not ExPlayer player)
             return;
 
         if (ArchangelsTeam.Singleton.Spawn(MaxPlayers, false, false) != null)
         {
             WasUsed = true;
 
-            ArchangelsTeam.Singleton.Spawn(MaxPlayers, false, false);
-
             (args.Player as ExPlayer)?.ShowHint("<b>Zavolal jsi <color=green>Archangels</color>!</b>", 5);
 
+            Used?.InvokeSafe(player);
+            
             ApiLog.Debug("Archangels Radio",
                 $"Player &3{args.Player.Nickname}&r (&6{args.Player.UserId}&r) used the radio!");
         }
         else
         {
+            Failed?.InvokeSafe(player);
+            
             (args.Player as ExPlayer)?.ShowHint("<b>Nelze zavolat <color=green>Archangels</color>, zkus to znovu později!</b>", 5);
         }
     }
@@ -69,9 +84,9 @@ public static class ArchangelsRadio
         WasUsed = false;
         SpawnedRadio = null;
         
-        if (MapUtilities.TryGet(ItemTag, out Vector3 position))
+        if (MapUtilities.TryGet(ItemTag, null, out Vector3 position, out Quaternion rotation))
         {
-            SpawnedRadio = ExMap.SpawnItem(ItemType.Radio, position, Vector3.one, Quaternion.identity);
+            SpawnedRadio = ExMap.SpawnItem(ItemType.Radio, position, Vector3.one, rotation);
             SpawnedRadio.SetTag(ItemTag);
             
             ApiLog.Debug("Archangels Radio", $"Spawned the radio at &3{position.ToPreciseString()}&r");
