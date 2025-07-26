@@ -2,17 +2,12 @@ using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Events.Handlers;
 
 using LabExtended.API;
-using LabExtended.API.Hints;
+
 using LabExtended.Core;
-using LabExtended.Events;
-using LabExtended.Events.Round;
 
-using LabExtended.Extensions;
-using LabExtended.Utilities;
-
-using NorthwoodLib.Pools;
-
-using PeanutClub.SpecialWaves.Loadouts;
+using PeanutClub.LoadoutAPI;
+using PeanutClub.OverlayAPI.Alerts;
+using PeanutClub.Utilities.Roles.Selection;
 
 using PlayerRoles;
 
@@ -43,9 +38,10 @@ public static class GuardCommanderRole
 
         if ((player.InfoArea & PlayerInfoArea.CustomInfo) != PlayerInfoArea.CustomInfo)
             player.InfoArea |= PlayerInfoArea.CustomInfo;
+
+        LoadoutPlugin.TryApply(player, "GuardCommander");
         
-        player.ApplyLoadout("GuardCommander");
-        player.ShowHint("<b>Jsi <color=green>Guard Commander</color>!</b>", 10, true);
+        player.SendAlert(AlertType.Info, 10f, "<b>Tvoje role je</b>\n<size=30><color=blue><b>VELITEL HLÍDAČŮ</b></color></size>!");
         
         ApiLog.Debug("Guard Commander Role", $"Spawned player &3{player.Nickname}&r (&6{player.UserId}&r) as the Guard Commander");
     }
@@ -63,9 +59,9 @@ public static class GuardCommanderRole
     {
         RoleSelector = new(PluginCore.StaticConfig.GuardCommanderSpawns, SetCommander, (_, role) => role is RoleTypeId.FacilityGuard);
         
-        LoadoutManager.EnsureLoadout("GuardCommander", new LoadoutInfo()
-            .WithGameAmmo(ItemType.Ammo556x45, 120)
-            .WithGameItems(ItemType.GunE11SR, ItemType.KeycardMTFPrivate, ItemType.Medkit, ItemType.Adrenaline, ItemType.GrenadeFlash, ItemType.Radio, ItemType.ArmorCombat));
+        LoadoutPlugin.Ensure("GuardCommander", new LoadoutDefinition()
+            .WithAmmo(ItemType.Ammo556x45, 120)
+            .WithItems(ItemType.GunE11SR, ItemType.KeycardMTFPrivate, ItemType.Medkit, ItemType.Adrenaline, ItemType.GrenadeFlash, ItemType.Radio, ItemType.ArmorCombat));
         
         PlayerEvents.ChangedRole += Internal_RoleChanged;
     }

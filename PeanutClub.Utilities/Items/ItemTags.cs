@@ -6,7 +6,7 @@ using LabApi.Features.Wrappers;
 using LabExtended.Events;
 using LabExtended.Core.Pooling.Pools;
 
-namespace PeanutClub.SpecialWaves.Utilities;
+namespace PeanutClub.Utilities.Items;
 
 /// <summary>
 /// An extremely simplified version of Custom Items which only tracks items.

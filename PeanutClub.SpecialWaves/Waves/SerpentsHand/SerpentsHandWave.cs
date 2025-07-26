@@ -1,7 +1,9 @@
 using LabExtended.API;
 using LabExtended.API.CustomTeams;
+
 using LabExtended.Utilities;
-using PeanutClub.SpecialWaves.Loadouts;
+
+using PeanutClub.LoadoutAPI;
 
 namespace PeanutClub.SpecialWaves.Waves.SerpentsHand;
 
@@ -26,7 +28,8 @@ public class SerpentsHandWave : CustomTeamInstance<SerpentsHandTeam>
 
     private void SetupPlayer(ExPlayer player)
     {
-        player.ApplyLoadout("SerpentsHand");
+        LoadoutPlugin.TryApply(player, "SerpentsHand");
+        
         player.CustomInfo = "Serpent's Hand";
 
         if ((player.InfoArea & PlayerInfoArea.CustomInfo) != PlayerInfoArea.CustomInfo)

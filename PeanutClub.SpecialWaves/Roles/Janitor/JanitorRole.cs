@@ -7,7 +7,9 @@ using LabExtended.API.Hints;
 using LabExtended.Core;
 using LabExtended.Extensions;
 
-using PeanutClub.SpecialWaves.Loadouts;
+using PeanutClub.LoadoutAPI;
+using PeanutClub.OverlayAPI.Alerts;
+using PeanutClub.Utilities.Roles.Selection;
 
 using PlayerRoles;
 
@@ -34,14 +36,15 @@ public static class JanitorRole
         
         player.Role.Set(RoleTypeId.ClassD, RoleChangeReason.RoundStart, RoleSpawnFlags.None);
         player.Position.Position = RoleTypeId.Scientist.GetSpawnPosition().position;
-        player.ApplyLoadout("Janitor");
+
+        LoadoutPlugin.TryApply(player, "Janitor");
 
         player.CustomInfo = "Janitor";
 
         if ((player.InfoArea & PlayerInfoArea.CustomInfo) != PlayerInfoArea.CustomInfo)
             player.InfoArea |= PlayerInfoArea.CustomInfo;
         
-        player.ShowHint("<b>Jsi <color=green>Uklízeč</color>!</b>", 10, true);
+        player.SendAlert(AlertType.Info, 10f, "<b>Tvoje role je</b>\n<size=30><color=yellow><b>UKLÍZEČ</b></color></size>!");
         
         ApiLog.Debug("Janitor Role", $"Made player &3{player.Nickname}&r (&6{player.UserId}&r) the Janitor.");
     }
@@ -59,8 +62,8 @@ public static class JanitorRole
     {
         RoleSelector = new(PluginCore.StaticConfig.JanitorSpawns, SetJanitor, (_, role) => role is RoleTypeId.ClassD);
         
-        LoadoutManager.EnsureLoadout("Janitor", new LoadoutInfo()
-            .WithGameItems(ItemType.Medkit, ItemType.KeycardJanitor));
+        LoadoutPlugin.Ensure("Janitor", new LoadoutDefinition()
+            .WithItems(ItemType.Medkit, ItemType.KeycardJanitor));
 
         PlayerEvents.ChangedRole += Internal_ChangedRole;
     }

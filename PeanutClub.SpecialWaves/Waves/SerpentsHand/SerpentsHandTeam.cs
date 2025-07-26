@@ -12,7 +12,7 @@ using LabExtended.Utilities;
 using LabExtended.Extensions;
 using LabExtended.Attributes;
 
-using PeanutClub.SpecialWaves.Loadouts;
+using PeanutClub.LoadoutAPI;
 
 using PlayerRoles;
 using PlayerRoles.Spectating;
@@ -90,9 +90,9 @@ public class SerpentsHandTeam : CustomTeamHandler<SerpentsHandWave>
         
         ExRoundEvents.Started += Internal_Started;
         
-        LoadoutManager.EnsureLoadout("SerpentsHand", new LoadoutInfo()
-            .WithGameAmmo(ItemType.Ammo556x45, 120)
-            .WithGameItems(ItemType.GunE11SR, ItemType.GrenadeHE, ItemType.KeycardChaosInsurgency, ItemType.Adrenaline, ItemType.SCP500, ItemType.SCP1344, ItemType.ArmorHeavy));
+        LoadoutPlugin.Ensure("SerpentsHand", new LoadoutDefinition()
+            .WithAmmo(ItemType.Ammo556x45, 120)
+            .WithItems(ItemType.GunE11SR, ItemType.GrenadeHE, ItemType.KeycardChaosInsurgency, ItemType.Adrenaline, ItemType.SCP500, ItemType.SCP1344, ItemType.ArmorHeavy));
         
         ApiLog.Debug("Serpent's Hand", "Registered");
     }

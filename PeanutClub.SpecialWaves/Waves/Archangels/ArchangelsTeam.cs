@@ -1,15 +1,16 @@
-using InventorySystem.Items.Firearms;
 using LabExtended.API;
 
 using LabExtended.API.CustomTeams;
 using LabExtended.API.CustomTeams.Internal;
+
 using LabExtended.Attributes;
+
 using LabExtended.Core;
 using LabExtended.Extensions;
 
-using PeanutClub.SpecialWaves.Loadouts;
-using PeanutClub.SpecialWaves.Utilities;
+using PeanutClub.LoadoutAPI;
 using PeanutClub.SpecialWaves.Weapons;
+
 using PlayerRoles;
 using PlayerRoles.Spectating;
 
@@ -72,21 +73,22 @@ public class ArchangelsTeam : CustomTeamHandler<ArchangelsWave>
 
         Singleton = this;
         
-        LoadoutManager.EnsureLoadout("Archangels1", new LoadoutInfo()
-            .WithHealth(250f)
-            .WithGameAmmo(ItemType.Ammo762x39, 200)
-            .WithGameItems(ItemType.GunLogicer, ItemType.KeycardChaosInsurgency, ItemType.GrenadeHE, ItemType.Medkit, ItemType.Adrenaline, ItemType.ArmorHeavy));
+        LoadoutPlugin.Ensure("Archangels1", new LoadoutDefinition()
+            .WithHealth(250f, 250f)
+            .WithAmmo(ItemType.Ammo762x39, 200)
+            .WithItems(ItemType.GunLogicer, ItemType.KeycardChaosInsurgency, ItemType.GrenadeHE, ItemType.Medkit, ItemType.Adrenaline, ItemType.ArmorHeavy));
         
-        LoadoutManager.EnsureLoadout("Archangels2", new LoadoutInfo()
-            .WithHealth(250f)
-            .WithGameAmmo(ItemType.Ammo762x39, 200)
-            .WithGameItems(ItemType.GunLogicer, ItemType.Jailbird, ItemType.KeycardChaosInsurgency, ItemType.GrenadeHE, ItemType.Medkit, ItemType.Adrenaline, ItemType.ArmorHeavy));
+        LoadoutPlugin.Ensure("Archangels2", new LoadoutDefinition()
+            .WithHealth(250f, 250f)
+            .WithAmmo(ItemType.Ammo762x39, 200)
+            .WithItems(ItemType.GunLogicer, ItemType.Jailbird, ItemType.KeycardChaosInsurgency, ItemType.GrenadeHE, ItemType.Medkit, ItemType.Adrenaline, ItemType.ArmorHeavy));
         
-        LoadoutManager.EnsureLoadout("Archangels3",  new LoadoutInfo()
-            .WithHealth(250f)
-            .WithGameAmmo(ItemType.Ammo556x45, 120)
-            .WithGameAmmo(ItemType.GunCOM18, 120)
-            .WithGameItems(ItemType.GunCOM18, ItemType.GunE11SR, ItemType.KeycardChaosInsurgency, ItemType.Medkit, ItemType.Adrenaline, ItemType.ArmorHeavy));
+        LoadoutPlugin.Ensure("Archangels3",  new LoadoutDefinition()
+            .WithHealth(250f, 250f)
+            .WithAmmo(ItemType.Ammo556x45, 120)
+            .WithAmmo(ItemType.GunCOM18, 120)
+            .WithItem(ItemType.GunE11SR, SniperRifleHandler.ItemTag)
+            .WithItems(ItemType.GunCOM18, ItemType.KeycardChaosInsurgency, ItemType.Medkit, ItemType.Adrenaline, ItemType.ArmorHeavy));
         
         ApiLog.Debug("Archangels Team", "Registered");
     }
@@ -123,7 +125,7 @@ public class ArchangelsTeam : CustomTeamHandler<ArchangelsWave>
 
             if (!string.IsNullOrEmpty(loadout))
             {
-                player.ApplyLoadout(loadout);
+                LoadoutPlugin.TryApply(player, loadout);
             }
         }
     }

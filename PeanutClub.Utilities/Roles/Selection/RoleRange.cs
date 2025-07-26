@@ -1,6 +1,6 @@
 using System.ComponentModel;
 
-namespace PeanutClub.SpecialWaves.Roles;
+namespace PeanutClub.Utilities.Roles.Selection;
 
 /// <summary>
 /// Defines a range of player count for role properties.

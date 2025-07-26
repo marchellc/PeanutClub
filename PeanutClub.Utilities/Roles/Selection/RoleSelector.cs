@@ -1,6 +1,4 @@
 using LabExtended.API;
-
-using LabExtended.Core;
 using LabExtended.Extensions;
 
 using LabExtended.Events;
@@ -13,7 +11,7 @@ using NorthwoodLib.Pools;
 
 using PlayerRoles;
 
-namespace PeanutClub.SpecialWaves.Roles;
+namespace PeanutClub.Utilities.Roles.Selection;
 
 /// <summary>
 /// Selects custom roles.

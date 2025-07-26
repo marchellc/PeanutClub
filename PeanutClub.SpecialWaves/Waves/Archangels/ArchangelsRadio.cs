@@ -11,7 +11,7 @@ using LabExtended.Core;
 using LabExtended.Events;
 using LabExtended.Utilities;
 using LabExtended.Extensions;
-
+using PeanutClub.OverlayAPI.Alerts;
 using ProjectMER.Features;
 using ProjectMER.Features.Objects;
 
@@ -27,7 +27,7 @@ public static class ArchangelsRadio
     /// <summary>
     /// Gets the number to divide the scale of the interactable toy by.
     /// </summary>
-    public const float ScaleFactor = 8.6f;
+    public const float ScaleFactor = 8.5f;
     
     /// <summary>
     /// Gets the name of the radio schematic.
@@ -87,7 +87,7 @@ public static class ArchangelsRadio
         {
             WasUsed = true;
             
-            player.ShowHint("<b>Zavolal jsi <color=red>Archangels</color>!</b>", 10);
+            player.SendAlert(AlertType.Info, 10f, "<b><color=green>Úspěšně</color> jsi zavolal</b>\n<color=green><b>Archangels</b></color>!");
             
             Used?.InvokeSafe(player);
             
@@ -96,7 +96,7 @@ public static class ArchangelsRadio
         }
         else
         {
-            player.ShowHint("<b>Nelze zavolat <color=red>Archangels</color>, zkus to později!</b>", 10);
+            player.SendAlert(AlertType.Warn, 10f, "Aktuálně <color=red>nelze</color> zavolat tým <color=green>Archangels</color>, zkus to znova později!");
             
             Failed?.InvokeSafe(player);
             

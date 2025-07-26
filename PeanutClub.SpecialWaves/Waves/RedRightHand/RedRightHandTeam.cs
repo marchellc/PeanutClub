@@ -6,7 +6,9 @@ using LabExtended.API.CustomTeams.Internal;
 
 using LabExtended.Attributes;
 using LabExtended.Core;
-using PeanutClub.SpecialWaves.Loadouts;
+
+using PeanutClub.LoadoutAPI;
+using PeanutClub.SpecialWaves.Weapons;
 
 using PlayerRoles;
 using PlayerRoles.Spectating;
@@ -76,21 +78,22 @@ public class RedRightHandTeam : CustomTeamHandler<RedRightHandWave>
         
         RedRightHandButton.Internal_Init();
         
-        LoadoutManager.EnsureLoadout("Hand1", new LoadoutInfo()
-            .WithHealth(250f)
-            .WithGameAmmo(ItemType.Ammo556x45, 120)
-            .WithGameItems(ItemType.GunFRMG0, ItemType.GrenadeHE, ItemType.KeycardMTFCaptain, ItemType.Medkit, ItemType.Adrenaline, ItemType.Radio, ItemType.ArmorHeavy));
+        LoadoutPlugin.Ensure("Hand1", new LoadoutDefinition()
+            .WithHealth(250f, 250f)
+            .WithAmmo(ItemType.Ammo556x45, 120)
+            .WithItems(ItemType.GunFRMG0, ItemType.GrenadeHE, ItemType.KeycardMTFCaptain, ItemType.Medkit, ItemType.Adrenaline, ItemType.Radio, ItemType.ArmorHeavy));
         
-        LoadoutManager.EnsureLoadout("Hand2", new LoadoutInfo()
-            .WithHealth(250f)
-            .WithGameAmmo(ItemType.Ammo556x45, 120)
-            .WithGameAmmo(ItemType.Ammo9x19, 120)
-            .WithGameItems(ItemType.GunCOM18, ItemType.GunE11SR, ItemType.GrenadeHE, ItemType.KeycardMTFCaptain, ItemType.Medkit, ItemType.Adrenaline, ItemType.Radio, ItemType.ArmorHeavy));
+        LoadoutPlugin.Ensure("Hand2", new LoadoutDefinition()
+            .WithHealth(250f, 250f)
+            .WithAmmo(ItemType.Ammo556x45, 120)
+            .WithAmmo(ItemType.Ammo9x19, 120)
+            .WithItem(ItemType.GunE11SR, SniperRifleHandler.ItemTag)
+            .WithItems(ItemType.GunCOM18, ItemType.GrenadeHE, ItemType.KeycardMTFCaptain, ItemType.Medkit, ItemType.Adrenaline, ItemType.Radio, ItemType.ArmorHeavy));
         
-        LoadoutManager.EnsureLoadout("Hand3", new LoadoutInfo()
-            .WithHealth(250f)
-            .WithGameAmmo(ItemType.Ammo556x45, 120)
-            .WithGameItems(ItemType.GunFRMG0, ItemType.GrenadeHE, ItemType.KeycardMTFCaptain, ItemType.Medkit, ItemType.Adrenaline, ItemType.Radio, ItemType.ArmorHeavy));
+        LoadoutPlugin.Ensure("Hand3", new LoadoutDefinition()
+            .WithHealth(250f, 250f)
+            .WithAmmo(ItemType.Ammo556x45, 120)
+            .WithItems(ItemType.GunFRMG0, ItemType.GrenadeHE, ItemType.KeycardMTFCaptain, ItemType.Medkit, ItemType.Adrenaline, ItemType.Radio, ItemType.ArmorHeavy));
         
         ApiLog.Debug("Red Right Hand Team", "Registered");
     }
@@ -123,7 +126,7 @@ public class RedRightHandTeam : CustomTeamHandler<RedRightHandWave>
 
             if (!string.IsNullOrEmpty(loadout))
             {
-                player.ApplyLoadout(loadout);
+                LoadoutPlugin.TryApply(player, loadout);
             }
         }
     }

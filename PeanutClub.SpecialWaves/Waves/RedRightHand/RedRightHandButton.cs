@@ -11,7 +11,7 @@ using LabExtended.Core;
 using LabExtended.Events;
 using LabExtended.Extensions;
 using LabExtended.Utilities;
-
+using PeanutClub.OverlayAPI.Alerts;
 using ProjectMER.Features;
 using ProjectMER.Features.Objects;
 
@@ -111,7 +111,7 @@ public static class RedRightHandButton
         {
             ApiLog.Debug("Red Right Hand Button", $"Player &3{player.Nickname}&r (&6{player.UserId}&r) tried to spawn a wave without an O5 keycard.");
             
-            player.SendHint("<color=red>Potřebuješ O5 kartu pro zavolání Red Right Hand!</color>", 5, true);
+            player.SendAlert(AlertType.Warn, 10f, "Pro zavolání týmu <color=red>Red Right Hand</color> je třeba mít <b>O5 kartu</b>!");
             
             Failed?.InvokeSafe(player);
             return;
@@ -121,7 +121,7 @@ public static class RedRightHandButton
         {
             WasUsed = true;
             
-            player.ShowHint("<b>Zavolal jsi <color=red>Red Right Hand</color>!</b>", 10);
+            player.SendAlert(AlertType.Info, 10f, "<b><color=green>Úspěšně</color> jsi zavolal</b>\n<color=red><b>Red Right Hand</b></color>!");
             
             Used?.InvokeSafe(player);
             
@@ -130,7 +130,7 @@ public static class RedRightHandButton
         }
         else
         {
-            player.ShowHint("<b>Nelze zavolat <color=red>Red Right Hand</color>, zkus to později!</b>", 10);
+            player.SendAlert(AlertType.Warn, 10f, "Aktuálně <color=red>nelze</color> zavolat tým <color=red>Red Right Hand</color>, zkus to znova později!");
             
             Failed?.InvokeSafe(player);
             

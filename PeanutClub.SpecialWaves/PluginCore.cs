@@ -3,14 +3,13 @@
 using LabExtended.API.CustomTeams;
 
 using PeanutClub.SpecialWaves.Weapons;
-using PeanutClub.SpecialWaves.Utilities;
 
 using PeanutClub.SpecialWaves.Waves.Archangels;
 using PeanutClub.SpecialWaves.Waves.RedRightHand;
+using PeanutClub.SpecialWaves.Waves.SerpentsHand;
 
 using PeanutClub.SpecialWaves.Roles.Janitor;
 using PeanutClub.SpecialWaves.Roles.GuardCommander;
-using PeanutClub.SpecialWaves.Waves.SerpentsHand;
 
 namespace PeanutClub.SpecialWaves;
 
@@ -50,7 +49,6 @@ public class PluginCore : Plugin<PluginConfig>
         Singleton = this;
         StaticConfig = Config!;
         
-        ItemTags.Internal_Init();
         SniperRifleHandler.Internal_Init();
         
         JanitorRole.Internal_Init();

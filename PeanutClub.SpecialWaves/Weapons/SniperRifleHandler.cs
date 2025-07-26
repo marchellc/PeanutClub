@@ -1,4 +1,4 @@
-using InventorySystem;
+using InventorySystem.Items;
 using InventorySystem.Items.Firearms;
 using InventorySystem.Items.Firearms.Modules;
 using InventorySystem.Items.Firearms.Attachments;
@@ -13,8 +13,9 @@ using LabExtended.Events.Player;
 
 using LabExtended.Utilities.Firearms;
 
-using PeanutClub.SpecialWaves.Loadouts;
-using PeanutClub.SpecialWaves.Utilities;
+using PeanutClub.LoadoutAPI;
+using PeanutClub.OverlayAPI.Alerts;
+using PeanutClub.Utilities.Items;
 
 using PlayerStatsSystem;
 
@@ -33,48 +34,39 @@ public static class SniperRifleHandler
     /// <summary>
     /// Gets the damage the sniper rifle deals at all times.
     /// </summary>
-    public const float SniperDamage = 250f;
+    public static float SniperDamage => PluginCore.StaticConfig.SniperRifleDamage;
 
     /// <summary>
     /// How much ammo can be chambered in the sniper rifle at once.
     /// </summary>
-    public const int SniperChambered = 1;
+    public static int SniperChambered => PluginCore.StaticConfig.SniperRifleCapacity;
 
     /// <summary>
-    /// A list of loadouts with the sniper rifle.
+    /// Whether or not players can change the sniper rifle attachments.
     /// </summary>
-    public static string[] LoadoutsWithSniperRifle { get; } =
-    [
-        "Hand2", // Red Right Hand "Hand2" NtfSpecialist
-        "Archangels3", // Archangels "Archangels3" ChaosMarauder
-    ];
+    public static bool AllowAttachments => PluginCore.StaticConfig.SniperChangingAttachments;
 
     /// <summary>
-    /// An array of all blacklisted attachments.
+    /// A list of default attachments.
     /// </summary>
-    public static AttachmentName[] BlacklistedAttachments { get; } =
-    [
-        AttachmentName.ExtendedMagAP,
-        AttachmentName.ExtendedMagFMJ,
-        AttachmentName.ExtendedMagJHP,
-        
-        AttachmentName.LowcapMagAP,
-        AttachmentName.LowcapMagFMJ,
-        AttachmentName.LowcapMagJHP,
-        
-        AttachmentName.StandardMagAP,
-        AttachmentName.StandardMagFMJ,
-        AttachmentName.StandardMagJHP,
-        
-        AttachmentName.CylinderMag5,
-        AttachmentName.CylinderMag6,
-        AttachmentName.CylinderMag7,
-    ];
+    public static List<AttachmentName> DefaultAttachments => PluginCore.StaticConfig.SniperDefaultAttachments;
+    
+    /// <summary>
+    /// A list of all blacklisted attachments.
+    /// </summary>
+    public static List<AttachmentName> BlacklistedAttachments => PluginCore.StaticConfig.SniperBlacklistedAttachments;
 
-    internal static void Internal_ProcessRifle(Firearm firearm)
+    internal static void Internal_AddedVanillaItem(ExPlayer player, LoadoutDefinition loadout, LoadoutItem loadoutItem, ItemBase item)
     {
-        firearm.SetTag(ItemTag);
-        firearm.SetAttachments(x => x.IsEnabled && !BlacklistedAttachments.Contains(x.Name));
+        if (item == null || !item.HasTag(ItemTag) || item is not Firearm firearm)
+            return;
+        
+        player.SendAlert(AlertType.Info, 10f, "Dostal jsi <color=red>Sniper Rifle</color>!\nTato zbraň dává damage <color=yellow>250 HP</color> při <b>každé</b> ráně!");
+
+        if (DefaultAttachments.Count > 0)
+            firearm.SetAttachments(x => DefaultAttachments.Contains(x.Name));
+        else
+            firearm.SetAttachments(x => x.IsEnabled && !BlacklistedAttachments.Contains(x.Name));
         
         if (firearm.TryGetModule<MagazineModule>(out var magazineModule))
         {
@@ -88,25 +80,18 @@ public static class SniperRifleHandler
         }
     }
 
-    internal static void Internal_LoadoutApplied(string loadoutName, LoadoutInfo loadoutInfo, ExPlayer player)
-    {
-        if (!LoadoutsWithSniperRifle.Contains(loadoutName))
-            return;
-        
-        foreach (var item in player.Inventory.Items)
-        {
-            if (item.ItemTypeId != ItemType.GunE11SR)
-                continue;
-            
-            Internal_ProcessRifle((Firearm)item);
-            break;
-        }
-    }
-
     private static void Internal_ChangingAttachments(PlayerChangingFirearmAttachmentsEventArgs args)
     {
         if (!args.Firearm.HasTag(ItemTag))
             return;
+
+        if (!AllowAttachments)
+        {
+            args.Player.SendAlert(AlertType.Warn, 5f, "Nemůžeš upravovat <color=yellow>Sniper Rifle</color>!");
+            args.IsAllowed = false;
+            
+            return;
+        }
 
         args.ToEnable.RemoveAll(BlacklistedAttachments.Contains);
     }
@@ -123,7 +108,7 @@ public static class SniperRifleHandler
     internal static void Internal_Init()
     {
         PlayerEvents.Hurting += Internal_Hurting;
-        LoadoutManager.Applied += Internal_LoadoutApplied;
+        LoadoutPlugin.AddedVanillaItem += Internal_AddedVanillaItem;
         ExPlayerEvents.ChangingAttachments += Internal_ChangingAttachments;
     }
 }

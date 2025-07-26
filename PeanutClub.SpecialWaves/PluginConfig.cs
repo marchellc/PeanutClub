@@ -1,9 +1,10 @@
 using System.ComponentModel;
 
+using InventorySystem.Items.Firearms.Attachments;
+
 using LabExtended.Core.Configs.Objects;
 
-using PeanutClub.SpecialWaves.Loadouts;
-using PeanutClub.SpecialWaves.Roles;
+using PeanutClub.Utilities.Roles.Selection;
 
 namespace PeanutClub.SpecialWaves;
 
@@ -12,6 +13,53 @@ namespace PeanutClub.SpecialWaves;
 /// </summary>
 public class PluginConfig
 {
+    /// <summary>
+    /// The capacity of the sniper rifle.
+    /// </summary>
+    [Description("Sets the capacity of the sniper rifle's chamber.")]
+    public int SniperRifleCapacity { get; set; } = 1;
+    
+    /// <summary>
+    /// The damage of the sniper rifle.
+    /// </summary>
+    [Description("Sets the damage the sniper rifle deals.")]
+    public float SniperRifleDamage { get; set; } = 250f;
+
+    /// <summary>
+    /// Whether or not players should be able to change sniper rifle attachments.
+    /// </summary>
+    [Description("Allows or prevents players from changing attachments on the sniper rifle.")]
+    public bool SniperChangingAttachments { get; set; } = true;
+
+    /// <summary>
+    /// The list of default attachments for the sniper rifle.
+    /// </summary>
+    [Description("Sets the list of default attachments for the sniper rifle.")]
+    public List<AttachmentName> SniperDefaultAttachments { get; set; } = new();
+
+    /// <summary>
+    /// The list of blacklisted attachments for the sniper rifle.
+    /// </summary>
+    [Description("Sets the list of attachments which cannot be applied on a sniper rifle.")]
+    public List<AttachmentName> SniperBlacklistedAttachments { get; set; } = new()
+    {
+        AttachmentName.ExtendedMagAP,
+        AttachmentName.ExtendedMagFMJ,
+        AttachmentName.ExtendedMagJHP,
+        
+        AttachmentName.LowcapMagAP,
+        AttachmentName.LowcapMagFMJ,
+        AttachmentName.LowcapMagJHP,
+        
+        AttachmentName.StandardMagAP,
+        AttachmentName.StandardMagFMJ,
+        AttachmentName.StandardMagJHP,
+        
+        AttachmentName.CylinderMag5,
+        AttachmentName.CylinderMag6,
+        AttachmentName.CylinderMag7
+    };
+    
     /// <summary>
     /// How many players to spawn when an SCP dies.
     /// </summary>
@@ -101,12 +149,6 @@ public class PluginConfig
     /// </summary>
     [Description("Sets the name of the Red Right Hand Button idle animation.")]
     public string RedRightHandButtonIdleAnimationName { get; set; } = "Idle";
-
-    /// <summary>
-    /// Player loadouts.
-    /// </summary>
-    [Description("Manages custom wave loadouts.")]
-    public Dictionary<string, LoadoutConfig> Loadouts { get; set; } = new();
 
     /// <summary>
     /// Janitor spawn conditions.
