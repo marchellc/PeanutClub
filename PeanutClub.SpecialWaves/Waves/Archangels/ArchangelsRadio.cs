@@ -1,17 +1,19 @@
-using InventorySystem.Items.Pickups;
+using AdminToys;
 
 using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Events.Handlers;
 
 using LabExtended.API;
+using LabExtended.API.Toys;
 using LabExtended.API.Hints;
+
 using LabExtended.Core;
 using LabExtended.Events;
 using LabExtended.Utilities;
 using LabExtended.Extensions;
-using LabExtended.Attributes;
 
-using PeanutClub.SpecialWaves.Utilities;
+using ProjectMER.Features;
+using ProjectMER.Features.Objects;
 
 using UnityEngine;
 
@@ -23,9 +25,19 @@ namespace PeanutClub.SpecialWaves.Waves.Archangels;
 public static class ArchangelsRadio
 {
     /// <summary>
-    /// The custom radio item tag.
+    /// Gets the number to divide the scale of the interactable toy by.
     /// </summary>
-    public const string ItemTag = "ArchangelsRadio";
+    public const float ScaleFactor = 8.6f;
+    
+    /// <summary>
+    /// Gets the name of the radio schematic.
+    /// </summary>
+    public static string SchematicName => PluginCore.StaticConfig.ArchangelsSchematicName;
+
+    /// <summary>
+    /// Gets the name of the radio position.
+    /// </summary>
+    public static string PositionName => PluginCore.StaticConfig.ArchangelsPositionName;
 
     /// <summary>
     /// The maximum amount of players to summon once used.
@@ -33,14 +45,19 @@ public static class ArchangelsRadio
     public static int MaxPlayers => PluginCore.StaticConfig.ArchangelsMaxPlayers;
     
     /// <summary>
-    /// Gets the spawned radio item.
-    /// </summary>
-    public static ItemPickupBase? SpawnedRadio { get; private set; }
-    
-    /// <summary>
     /// Whether or not the radio was already used this round.
     /// </summary>
     public static bool WasUsed { get; private set; }
+    
+    /// <summary>
+    /// Gets the spawned radio schematic.
+    /// </summary>
+    public static SchematicObject? RadioObject { get; private set; }
+
+    /// <summary>
+    /// Gets the spawned radio interactable toy.
+    /// </summary>
+    public static InteractableToy? RadioInteractable { get; private set; }
 
     /// <summary>
     /// Gets called once a player succesfully uses the radio.
@@ -51,10 +68,16 @@ public static class ArchangelsRadio
     /// Gets called once a player fails to use the radio (not enough players to spawn a wave, etc.)
     /// </summary>
     public static event Action<ExPlayer>? Failed; 
-    
-    private static void Internal_Using(PlayerUsingRadioEventArgs args)
+
+    private static void Internal_Interacted(PlayerSearchedToyEventArgs args)
     {
-        if (WasUsed || args.RadioItem?.Base == null || !args.RadioItem.HasTag(ItemTag))
+        if (WasUsed)
+            return;
+
+        if (args.Interactable?.Base == null || RadioInteractable?.Base == null)
+            return;
+
+        if (args.Interactable.Base != RadioInteractable.Base)
             return;
 
         if (args.Player is not ExPlayer player)
@@ -63,43 +86,58 @@ public static class ArchangelsRadio
         if (ArchangelsTeam.Singleton.Spawn(MaxPlayers, false, false) != null)
         {
             WasUsed = true;
-
-            (args.Player as ExPlayer)?.ShowHint("<b>Zavolal jsi <color=green>Archangels</color>!</b>", 5);
-
+            
+            player.ShowHint("<b>Zavolal jsi <color=red>Archangels</color>!</b>", 10);
+            
             Used?.InvokeSafe(player);
             
             ApiLog.Debug("Archangels Radio",
-                $"Player &3{args.Player.Nickname}&r (&6{args.Player.UserId}&r) used the radio!");
+                $"Player &3{player.Nickname}&r (&6{player.UserId}&r) called a new wave!");
         }
         else
         {
+            player.ShowHint("<b>Nelze zavolat <color=red>Archangels</color>, zkus to později!</b>", 10);
+            
             Failed?.InvokeSafe(player);
             
-            (args.Player as ExPlayer)?.ShowHint("<b>Nelze zavolat <color=green>Archangels</color>, zkus to znovu později!</b>", 5);
+            ApiLog.Debug("Archangels Radio", "Could not spawn a new wave");
         }
     }
-
+    
     private static void Internal_Started()
     {
         WasUsed = false;
-        SpawnedRadio = null;
+
+        RadioObject = null;
+        RadioInteractable = null;
         
-        if (MapUtilities.TryGet(ItemTag, null, out Vector3 position, out Quaternion rotation))
+        if (MapUtilities.TryGet(PositionName, null, out Vector3 position, out Quaternion rotation))
         {
-            SpawnedRadio = ExMap.SpawnItem(ItemType.Radio, position, Vector3.one, rotation);
-            SpawnedRadio.SetTag(ItemTag);
-            
-            ApiLog.Debug("Archangels Radio", $"Spawned the radio at &3{position.ToPreciseString()}&r");
+            if (ObjectSpawner.TrySpawnSchematic(SchematicName, position, rotation, out var schematic))
+            {
+                RadioObject = schematic;
+                
+                RadioInteractable = new(position, rotation)
+                {
+                    InteractionDuration = 1f,
+                    Scale = Vector3.one / ScaleFactor,
+                    Shape = InvisibleInteractableToy.ColliderShape.Box,
+                };
+            }
+            else
+            {
+                ApiLog.Warn("Archangels Radio", "Could not spawn the radio schematic");
+            }
         }
         else
         {
-            ApiLog.Warn("Special Waves", "Could not find the spawn point for Archangels radio");
+            ApiLog.Warn("Archangels Radio", "Could not find the spawn point for Archangels radio");
         }
     }
     
     internal static void Internal_Init()
     {
         ExRoundEvents.Started += Internal_Started;
-        PlayerEvents.UsingRadio += Internal_Using;
+        PlayerEvents.SearchedToy += Internal_Interacted;
     }
 }

@@ -49,6 +49,18 @@ public class PluginConfig
     public int ArchangelsMaxPlayers { get; set; } = 6;
     
     /// <summary>
+    /// Name of the schematic for the Archangels Radio.
+    /// </summary>
+    [Description("Sets the name of the Archangels Radio schematic.")]
+    public string ArchangelsSchematicName { get; set; } = "ArchangelsRadio";
+
+    /// <summary>
+    /// Name of the position for the Archangels Radio.
+    /// </summary>
+    [Description("Sets the name of the Red Right Hand Button position.")]
+    public string ArchangelsPositionName { get; set; } = "ArchangelsRadio";
+    
+    /// <summary>
     /// How many players to spawn when the button is used.
     /// </summary>
     [Description("Sets the maximum amount of players to spawn once the button is used.")]
