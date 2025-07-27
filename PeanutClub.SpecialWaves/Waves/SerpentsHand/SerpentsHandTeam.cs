@@ -11,10 +11,7 @@ using LabExtended.Extensions;
 using LabExtended.Attributes;
 
 using PeanutClub.LoadoutAPI;
-
 using PlayerRoles;
-using PlayerRoles.Spectating;
-
 using ProjectMER.Features;
 using ProjectMER.Features.Objects;
 
@@ -70,17 +67,13 @@ public class SerpentsHandTeam : CustomTeamHandler<SerpentsHandWave>
     
     /// <inheritdoc cref="CustomTeamHandler.Name"/>
     public override string? Name { get; } = "Serpent's Hand";
-    
+
     /// <inheritdoc cref="CustomTeamHandler.IsSpawnable"/>
     public override bool IsSpawnable(ExPlayer player)
-        => player?.ReferenceHub != null && player.Role.Role is SpectatorRole spectatorRole && spectatorRole.ReadyToRespawn;
-
-    /// <inheritdoc cref="CustomTeamHandler.SelectPosition"/>
-    public override Vector3? SelectPosition(ExPlayer player)
-        => SpawnPosition;
+        => player.CanBeRespawned;
 
     /// <inheritdoc cref="CustomTeamHandler.SelectRole"/>
-    public override object SelectRole(ExPlayer player, Dictionary<ExPlayer, object> selectedRoles)
+    public override RoleTypeId SelectRole(ExPlayer player, Dictionary<ExPlayer, RoleTypeId> selectedRoles)
         => RoleTypeId.Tutorial;
 
     /// <inheritdoc cref="CustomTeamHandler.OnRegistered"/>
@@ -156,12 +149,15 @@ public class SerpentsHandTeam : CustomTeamHandler<SerpentsHandWave>
         if (!args.OldRole.IsScp(false))
             return;
 
-        WasSpawned = Spawn(MinPlayers, MaxPlayers, false) != null;
-        
-        if (WasSpawned)
-            ApiLog.Debug("Serpent's Hand", "Spawned instance");
-        else
-            ApiLog.Warn("Serpent's Hand", "Could not spawn instance");
+        TimingUtils.AfterSeconds(() =>
+        {
+            WasSpawned = Spawn(MinPlayers, MaxPlayers, player => player != args.Player) != null;
+
+            if (WasSpawned)
+                ApiLog.Debug("Serpent's Hand", "Spawned instance");
+            else
+                ApiLog.Warn("Serpent's Hand", "Could not spawn instance");
+        }, 0.2f);
     }
 
     private void Internal_ChangedRole(PlayerChangedRoleEventArgs args)

@@ -123,7 +123,7 @@ public static class RedRightHandButton
             return;
         }
 
-        if (RedRightHandTeam.Singleton.Spawn(MinPlayers, MaxPlayers, false) != null)
+        if (RedRightHandTeam.Singleton.Spawn(MinPlayers, MaxPlayers) != null)
         {
             WasUsed = true;
             

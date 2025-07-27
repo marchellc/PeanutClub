@@ -2,7 +2,6 @@ using LabExtended.API;
 using LabExtended.API.CustomTeams;
 
 using LabExtended.Core;
-using LabExtended.Extensions;
 using LabExtended.Attributes;
 
 using PeanutClub.LoadoutAPI;
@@ -10,8 +9,6 @@ using PeanutClub.SpecialWaves.Weapons;
 
 using PlayerRoles;
 using PlayerRoles.Spectating;
-
-using UnityEngine;
 
 namespace PeanutClub.SpecialWaves.Waves.RedRightHand;
 
@@ -39,29 +36,18 @@ public class RedRightHandTeam : CustomTeamHandler<RedRightHandWave>
     
     /// <inheritdoc cref="CustomTeamHandler.Name"/>
     public override string? Name { get; } = "Alpha-1 \"Red Right Hand\"";
-    
+
     /// <inheritdoc cref="CustomTeamHandler.IsSpawnable"/>
     public override bool IsSpawnable(ExPlayer player)
-        => player?.ReferenceHub != null && player.Role.Role is SpectatorRole spectatorRole && spectatorRole.ReadyToRespawn;
-
-    /// <inheritdoc cref="CustomTeamHandler.SelectPosition"/>
-    public override Vector3? SelectPosition(ExPlayer player)
-        => NtfRoles
-            .GetRandomItem()
-            .GetSpawnPosition()
-            .position;
-
-    // Hand1 - Captain (1)
-    // Hand2 - Sergeant (1)
-    // Hand3 - Specialist
+        => player.CanBeRespawned;
     
     /// <inheritdoc cref="CustomTeamHandler.SelectRole"/>
-    public override object SelectRole(ExPlayer player, Dictionary<ExPlayer, object> selectedRoles)
+    public override RoleTypeId SelectRole(ExPlayer player, Dictionary<ExPlayer, RoleTypeId> selectedRoles)
     {
-        if (!selectedRoles.Any(x => x.Value is RoleTypeId roleType && roleType == RoleTypeId.NtfCaptain))
+        if (!selectedRoles.Any(x => x.Value == RoleTypeId.NtfCaptain))
             return RoleTypeId.NtfCaptain;
         
-        if (!selectedRoles.Any(x => x.Value is RoleTypeId roleType && roleType == RoleTypeId.NtfSergeant))
+        if (!selectedRoles.Any(x => x.Value == RoleTypeId.NtfSergeant))
             return RoleTypeId.NtfSergeant;
 
         return RoleTypeId.NtfSpecialist;
@@ -94,38 +80,5 @@ public class RedRightHandTeam : CustomTeamHandler<RedRightHandWave>
             .WithItems(ItemType.GunFRMG0, ItemType.GrenadeHE, ItemType.KeycardMTFCaptain, ItemType.Medkit, ItemType.Adrenaline, ItemType.Radio, ItemType.ArmorHeavy));
         
         ApiLog.Debug("Red Right Hand Team", "Registered");
-    }
-
-    public override void OnSpawned(RedRightHandWave instance)
-    {
-        base.OnSpawned(instance);
-
-        ApiLog.Debug("Red Right Hand Team", $"Spawned a new team instance (ID={instance.Id})");
-        
-        for (var i = 0; i < instance.AlivePlayers.Count; i++)
-        {
-            var player = instance.AlivePlayers[i];
-            var loadout = string.Empty;
-
-            switch (player.Role.Type)
-            {
-                case RoleTypeId.NtfCaptain:
-                    loadout = "Hand1";
-                    break;
-                
-                case RoleTypeId.NtfSpecialist:
-                    loadout = "Hand2";
-                    break;
-                
-                case RoleTypeId.NtfSergeant:
-                    loadout = "Hand3";
-                    break;
-            }
-
-            if (!string.IsNullOrEmpty(loadout))
-            {
-                LoadoutPlugin.TryApply(player, loadout);
-            }
-        }
     }
 }
