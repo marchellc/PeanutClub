@@ -43,6 +43,11 @@ public static class ArchangelsRadio
     /// The maximum amount of players to summon once used.
     /// </summary>
     public static int MaxPlayers => PluginCore.StaticConfig.ArchangelsMaxPlayers;
+
+    /// <summary>
+    /// The minimum amount of players required to summon.
+    /// </summary>
+    public static int MinPlayers => PluginCore.StaticConfig.ArchangelsMinPlayers;
     
     /// <summary>
     /// Whether or not the radio was already used this round.
@@ -83,7 +88,7 @@ public static class ArchangelsRadio
         if (args.Player is not ExPlayer player)
             return;
 
-        if (ArchangelsTeam.Singleton.Spawn(MaxPlayers, false, false) != null)
+        if (ArchangelsTeam.Singleton.Spawn(MinPlayers, MaxPlayers, false) != null)
         {
             WasUsed = true;
             

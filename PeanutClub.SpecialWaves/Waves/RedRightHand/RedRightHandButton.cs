@@ -5,13 +5,14 @@ using LabApi.Events.Handlers;
 
 using LabExtended.API;
 using LabExtended.API.Toys;
-using LabExtended.API.Hints;
 
 using LabExtended.Core;
 using LabExtended.Events;
 using LabExtended.Extensions;
 using LabExtended.Utilities;
+
 using PeanutClub.OverlayAPI.Alerts;
+
 using ProjectMER.Features;
 using ProjectMER.Features.Objects;
 
@@ -53,6 +54,11 @@ public static class RedRightHandButton
     /// The maximum amount of players to spawn.
     /// </summary>
     public static int MaxPlayers => PluginCore.StaticConfig.RedRightHandMaxPlayers;
+
+    /// <summary>
+    /// The minimum amount of players to spawn.
+    /// </summary>
+    public static int MinPlayers => PluginCore.StaticConfig.RedRightHandMinPlayers;
 
     /// <summary>
     /// The spawn angle of the button.
@@ -117,7 +123,7 @@ public static class RedRightHandButton
             return;
         }
 
-        if (RedRightHandTeam.Singleton.Spawn(MaxPlayers, false, false) != null)
+        if (RedRightHandTeam.Singleton.Spawn(MinPlayers, MaxPlayers, false) != null)
         {
             WasUsed = true;
             
@@ -141,7 +147,6 @@ public static class RedRightHandButton
     private static void Internal_Started()
     {
         WasUsed = false;
-
         ButtonObject = null;
         
         if (MapUtilities.TryGet(PositionName, ButtonAngle, out Vector3 position, out Quaternion rotation))
@@ -163,23 +168,22 @@ public static class RedRightHandButton
                 ButtonInteractable.Shape = InvisibleInteractableToy.ColliderShape.Box;
                 ButtonInteractable.InteractionDuration = 1f;
 
-                ApiLog.Debug("Special Waves", $"Spawned the Red Right Hand button schematic at &3{position.ToPreciseString()}&r!");
+                ApiLog.Debug("Red Right Hand Button", $"Spawned the Red Right Hand button schematic at &3{position.ToPreciseString()}&r!");
             }
             else
             {
-                ApiLog.Warn("Special Waves", "The Red Right Hand button schematic could not be spawned!");
+                ApiLog.Warn("Red Right Hand Button", "The Red Right Hand button schematic could not be spawned!");
             }
         }
         else
         {
-            ApiLog.Warn("Special Waves", "Could not find the spawn point for Red Right Hand button schematic");
+            ApiLog.Warn("Red Right Hand Button", "Could not find the spawn point for Red Right Hand button schematic");
         }
     }
     
     internal static void Internal_Init()
     {
         ExRoundEvents.Started += Internal_Started;
-        
         PlayerEvents.SearchedToy += Internal_Interacted;
     }
 }

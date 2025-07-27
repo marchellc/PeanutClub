@@ -1,11 +1,9 @@
 using LabExtended.API;
-using LabExtended.Extensions;
-
 using LabExtended.API.CustomTeams;
-using LabExtended.API.CustomTeams.Internal;
 
-using LabExtended.Attributes;
 using LabExtended.Core;
+using LabExtended.Extensions;
+using LabExtended.Attributes;
 
 using PeanutClub.LoadoutAPI;
 using PeanutClub.SpecialWaves.Weapons;
@@ -39,14 +37,14 @@ public class RedRightHandTeam : CustomTeamHandler<RedRightHandWave>
     /// </summary>
     public static RedRightHandTeam Singleton { get; private set; }
     
-    /// <inheritdoc cref="CustomTeamHandlerBase.Name"/>
+    /// <inheritdoc cref="CustomTeamHandler.Name"/>
     public override string? Name { get; } = "Alpha-1 \"Red Right Hand\"";
     
-    /// <inheritdoc cref="CustomTeamHandlerBase.IsSpawnable"/>
+    /// <inheritdoc cref="CustomTeamHandler.IsSpawnable"/>
     public override bool IsSpawnable(ExPlayer player)
         => player?.ReferenceHub != null && player.Role.Role is SpectatorRole spectatorRole && spectatorRole.ReadyToRespawn;
 
-    /// <inheritdoc cref="CustomTeamHandlerBase.SelectPosition"/>
+    /// <inheritdoc cref="CustomTeamHandler.SelectPosition"/>
     public override Vector3? SelectPosition(ExPlayer player)
         => NtfRoles
             .GetRandomItem()
@@ -57,7 +55,7 @@ public class RedRightHandTeam : CustomTeamHandler<RedRightHandWave>
     // Hand2 - Sergeant (1)
     // Hand3 - Specialist
     
-    /// <inheritdoc cref="CustomTeamHandlerBase.SelectRole"/>
+    /// <inheritdoc cref="CustomTeamHandler.SelectRole"/>
     public override object SelectRole(ExPlayer player, Dictionary<ExPlayer, object> selectedRoles)
     {
         if (!selectedRoles.Any(x => x.Value is RoleTypeId roleType && roleType == RoleTypeId.NtfCaptain))
@@ -69,7 +67,7 @@ public class RedRightHandTeam : CustomTeamHandler<RedRightHandWave>
         return RoleTypeId.NtfSpecialist;
     }
 
-    /// <inheritdoc cref="CustomTeamHandlerBase.OnRegistered"/>
+    /// <inheritdoc cref="CustomTeamHandler.OnRegistered"/>
     public override void OnRegistered()
     {
         base.OnRegistered();

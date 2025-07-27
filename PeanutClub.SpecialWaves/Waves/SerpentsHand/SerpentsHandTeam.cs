@@ -2,9 +2,7 @@ using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Events.Handlers;
 
 using LabExtended.API;
-
 using LabExtended.API.CustomTeams;
-using LabExtended.API.CustomTeams.Internal;
 
 using LabExtended.Core;
 using LabExtended.Events;
@@ -34,6 +32,11 @@ public class SerpentsHandTeam : CustomTeamHandler<SerpentsHandWave>
     /// Gets the maximum amount of players in a wave.
     /// </summary>
     public static int MaxPlayers => PluginCore.StaticConfig.SerpentsHandMaxPlayers;
+    
+    /// <summary>
+    /// Gets the minimum amount of players in a wave.
+    /// </summary>
+    public static int MinPlayers => PluginCore.StaticConfig.SerpentsHandMinPlayers;
 
     /// <summary>
     /// Gets the name of the hole schematic.
@@ -51,9 +54,9 @@ public class SerpentsHandTeam : CustomTeamHandler<SerpentsHandWave>
     public static string SpawnPositionName => PluginCore.StaticConfig.SerpentsHandSpawnPositionName;
     
     /// <summary>
-    /// Gets the spawn point bounds.
+    /// Gets the current spawn position.
     /// </summary>
-    public static Bounds SpawnBounds { get; private set; }
+    public static Vector3 SpawnPosition { get; private set; }
     
     /// <summary>
     /// Gets the spawned hole.
@@ -65,22 +68,22 @@ public class SerpentsHandTeam : CustomTeamHandler<SerpentsHandWave>
     /// </summary>
     public static bool WasSpawned { get; private set; }
     
-    /// <inheritdoc cref="CustomTeamHandlerBase.Name"/>
+    /// <inheritdoc cref="CustomTeamHandler.Name"/>
     public override string? Name { get; } = "Serpent's Hand";
     
-    /// <inheritdoc cref="CustomTeamHandlerBase.IsSpawnable"/>
+    /// <inheritdoc cref="CustomTeamHandler.IsSpawnable"/>
     public override bool IsSpawnable(ExPlayer player)
         => player?.ReferenceHub != null && player.Role.Role is SpectatorRole spectatorRole && spectatorRole.ReadyToRespawn;
 
-    /// <inheritdoc cref="CustomTeamHandlerBase.SelectPosition"/>
+    /// <inheritdoc cref="CustomTeamHandler.SelectPosition"/>
     public override Vector3? SelectPosition(ExPlayer player)
-        => SpawnBounds.GetRandom(false);
+        => SpawnPosition;
 
-    /// <inheritdoc cref="CustomTeamHandlerBase.SelectRole"/>
+    /// <inheritdoc cref="CustomTeamHandler.SelectRole"/>
     public override object SelectRole(ExPlayer player, Dictionary<ExPlayer, object> selectedRoles)
         => RoleTypeId.Tutorial;
 
-    /// <inheritdoc cref="CustomTeamHandlerBase.OnRegistered"/>
+    /// <inheritdoc cref="CustomTeamHandler.OnRegistered"/>
     public override void OnRegistered()
     {
         base.OnRegistered();
@@ -126,12 +129,11 @@ public class SerpentsHandTeam : CustomTeamHandler<SerpentsHandWave>
                 index++;
                 continue;
             }
+
+            SpawnPosition = centerPos;
             
             ApiLog.Debug("Serpent's Hand", $"Team Spawn Point set to &3{centerName}&r (&6{centerPos.ToPreciseString()}&r)");
             ApiLog.Debug("Serpent's Hand", $"Hole Spawn Point set to &3{holeName}&r (&6{holePos.ToPreciseString()}&r)");
-            
-            SpawnBounds = new(centerPos, PluginCore.StaticConfig.SerpentsHandSpawnSize);
-            SpawnBounds.SetMinMax(Vector3.zero, PluginCore.StaticConfig.SerpentsHandSpawnSize);
             
             if (!ObjectSpawner.TrySpawnSchematic(HoleSchematicName, holePos, out var spawnedHole))
             {
@@ -154,7 +156,7 @@ public class SerpentsHandTeam : CustomTeamHandler<SerpentsHandWave>
         if (!args.OldRole.IsScp(false))
             return;
 
-        WasSpawned = Spawn(MaxPlayers, false, false) != null;
+        WasSpawned = Spawn(MinPlayers, MaxPlayers, false) != null;
         
         if (WasSpawned)
             ApiLog.Debug("Serpent's Hand", "Spawned instance");

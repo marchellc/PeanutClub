@@ -59,11 +59,14 @@ public class PluginConfig
         AttachmentName.CylinderMag6,
         AttachmentName.CylinderMag7
     };
+
+    [Description("Sets the minimum amount of players required to spawn a Serpent's Hand wave.")]
+    public int SerpentsHandMinPlayers { get; set; } = 3;
     
     /// <summary>
     /// How many players to spawn when an SCP dies.
     /// </summary>
-    [Description("Sets the maximum amount of players to spawn once an SCP dies.")]
+    [Description("Sets the maximum amount of players allowed to be spawned in a Serpent's Hand wave.")]
     public int SerpentsHandMaxPlayers { get; set; } = 3;
 
     /// <summary>
@@ -85,15 +88,15 @@ public class PluginConfig
     public string SerpentsHandSpawnPositionName { get; set; } = "SerpentsHandCenter";
     
     /// <summary>
-    /// Serpent's Hand spawn point size.
+    /// Minimum amount of players in an Archangels wave.
     /// </summary>
-    [Description("Sets the size of the Serpent's Hand spawn point.")]
-    public YamlVector3 SerpentsHandSpawnSize { get; set; } = new(5f, 0f, 5f);
+    [Description("Sets the minimum amount of players required to spawn an Archangels wave.")]
+    public int ArchangelsMinPlayers { get; set; } = 3;
     
     /// <summary>
     /// How many players to spawn when the radio is used.
     /// </summary>
-    [Description("Sets the maximum amount of players to spawn once the radio is used.")]
+    [Description("Sets the maximum amount of players allowed to spawn in an Archangels wave.")]
     public int ArchangelsMaxPlayers { get; set; } = 6;
     
     /// <summary>
@@ -109,9 +112,15 @@ public class PluginConfig
     public string ArchangelsPositionName { get; set; } = "ArchangelsRadio";
     
     /// <summary>
-    /// How many players to spawn when the button is used.
+    /// The minimum amount of players required to summon Red Right Hand.
     /// </summary>
-    [Description("Sets the maximum amount of players to spawn once the button is used.")]
+    [Description("Sets the minimum amount of players required to spawn a Red Right Hand wave.")]
+    public int RedRightHandMinPlayers { get; set; } = 3;
+    
+    /// <summary>
+    /// The maximum amount of players allowed to spawn in a Red Right Hand wave.
+    /// </summary>
+    [Description("Sets the maximum amount of players allowed to spawn in a Red Right Hand wave.")]
     public int RedRightHandMaxPlayers { get; set; } = 6;
 
     /// <summary>

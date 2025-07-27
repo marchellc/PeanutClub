@@ -1,11 +1,8 @@
 using LabExtended.API;
-
 using LabExtended.API.CustomTeams;
-using LabExtended.API.CustomTeams.Internal;
-
-using LabExtended.Attributes;
 
 using LabExtended.Core;
+using LabExtended.Attributes;
 using LabExtended.Extensions;
 
 using PeanutClub.LoadoutAPI;
@@ -35,14 +32,14 @@ public class ArchangelsTeam : CustomTeamHandler<ArchangelsWave>
     /// </summary>
     public static ArchangelsTeam Singleton { get; private set; }
 
-    /// <inheritdoc cref="CustomTeamHandlerBase.Name"/>
+    /// <inheritdoc cref="CustomTeamHandler.Name"/>
     public override string? Name { get; } = "Zeta-3 \"Archangels\"";
 
-    /// <inheritdoc cref="CustomTeamHandlerBase.IsSpawnable"/>
+    /// <inheritdoc cref="CustomTeamHandler.IsSpawnable"/>
     public override bool IsSpawnable(ExPlayer player)
         => player?.ReferenceHub != null && player.Role.Role is SpectatorRole spectatorRole && spectatorRole.ReadyToRespawn;
 
-    /// <inheritdoc cref="CustomTeamHandlerBase.SelectPosition"/>
+    /// <inheritdoc cref="CustomTeamHandler.SelectPosition"/>
     public override Vector3? SelectPosition(ExPlayer player)
         => ChaosRoles
             .RandomItem()
@@ -52,7 +49,7 @@ public class ArchangelsTeam : CustomTeamHandler<ArchangelsWave>
     // Archangels 1 - Repressor
     // Archangels 2 - Rifleman (1)
     // Archangels 3 - Marauder (1)
-    /// <inheritdoc cref="CustomTeamHandlerBase.SelectRole"/>
+    /// <inheritdoc cref="CustomTeamHandler.SelectRole"/>
     public override object SelectRole(ExPlayer player, Dictionary<ExPlayer, object> selectedRoles)
     {
         if (!selectedRoles.Any(x => x.Value is RoleTypeId roleType && roleType == RoleTypeId.ChaosRifleman))
@@ -64,7 +61,7 @@ public class ArchangelsTeam : CustomTeamHandler<ArchangelsWave>
         return RoleTypeId.ChaosRepressor;
     }
     
-    /// <inheritdoc cref="CustomTeamHandlerBase.OnRegistered"/>
+    /// <inheritdoc cref="CustomTeamHandler.OnRegistered"/>
     public override void OnRegistered()
     {
         base.OnRegistered();
