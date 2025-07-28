@@ -18,12 +18,10 @@ public class RedRightHandWave : CustomTeamInstance<RedRightHandTeam>
     /// <inheritdoc cref="CustomTeamInstance.SpawnPlayer"/>
     public override void SpawnPlayer(ExPlayer player, RoleTypeId role)
     {
-        player.Role.Set(role, RoleChangeReason.Respawn, RoleSpawnFlags.None);
+        player.Role.Set(role, RoleChangeReason.Respawn, RoleSpawnFlags.UseSpawnpoint);
 
         TimingUtils.AfterSeconds(() =>
         {
-            player.Position.Set(RedRightHandTeam.NtfRoles.GetRandomItem().GetSpawnPosition().position);
-
             var loadout = string.Empty;
 
             switch (player.Role.Type)

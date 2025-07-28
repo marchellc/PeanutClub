@@ -21,13 +21,13 @@ public class SerpentsHandWave : CustomTeamInstance<SerpentsHandTeam>
         {
             ApiLog.Debug("Serpent's Hand", $"Processing player &3{player.Nickname}&r (&6{player.UserId}&r)");
             
-            player.Role.Set(role, RoleChangeReason.Respawn, RoleSpawnFlags.None);
+            player.Role.Set(role, RoleChangeReason.Respawn, RoleSpawnFlags.UseSpawnpoint);
 
             TimingUtils.AfterSeconds(() =>
             {
                 player.IsGodModeEnabled = false;
                 player.CustomInfo = "Serpent's Hand";
-                player.Position.Set(SerpentsHandTeam.SpawnPosition);
+                player.Position.Position = SerpentsHandTeam.SpawnPosition;
 
                 if ((player.InfoArea & PlayerInfoArea.CustomInfo) != PlayerInfoArea.CustomInfo)
                     player.InfoArea |= PlayerInfoArea.CustomInfo;
@@ -35,7 +35,7 @@ public class SerpentsHandWave : CustomTeamInstance<SerpentsHandTeam>
                 LoadoutPlugin.TryApply(player, "SerpentsHand");
 
                 ApiLog.Debug("Serpent's Hand",
-                    $"Finished processing player &3{player.Nickname}&r (&6{player.UserId}&r)");
+                    $"Finished processing player &3{player.Nickname}&r (&6{player.UserId}&r), position: {SerpentsHandTeam.SpawnPosition.ToPreciseString()}");
             }, 0.2f);
         }
         catch (Exception ex)

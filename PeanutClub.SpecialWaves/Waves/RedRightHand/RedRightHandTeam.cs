@@ -19,17 +19,6 @@ namespace PeanutClub.SpecialWaves.Waves.RedRightHand;
 public class RedRightHandTeam : CustomTeamHandler<RedRightHandWave>
 {
     /// <summary>
-    /// A list of all NTF roles.
-    /// </summary>
-    public static RoleTypeId[] NtfRoles { get; } =
-    [
-        RoleTypeId.NtfCaptain,
-        RoleTypeId.NtfSpecialist,
-        RoleTypeId.NtfSergeant,
-        RoleTypeId.NtfPrivate
-    ];
-    
-    /// <summary>
     /// Gets the singleton instance of the team handler.
     /// </summary>
     public static RedRightHandTeam Singleton { get; private set; }

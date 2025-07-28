@@ -88,7 +88,7 @@ public static class ArchangelsRadio
         if (args.Player is not ExPlayer player)
             return;
 
-        if (ArchangelsTeam.Singleton.Spawn(MinPlayers, MaxPlayers) != null)
+        if (ArchangelsTeam.Singleton.Spawn(MinPlayers, MaxPlayers).SpawnedWave != null)
         {
             WasUsed = true;
             

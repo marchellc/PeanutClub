@@ -19,12 +19,6 @@ namespace PeanutClub.SpecialWaves.Waves.Archangels;
 public class ArchangelsTeam : CustomTeamHandler<ArchangelsWave>
 {
     /// <summary>
-    /// An array of all chaos roles.
-    /// </summary>
-    public static RoleTypeId[] ChaosRoles { get; } =
-        [RoleTypeId.ChaosConscript, RoleTypeId.ChaosMarauder, RoleTypeId.ChaosRepressor, RoleTypeId.ChaosRifleman];
-    
-    /// <summary>
     /// Gets the singleton instance of the team handler.
     /// </summary>
     public static ArchangelsTeam Singleton { get; private set; }

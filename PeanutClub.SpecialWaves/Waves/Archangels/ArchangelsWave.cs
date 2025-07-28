@@ -18,12 +18,10 @@ public class ArchangelsWave : CustomTeamInstance<ArchangelsTeam>
     /// <inheritdoc cref="CustomTeamInstance.SpawnPlayer"/>
     public override void SpawnPlayer(ExPlayer player, RoleTypeId role)
     {
-        player.Role.Set(role, RoleChangeReason.Respawn, RoleSpawnFlags.None);
+        player.Role.Set(role, RoleChangeReason.Respawn, RoleSpawnFlags.UseSpawnpoint);
 
         TimingUtils.AfterSeconds(() =>
         {
-            player.Position.Set(ArchangelsTeam.ChaosRoles.RandomItem().GetSpawnPosition().position);
-            
             var loadout = string.Empty;
 
             switch (player.Role.Type)

@@ -151,7 +151,7 @@ public class SerpentsHandTeam : CustomTeamHandler<SerpentsHandWave>
 
         TimingUtils.AfterSeconds(() =>
         {
-            WasSpawned = Spawn(MinPlayers, MaxPlayers, player => player != args.Player) != null;
+            WasSpawned = Spawn(MinPlayers, MaxPlayers, player => player != args.Player).SpawnedWave != null;
 
             if (WasSpawned)
                 ApiLog.Debug("Serpent's Hand", "Spawned instance");
