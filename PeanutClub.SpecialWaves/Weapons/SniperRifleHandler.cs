@@ -15,7 +15,6 @@ using LabExtended.Utilities.Firearms;
 
 using PeanutClub.LoadoutAPI;
 using PeanutClub.OverlayAPI.Alerts;
-using PeanutClub.Utilities.Items;
 
 using PlayerStatsSystem;
 
@@ -26,11 +25,6 @@ namespace PeanutClub.SpecialWaves.Weapons;
 /// </summary>
 public static class SniperRifleHandler
 {
-    /// <summary>
-    /// Gets the item tag for the sniper.
-    /// </summary>
-    public const string ItemTag = "SniperRifle";
-
     /// <summary>
     /// Gets the damage the sniper rifle deals at all times.
     /// </summary>
@@ -47,6 +41,11 @@ public static class SniperRifleHandler
     public static bool AllowAttachments => PluginCore.StaticConfig.SniperChangingAttachments;
 
     /// <summary>
+    /// Gets a list of sniper rifle item serials.
+    /// </summary>
+    public static HashSet<ushort> Rifles { get; } = new();
+
+    /// <summary>
     /// A list of default attachments.
     /// </summary>
     public static List<AttachmentName> DefaultAttachments => PluginCore.StaticConfig.SniperDefaultAttachments;
@@ -58,8 +57,10 @@ public static class SniperRifleHandler
 
     internal static void Internal_AddedVanillaItem(ExPlayer player, LoadoutDefinition loadout, LoadoutItem loadoutItem, ItemBase item)
     {
-        if (item == null || !item.HasTag(ItemTag) || item is not Firearm firearm)
+        if (item == null || loadoutItem.ItemTag == null || loadoutItem.ItemTag != "SniperRifle" || item is not Firearm firearm)
             return;
+
+        Rifles.Add(item.ItemSerial);
         
         player.SendAlert(AlertType.Info, 10f, "Dostal jsi <color=red>Sniper Rifle</color>!\nTato zbraň dává damage <color=yellow>250 HP</color> při <b>každé</b> ráně!");
 
@@ -71,10 +72,7 @@ public static class SniperRifleHandler
         if (firearm.TryGetModule<MagazineModule>(out var magazineModule))
         {
             magazineModule._defaultCapacity = SniperChambered;
-            
-            if (firearm.TryGetModule<AutomaticActionModule>(out var actionModule) && actionModule.AmmoStored > 0)
-                actionModule.ServerCycleAction();
-            
+
             if (magazineModule.AmmoStored > SniperChambered)
                 magazineModule.ServerModifyAmmo(-(magazineModule.AmmoStored - SniperChambered));
         }
@@ -82,7 +80,7 @@ public static class SniperRifleHandler
 
     private static void Internal_ChangingAttachments(PlayerChangingFirearmAttachmentsEventArgs args)
     {
-        if (!args.Firearm.HasTag(ItemTag))
+        if (!Rifles.Contains(args.Firearm.ItemSerial))
             return;
 
         if (!AllowAttachments)
@@ -99,16 +97,24 @@ public static class SniperRifleHandler
     private static void Internal_Hurting(PlayerHurtingEventArgs args)
     {
         if (args.DamageHandler is FirearmDamageHandler firearmDamageHandler
-            && firearmDamageHandler.Firearm.HasTag(ItemTag))
+            && Rifles.Contains(firearmDamageHandler.Firearm.ItemSerial))
         {
             firearmDamageHandler.Damage = SniperDamage;
         }
+    }
+
+    private static void Internal_Waiting()
+    {
+        Rifles.Clear();
     }
     
     internal static void Internal_Init()
     {
         PlayerEvents.Hurting += Internal_Hurting;
+        
         LoadoutPlugin.AddedVanillaItem += Internal_AddedVanillaItem;
+
+        ExRoundEvents.WaitingForPlayers += Internal_Waiting;
         ExPlayerEvents.ChangingAttachments += Internal_ChangingAttachments;
     }
 }

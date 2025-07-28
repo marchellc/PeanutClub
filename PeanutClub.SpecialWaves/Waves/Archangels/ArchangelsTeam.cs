@@ -68,7 +68,7 @@ public class ArchangelsTeam : CustomTeamHandler<ArchangelsWave>
             .WithHealth(250f, 250f)
             .WithAmmo(ItemType.Ammo556x45, 120)
             .WithAmmo(ItemType.GunCOM18, 120)
-            .WithItem(ItemType.GunE11SR, SniperRifleHandler.ItemTag)
+            .WithItem(ItemType.GunE11SR, "SniperRifle")
             .WithItems(ItemType.GunCOM18, ItemType.KeycardChaosInsurgency, ItemType.Medkit, ItemType.Adrenaline, ItemType.ArmorHeavy));
         
         ApiLog.Debug("Archangels Team", "Registered");

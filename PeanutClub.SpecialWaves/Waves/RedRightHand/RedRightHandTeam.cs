@@ -60,7 +60,7 @@ public class RedRightHandTeam : CustomTeamHandler<RedRightHandWave>
             .WithHealth(250f, 250f)
             .WithAmmo(ItemType.Ammo556x45, 120)
             .WithAmmo(ItemType.Ammo9x19, 120)
-            .WithItem(ItemType.GunE11SR, SniperRifleHandler.ItemTag)
+            .WithItem(ItemType.GunE11SR, "SniperRifle")
             .WithItems(ItemType.GunCOM18, ItemType.GrenadeHE, ItemType.KeycardMTFCaptain, ItemType.Medkit, ItemType.Adrenaline, ItemType.Radio, ItemType.ArmorHeavy));
         
         LoadoutPlugin.Ensure("Hand3", new LoadoutDefinition()
