@@ -72,6 +72,9 @@ public static class SniperRifleHandler
         if (firearm.TryGetModule<MagazineModule>(out var magazineModule))
         {
             magazineModule._defaultCapacity = SniperChambered;
+            
+            if (firearm.TryGetModule<AutomaticActionModule>(out var automaticActionModule) && automaticActionModule.AmmoStored > 0)
+                automaticActionModule.ServerCycleAction();
 
             if (magazineModule.AmmoStored > SniperChambered)
                 magazineModule.ServerModifyAmmo(-(magazineModule.AmmoStored - SniperChambered));
@@ -103,6 +106,16 @@ public static class SniperRifleHandler
         }
     }
 
+    private static void Internal_Reloading(PlayerReloadingWeaponEventArgs args)
+    {
+        if (!Rifles.Contains(args.FirearmItem.Serial))
+            return;
+
+        if (args.FirearmItem.Base.TryGetModule<AutomaticActionModule>(out var automaticActionModule)
+            && automaticActionModule.AmmoStored >= SniperChambered)
+            args.IsAllowed = false;
+    }
+
     private static void Internal_Waiting()
     {
         Rifles.Clear();
@@ -111,6 +124,7 @@ public static class SniperRifleHandler
     internal static void Internal_Init()
     {
         PlayerEvents.Hurting += Internal_Hurting;
+        PlayerEvents.ReloadingWeapon += Internal_Reloading;
         
         LoadoutPlugin.AddedVanillaItem += Internal_AddedVanillaItem;
 

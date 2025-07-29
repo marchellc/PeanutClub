@@ -1,6 +1,7 @@
 ﻿using LabApi.Loader.Features.Plugins;
 
 using LabExtended.API.CustomTeams;
+using LabExtended.Attributes;
 
 using PeanutClub.SpecialWaves.Weapons;
 
@@ -16,6 +17,7 @@ namespace PeanutClub.SpecialWaves;
 /// <summary>
 /// The main plugin class.
 /// </summary>
+[LoaderPatch]
 public class PluginCore : Plugin<PluginConfig>
 {
     /// <summary>
