@@ -86,6 +86,12 @@ public class PluginConfig
     /// </summary>
     [Description("Sets the name of the Serpent's Hand hole position.")]
     public string SerpentsHandSpawnPositionName { get; set; } = "SerpentsHandCenter";
+
+    /// <summary>
+    /// The Serpent's Hand CASSIE announcement to play.
+    /// </summary>
+    [Description("Sets the CASSIE announcement to play once a Serpent's Hand wave spawns.")]
+    public string SerpentsHandCassieMessage { get; set; } = string.Empty;
     
     /// <summary>
     /// Minimum amount of players in an Archangels wave.
@@ -110,6 +116,12 @@ public class PluginConfig
     /// </summary>
     [Description("Sets the name of the Red Right Hand Button position.")]
     public string ArchangelsPositionName { get; set; } = "ArchangelsRadio";
+
+    /// <summary>
+    /// The Archangels CASSIE announcement.
+    /// </summary>
+    [Description("Sets the CASSIE announcement to play once an Archangels wave spawns.")]
+    public string ArchangelsCassieMessage { get; set; } = string.Empty;
     
     /// <summary>
     /// The minimum amount of players required to summon Red Right Hand.
@@ -158,6 +170,12 @@ public class PluginConfig
     /// </summary>
     [Description("Sets the name of the Red Right Hand Button idle animation.")]
     public string RedRightHandButtonIdleAnimationName { get; set; } = "Idle";
+
+    /// <summary>
+    /// The Red Right Hand CASSIE announcement.
+    /// </summary>
+    [Description("Sets the Red Right Hand CASSIE message to play once a wave spawns.")]
+    public string RedRightHandCassieMessage { get; set; } = string.Empty;
 
     /// <summary>
     /// Janitor spawn conditions.

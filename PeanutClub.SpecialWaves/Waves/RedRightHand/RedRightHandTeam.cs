@@ -22,6 +22,11 @@ public class RedRightHandTeam : CustomTeamHandler<RedRightHandWave>
     /// Gets the singleton instance of the team handler.
     /// </summary>
     public static RedRightHandTeam Singleton { get; private set; }
+
+    /// <summary>
+    /// Gets the CASSIE announcement.
+    /// </summary>
+    public static string CassieMessage => PluginCore.StaticConfig.RedRightHandCassieMessage;
     
     /// <inheritdoc cref="CustomTeamHandler.Name"/>
     public override string? Name { get; } = "Alpha-1 \"Red Right Hand\"";
@@ -36,10 +41,10 @@ public class RedRightHandTeam : CustomTeamHandler<RedRightHandWave>
         if (!selectedRoles.Any(x => x.Value == RoleTypeId.NtfCaptain))
             return RoleTypeId.NtfCaptain;
         
-        if (!selectedRoles.Any(x => x.Value == RoleTypeId.NtfSergeant))
-            return RoleTypeId.NtfSergeant;
+        if (!selectedRoles.Any(x => x.Value == RoleTypeId.NtfSpecialist))
+            return RoleTypeId.NtfSpecialist;
 
-        return RoleTypeId.NtfSpecialist;
+        return RoleTypeId.NtfSergeant;
     }
 
     /// <inheritdoc cref="CustomTeamHandler.OnRegistered"/>

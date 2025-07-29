@@ -23,6 +23,11 @@ public class ArchangelsTeam : CustomTeamHandler<ArchangelsWave>
     /// </summary>
     public static ArchangelsTeam Singleton { get; private set; }
 
+    /// <summary>
+    /// Gets the CASSIE announcement.
+    /// </summary>
+    public static string CassieMessage => PluginCore.StaticConfig.ArchangelsCassieMessage;
+
     /// <inheritdoc cref="CustomTeamHandler.Name"/>
     public override string? Name { get; } = "Zeta-3 \"Archangels\"";
 

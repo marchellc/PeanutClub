@@ -38,6 +38,8 @@ public static class GuardCommanderRole
 
         if ((player.InfoArea & PlayerInfoArea.CustomInfo) != PlayerInfoArea.CustomInfo)
             player.InfoArea |= PlayerInfoArea.CustomInfo;
+        
+        player.Inventory.Clear();
 
         LoadoutPlugin.TryApply(player, "GuardCommander");
         

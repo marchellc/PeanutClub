@@ -37,6 +37,8 @@ public static class JanitorRole
         player.Role.Set(RoleTypeId.ClassD, RoleChangeReason.RoundStart, RoleSpawnFlags.None);
         player.Position.Position = RoleTypeId.Scientist.GetSpawnPosition().position;
 
+        player.Inventory.Clear();
+        
         LoadoutPlugin.TryApply(player, "Janitor");
 
         player.CustomInfo = "Janitor";

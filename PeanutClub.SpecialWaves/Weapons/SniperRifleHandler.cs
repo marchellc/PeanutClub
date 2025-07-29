@@ -10,7 +10,7 @@ using LabExtended.API;
 
 using LabExtended.Events;
 using LabExtended.Events.Player;
-
+using LabExtended.Utilities;
 using LabExtended.Utilities.Firearms;
 
 using PeanutClub.LoadoutAPI;
@@ -57,28 +57,35 @@ public static class SniperRifleHandler
 
     internal static void Internal_AddedVanillaItem(ExPlayer player, LoadoutDefinition loadout, LoadoutItem loadoutItem, ItemBase item)
     {
-        if (item == null || loadoutItem.ItemTag == null || loadoutItem.ItemTag != "SniperRifle" || item is not Firearm firearm)
-            return;
-
-        Rifles.Add(item.ItemSerial);
-        
-        player.SendAlert(AlertType.Info, 10f, "Dostal jsi <color=red>Sniper Rifle</color>!\nTato zbraň dává damage <color=yellow>250 HP</color> při <b>každé</b> ráně!");
-
-        if (DefaultAttachments.Count > 0)
-            firearm.SetAttachments(x => DefaultAttachments.Contains(x.Name));
-        else
-            firearm.SetAttachments(x => x.IsEnabled && !BlacklistedAttachments.Contains(x.Name));
-        
-        if (firearm.TryGetModule<MagazineModule>(out var magazineModule))
+        TimingUtils.AfterSeconds(() =>
         {
-            magazineModule._defaultCapacity = SniperChambered;
-            
-            if (firearm.TryGetModule<AutomaticActionModule>(out var automaticActionModule) && automaticActionModule.AmmoStored > 0)
-                automaticActionModule.ServerCycleAction();
+            if (item == null || loadoutItem.ItemTag == null || loadoutItem.ItemTag != "SniperRifle" ||
+                item is not Firearm firearm
+                || item.ItemSerial == 0)
+                return;
 
-            if (magazineModule.AmmoStored > SniperChambered)
-                magazineModule.ServerModifyAmmo(-(magazineModule.AmmoStored - SniperChambered));
-        }
+            Rifles.Add(item.ItemSerial);
+
+            player.SendAlert(AlertType.Info, 10f,
+                "Dostal jsi <color=red>Sniper Rifle</color>!\nTato zbraň dává damage <color=yellow>250 HP</color> při <b>každé</b> ráně!");
+
+            if (DefaultAttachments.Count > 0)
+                firearm.SetAttachments(x => DefaultAttachments.Contains(x.Name));
+            else
+                firearm.SetAttachments(x => x.IsEnabled && !BlacklistedAttachments.Contains(x.Name));
+
+            if (firearm.TryGetModule<MagazineModule>(out var magazineModule))
+            {
+                magazineModule._defaultCapacity = SniperChambered;
+
+                if (firearm.TryGetModule<AutomaticActionModule>(out var automaticActionModule) &&
+                    automaticActionModule.AmmoStored > 0)
+                    automaticActionModule.ServerCycleAction();
+
+                if (magazineModule.AmmoStored > SniperChambered)
+                    magazineModule.ServerModifyAmmo(-(magazineModule.AmmoStored - SniperChambered));
+            }
+        }, 0.3f);
     }
 
     private static void Internal_ChangingAttachments(PlayerChangingFirearmAttachmentsEventArgs args)

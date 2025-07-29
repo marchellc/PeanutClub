@@ -1,10 +1,12 @@
+using LabApi.Features.Wrappers;
+
 using LabExtended.API;
 using LabExtended.API.CustomTeams;
 
-using LabExtended.Extensions;
 using LabExtended.Utilities;
 
 using PeanutClub.LoadoutAPI;
+using PeanutClub.OverlayAPI.Alerts;
 
 using PlayerRoles;
 
@@ -15,6 +17,17 @@ namespace PeanutClub.SpecialWaves.Waves.RedRightHand;
 /// </summary>
 public class RedRightHandWave : CustomTeamInstance<RedRightHandTeam>
 {
+    /// <inheritdoc cref="CustomTeamInstance.OnSpawned"/>
+    public override void OnSpawned()
+    {
+        base.OnSpawned();
+
+        if (!string.IsNullOrWhiteSpace(RedRightHandTeam.CassieMessage))
+        {
+            Cassie.Message(RedRightHandTeam.CassieMessage);
+        }
+    }
+
     /// <inheritdoc cref="CustomTeamInstance.SpawnPlayer"/>
     public override void SpawnPlayer(ExPlayer player, RoleTypeId role)
     {
@@ -43,6 +56,11 @@ public class RedRightHandWave : CustomTeamInstance<RedRightHandTeam>
             {
                 LoadoutPlugin.TryApply(player, loadout);
             }
+            
+            player.SendAlert(AlertType.Info, 10f, 
+                $"<b>Jsi členem týmu</b>\n" +
+                $"<b><color=blue><size=30>Red Right Hand</size></color></b>\n" +
+                $"<b>Máš stejný objektiv jako normální <color=blue>Nine-Tailed Fox</color>.</b>");
         }, 0.2f);
     }
 }

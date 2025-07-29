@@ -1,6 +1,6 @@
 using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Events.Handlers;
-
+using LabApi.Features.Wrappers;
 using LabExtended.API;
 using LabExtended.API.CustomTeams;
 
@@ -49,6 +49,11 @@ public class SerpentsHandTeam : CustomTeamHandler<SerpentsHandWave>
     /// Gets the name of the spawn position.
     /// </summary>
     public static string SpawnPositionName => PluginCore.StaticConfig.SerpentsHandSpawnPositionName;
+    
+    /// <summary>
+    /// Gets the CASSIE announcement.
+    /// </summary>
+    public static string CassieMessage => PluginCore.StaticConfig.SerpentsHandCassieMessage;
     
     /// <summary>
     /// Gets the current spawn position.
@@ -154,9 +159,12 @@ public class SerpentsHandTeam : CustomTeamHandler<SerpentsHandWave>
             WasSpawned = Spawn(MinPlayers, MaxPlayers, player => player != args.Player).SpawnedWave != null;
 
             if (WasSpawned)
-                ApiLog.Debug("Serpent's Hand", "Spawned instance");
-            else
-                ApiLog.Warn("Serpent's Hand", "Could not spawn instance");
+            {
+                if (!string.IsNullOrWhiteSpace(CassieMessage))
+                {
+                    Cassie.Message(CassieMessage);
+                }
+            }
         }, 0.2f);
     }
 

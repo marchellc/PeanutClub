@@ -57,13 +57,33 @@ public class RoleSelector
         Players = new();
 
         ExRoundEvents.Started += Internal_Started;
-        ExRoundEvents.AssigningRoles += Internal_AssigningRoles;
     }
 
     private void Internal_Started()
     {
         TimingUtils.AfterSeconds(() =>
         {
+            Players.Clear();
+        
+            var range = SelectRange();
+
+            if (range is null)
+                return;
+        
+            var buffer = ListPool<ExPlayer>.Shared.Rent();
+
+            foreach (var player in ExPlayer.Players)
+            {
+                if (Predicate != null && !Predicate(player, player.Role.Type))
+                    continue;
+
+                buffer.Add(player);
+            }
+        
+            SelectPlayers(range, buffer);
+
+            ListPool<ExPlayer>.Shared.Return(buffer);
+            
             for (var x = 0; x < Players.Count; x++)
             {
                 SetRole.InvokeSafe(Players[x]);
@@ -71,35 +91,6 @@ public class RoleSelector
 
             Players.Clear();
         }, 0.5f);
-    }
-
-    private void Internal_AssigningRoles(AssigningRolesEventArgs args)
-    {
-        Players.Clear();
-        
-        var range = SelectRange();
-
-        if (range is null)
-            return;
-        
-        var buffer = ListPool<ExPlayer>.Shared.Rent();
-
-        foreach (var pair in args.Roles)
-        {
-            if (Predicate != null && !Predicate(pair.Key!, pair.Value))
-                continue;
-            
-            buffer.Add(pair.Key!);
-        }
-        
-        SelectPlayers(range, buffer);
-
-        ListPool<ExPlayer>.Shared.Return(buffer);
-
-        for (var x = 0; x < Players.Count; x++)
-        {
-            args.Roles.Remove(Players[x]);
-        }
     }
 
     private void SelectPlayers(RoleRange range, List<ExPlayer> players)
