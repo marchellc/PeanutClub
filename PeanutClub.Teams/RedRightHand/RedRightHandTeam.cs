@@ -5,12 +5,10 @@ using LabExtended.Core;
 using LabExtended.Attributes;
 
 using PeanutClub.LoadoutAPI;
-using PeanutClub.SpecialWaves.Weapons;
 
 using PlayerRoles;
-using PlayerRoles.Spectating;
 
-namespace PeanutClub.SpecialWaves.Waves.RedRightHand;
+namespace PeanutClub.Teams.RedRightHand;
 
 /// <summary>
 /// Alpha-1 Red Right Hand team handler.

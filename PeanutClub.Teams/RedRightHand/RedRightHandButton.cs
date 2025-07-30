@@ -18,7 +18,7 @@ using ProjectMER.Features.Objects;
 
 using UnityEngine;
 
-namespace PeanutClub.SpecialWaves.Waves.RedRightHand;
+namespace PeanutClub.Teams.RedRightHand;
 
 /// <summary>
 /// Manages the button used to summon a wave.

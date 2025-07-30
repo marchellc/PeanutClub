@@ -8,7 +8,7 @@ using PeanutClub.LoadoutAPI;
 using PeanutClub.OverlayAPI.Alerts;
 using PlayerRoles;
 
-namespace PeanutClub.SpecialWaves.Waves.SerpentsHand;
+namespace PeanutClub.Teams.SerpentsHand;
 
 /// <summary>
 /// An instance of a spawned Serpents Hand wave.

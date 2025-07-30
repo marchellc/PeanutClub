@@ -5,12 +5,11 @@ using LabExtended.Core;
 using LabExtended.Attributes;
 
 using PeanutClub.LoadoutAPI;
-using PeanutClub.SpecialWaves.Weapons;
 
 using PlayerRoles;
 using PlayerRoles.Spectating;
 
-namespace PeanutClub.SpecialWaves.Waves.Archangels;
+namespace PeanutClub.Teams.Archangels;
 
 /// <summary>
 /// Zeta-3 Archangels team handler.

@@ -1,65 +1,12 @@
 using System.ComponentModel;
 
-using InventorySystem.Items.Firearms.Attachments;
-
-using LabExtended.Core.Configs.Objects;
-
-using PeanutClub.Utilities.Roles.Selection;
-
-namespace PeanutClub.SpecialWaves;
+namespace PeanutClub.Teams;
 
 /// <summary>
 /// Plugin configuration.
 /// </summary>
 public class PluginConfig
 {
-    /// <summary>
-    /// The capacity of the sniper rifle.
-    /// </summary>
-    [Description("Sets the capacity of the sniper rifle's chamber.")]
-    public int SniperRifleCapacity { get; set; } = 1;
-    
-    /// <summary>
-    /// The damage of the sniper rifle.
-    /// </summary>
-    [Description("Sets the damage the sniper rifle deals.")]
-    public float SniperRifleDamage { get; set; } = 250f;
-
-    /// <summary>
-    /// Whether or not players should be able to change sniper rifle attachments.
-    /// </summary>
-    [Description("Allows or prevents players from changing attachments on the sniper rifle.")]
-    public bool SniperChangingAttachments { get; set; } = true;
-
-    /// <summary>
-    /// The list of default attachments for the sniper rifle.
-    /// </summary>
-    [Description("Sets the list of default attachments for the sniper rifle.")]
-    public List<AttachmentName> SniperDefaultAttachments { get; set; } = new();
-
-    /// <summary>
-    /// The list of blacklisted attachments for the sniper rifle.
-    /// </summary>
-    [Description("Sets the list of attachments which cannot be applied on a sniper rifle.")]
-    public List<AttachmentName> SniperBlacklistedAttachments { get; set; } = new()
-    {
-        AttachmentName.ExtendedMagAP,
-        AttachmentName.ExtendedMagFMJ,
-        AttachmentName.ExtendedMagJHP,
-        
-        AttachmentName.LowcapMagAP,
-        AttachmentName.LowcapMagFMJ,
-        AttachmentName.LowcapMagJHP,
-        
-        AttachmentName.StandardMagAP,
-        AttachmentName.StandardMagFMJ,
-        AttachmentName.StandardMagJHP,
-        
-        AttachmentName.CylinderMag5,
-        AttachmentName.CylinderMag6,
-        AttachmentName.CylinderMag7
-    };
-
     [Description("Sets the minimum amount of players required to spawn a Serpent's Hand wave.")]
     public int SerpentsHandMinPlayers { get; set; } = 3;
     
@@ -176,90 +123,4 @@ public class PluginConfig
     /// </summary>
     [Description("Sets the Red Right Hand CASSIE message to play once a wave spawns.")]
     public string RedRightHandCassieMessage { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Janitor spawn conditions.
-    /// </summary>
-    [Description("Sets the Janitor spawn conditions.")]
-    public List<RoleRange> JanitorSpawns { get; set; } = new()
-    {
-        new()
-        {
-            MinPlayers = 1,
-            MaxPlayers = 6,
-            OverallChance = 20,
-            MaxSpawnCount = 1
-        },
-        
-        new()
-        {
-            MinPlayers = 7,
-            MaxPlayers = 11,
-            OverallChance = 50,
-            MaxSpawnCount = 1
-        },
-        
-        new()
-        {
-            MinPlayers = 12,
-            MaxPlayers = 18,
-            OverallChance = 80,
-            MaxSpawnCount = 1
-        },
-        
-        new()
-        {
-            MinPlayers = 19,
-            MaxPlayers = -1,
-            OverallChance = 100,
-            MaxSpawnCount = 1
-        }
-    };
-
-    /// <summary>
-    /// Guard Commander spawn conditions.
-    /// </summary>
-    [Description("Sets the Guard Commander spawn conditions.")]
-    public List<RoleRange> GuardCommanderSpawns { get; set; } = new()
-    {
-        new()
-        {
-            MinPlayers = 3,
-            MaxPlayers = 5,
-            OverallChance = 20,
-            MaxSpawnCount = 1
-        },
-        
-        new()
-        {
-            MinPlayers = 6,
-            MaxPlayers = 12,
-            OverallChance = 40,
-            MaxSpawnCount = 1
-        },
-        
-        new()
-        {
-            MinPlayers = 13,
-            MaxPlayers = 16,
-            OverallChance = 60,
-            MaxSpawnCount = 1
-        },
-        
-        new()
-        {
-            MinPlayers = 17,
-            MaxPlayers = 26,
-            OverallChance = 80,
-            MaxSpawnCount = 1
-        },
-        
-        new()
-        {
-            MinPlayers = 27,
-            MaxPlayers = -1,
-            OverallChance = 100,
-            MaxSpawnCount = 1
-        }
-    };
 }

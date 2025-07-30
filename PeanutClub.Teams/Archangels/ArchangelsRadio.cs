@@ -5,19 +5,20 @@ using LabApi.Events.Handlers;
 
 using LabExtended.API;
 using LabExtended.API.Toys;
-using LabExtended.API.Hints;
 
 using LabExtended.Core;
 using LabExtended.Events;
 using LabExtended.Utilities;
 using LabExtended.Extensions;
+
 using PeanutClub.OverlayAPI.Alerts;
+
 using ProjectMER.Features;
 using ProjectMER.Features.Objects;
 
 using UnityEngine;
 
-namespace PeanutClub.SpecialWaves.Waves.Archangels;
+namespace PeanutClub.Teams.Archangels;
 
 /// <summary>
 /// Manages the spawning radio.

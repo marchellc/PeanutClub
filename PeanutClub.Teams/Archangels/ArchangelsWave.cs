@@ -10,7 +10,7 @@ using PeanutClub.OverlayAPI.Alerts;
 
 using PlayerRoles;
 
-namespace PeanutClub.SpecialWaves.Waves.Archangels;
+namespace PeanutClub.Teams.Archangels;
 
 /// <summary>
 /// An instance of Zeta-3 Archangels wave.

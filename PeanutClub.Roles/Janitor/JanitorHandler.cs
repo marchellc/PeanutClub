@@ -2,7 +2,6 @@ using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Events.Handlers;
 
 using LabExtended.API;
-using LabExtended.API.Hints;
 
 using LabExtended.Core;
 using LabExtended.Extensions;
@@ -13,17 +12,17 @@ using PeanutClub.Utilities.Roles.Selection;
 
 using PlayerRoles;
 
-namespace PeanutClub.SpecialWaves.Roles.Janitor;
+namespace PeanutClub.Roles.Janitor;
 
 /// <summary>
-/// Manages the janitor role.
+/// Handles logic of the Janitor role.
 /// </summary>
-public static class JanitorRole
+public static class JanitorHandler
 {
     /// <summary>
     /// Gets the role selector used to select Janitor players.
     /// </summary>
-    public static RoleSelector RoleSelector { get; private set; }
+    public static RoleSelector Selector { get; private set; }
 
     /// <summary>
     /// Sets a player as the Janitor.
@@ -48,7 +47,7 @@ public static class JanitorRole
         
         player.SendAlert(AlertType.Info, 10f, "<b>Tvoje role je</b>\n<size=30><color=yellow><b>UKLÍZEČ</b></color></size>!");
         
-        ApiLog.Debug("Janitor Role", $"Made player &3{player.Nickname}&r (&6{player.UserId}&r) the Janitor.");
+        ApiLog.Debug("Janitor Handler", $"Made player &3{player.Nickname}&r (&6{player.UserId}&r) the Janitor.");
     }
 
     private static void Internal_ChangedRole(PlayerChangedRoleEventArgs args)
@@ -62,7 +61,7 @@ public static class JanitorRole
     
     internal static void Internal_Init()
     {
-        RoleSelector = new(PluginCore.StaticConfig.JanitorSpawns, SetJanitor, (_, role) => role is RoleTypeId.ClassD);
+        Selector = new(RolesCore.ConfigStatic.JanitorSpawns, SetJanitor, (_, role) => role is RoleTypeId.ClassD);
         
         LoadoutPlugin.Ensure("Janitor", new LoadoutDefinition()
             .WithItems(ItemType.Medkit, ItemType.KeycardJanitor));

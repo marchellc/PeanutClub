@@ -17,7 +17,7 @@ using ProjectMER.Features.Objects;
 
 using UnityEngine;
 
-namespace PeanutClub.SpecialWaves.Waves.SerpentsHand;
+namespace PeanutClub.Teams.SerpentsHand;
 
 /// <summary>
 /// Serpents Hand team handler.

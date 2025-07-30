@@ -3,16 +3,11 @@
 using LabExtended.API.CustomTeams;
 using LabExtended.Attributes;
 
-using PeanutClub.SpecialWaves.Weapons;
+using PeanutClub.Teams.Archangels;
+using PeanutClub.Teams.RedRightHand;
+using PeanutClub.Teams.SerpentsHand;
 
-using PeanutClub.SpecialWaves.Waves.Archangels;
-using PeanutClub.SpecialWaves.Waves.RedRightHand;
-using PeanutClub.SpecialWaves.Waves.SerpentsHand;
-
-using PeanutClub.SpecialWaves.Roles.Janitor;
-using PeanutClub.SpecialWaves.Roles.GuardCommander;
-
-namespace PeanutClub.SpecialWaves;
+namespace PeanutClub.Teams;
 
 /// <summary>
 /// The main plugin class.
@@ -31,7 +26,7 @@ public class PluginCore : Plugin<PluginConfig>
     public static PluginConfig StaticConfig { get; private set; }
     
     /// <inheritdoc cref="Plugin.Name"/>
-    public override string Name { get; } = "PeanutClub.SpecialWaves";
+    public override string Name { get; } = "PeanutClub.Teams";
 
     /// <inheritdoc cref="Plugin.Name"/>
     public override string Author { get; } = "Peanut Club / marchellcx";
@@ -50,11 +45,6 @@ public class PluginCore : Plugin<PluginConfig>
     {
         Singleton = this;
         StaticConfig = Config!;
-        
-        SniperRifleHandler.Internal_Init();
-        
-        JanitorRole.Internal_Init();
-        GuardCommanderRole.Internal_Init();
 
         CustomTeamRegistry.Register<ArchangelsTeam>();
         CustomTeamRegistry.Register<RedRightHandTeam>();
@@ -63,12 +53,4 @@ public class PluginCore : Plugin<PluginConfig>
 
     /// <inheritdoc cref="Plugin.Name"/>
     public override void Disable() { }
-
-    /// <summary>
-    /// Saves the plugin's config.
-    /// </summary>
-    public new static void SaveConfig()
-    {
-        (Singleton as Plugin<PluginConfig>).SaveConfig();
-    }
 }

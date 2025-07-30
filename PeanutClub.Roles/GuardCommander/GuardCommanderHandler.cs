@@ -2,7 +2,6 @@ using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Events.Handlers;
 
 using LabExtended.API;
-
 using LabExtended.Core;
 
 using PeanutClub.LoadoutAPI;
@@ -11,17 +10,17 @@ using PeanutClub.Utilities.Roles.Selection;
 
 using PlayerRoles;
 
-namespace PeanutClub.SpecialWaves.Roles.GuardCommander;
+namespace PeanutClub.Roles.GuardCommander;
 
 /// <summary>
-/// Manages spawns of Guard Commanders.
+/// Handles logic of the Guard Commander role.
 /// </summary>
-public static class GuardCommanderRole
-{
+public static class GuardCommanderHandler
+{ 
     /// <summary>
     /// Gets the guard commander role selector.
     /// </summary>
-    public static RoleSelector RoleSelector { get; private set; }
+    public static RoleSelector Selector { get; private set; }
     
     /// <summary>
     /// Sets a specific player as the Guard Commander.
@@ -45,10 +44,10 @@ public static class GuardCommanderRole
         
         player.SendAlert(AlertType.Info, 10f, "<b>Tvoje role je</b>\n<size=30><color=blue><b>VELITEL HLÍDAČŮ</b></color></size>!");
         
-        ApiLog.Debug("Guard Commander Role", $"Spawned player &3{player.Nickname}&r (&6{player.UserId}&r) as the Guard Commander");
+        ApiLog.Debug("Guard Comamnder Handler", $"Spawned player &3{player.Nickname}&r (&6{player.UserId}&r) as the Guard Commander");
     }
 
-    private static void Internal_RoleChanged(PlayerChangedRoleEventArgs args)
+    private static void Internal_ChangedRole(PlayerChangedRoleEventArgs args)
     {
         if (!string.IsNullOrEmpty(args.Player.CustomInfo) && args.Player.CustomInfo == "Guard Commander")
         {
@@ -59,12 +58,12 @@ public static class GuardCommanderRole
     
     internal static void Internal_Init()
     {
-        RoleSelector = new(PluginCore.StaticConfig.GuardCommanderSpawns, SetCommander, (_, role) => role is RoleTypeId.FacilityGuard);
+        Selector = new(RolesCore.ConfigStatic.GuardCommanderSpawns, SetCommander, (_, role) => role is RoleTypeId.FacilityGuard);
         
         LoadoutPlugin.Ensure("GuardCommander", new LoadoutDefinition()
             .WithAmmo(ItemType.Ammo556x45, 120)
             .WithItems(ItemType.GunE11SR, ItemType.KeycardMTFPrivate, ItemType.Medkit, ItemType.Adrenaline, ItemType.GrenadeFlash, ItemType.Radio, ItemType.ArmorCombat));
         
-        PlayerEvents.ChangedRole += Internal_RoleChanged;
+        PlayerEvents.ChangedRole += Internal_ChangedRole;
     }
 }
