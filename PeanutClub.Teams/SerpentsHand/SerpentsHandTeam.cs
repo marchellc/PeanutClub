@@ -9,7 +9,7 @@ using LabExtended.Events;
 using LabExtended.Utilities;
 using LabExtended.Extensions;
 using LabExtended.Attributes;
-
+using MapGeneration;
 using PeanutClub.LoadoutAPI;
 using PlayerRoles;
 using ProjectMER.Features;
@@ -152,6 +152,12 @@ public class SerpentsHandTeam : CustomTeamHandler<SerpentsHandWave>
             return;
 
         if (!args.OldRole.IsScp(false))
+            return;
+
+        if (SpawnPosition.GetZone() is not FacilityZone.Surface && Warhead.IsDetonated)
+            return;
+
+        if (SpawnPosition.GetZone() is FacilityZone.LightContainment && Decontamination.IsDecontaminating)
             return;
 
         TimingUtils.AfterSeconds(() =>
