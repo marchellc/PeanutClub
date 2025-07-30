@@ -3,6 +3,7 @@ using System.ComponentModel;
 using InventorySystem.Items.Firearms.Attachments;
 
 using PeanutClub.Utilities.Randomness;
+using PlayerRoles;
 
 namespace PeanutClub.Items.Weapons.SniperRifle;
 
@@ -16,37 +17,35 @@ public class SniperRifleProperties
     /// </summary>
     [Description("Sets the maximum ammo capacity of the Sniper Rifle.")]
     public int MaxAmmo { get; set; } = 1;
-
+    
     /// <summary>
     /// Whether or not players can change the attachments of the sniper rifle.
     /// </summary>
     [Description("Enables / disables changing attachments of the Sniper Rifle.")]
     public bool AllowAttachmentsChanging { get; set; } = false;
-    
+
     /// <summary>
-    /// The Sniper Rifle hitbox damage matrix.
+    /// The base damage of the Sniper Rifle, per hitbox.
     /// </summary>
-    [Description("Sets the Sniper Rifle's damage range per hitbox.")]
-    public Dictionary<HitboxType, FloatRange> DamagePerHitbox { get; set; } = new()
+    [Description("Sets the base damage of the Sniper Rifle.")]
+    public Dictionary<HitboxType, float> BaseDamage { get; set; } = new()
     {
-        [HitboxType.Headshot] = new()
-        {
-            MinValue = 250f,
-            MaxValue = 250f
-        },
-        
-        [HitboxType.Body] = new()
-        {
-            MinValue = 250f,
-            MaxValue = 250f
-        },
-        
-        [HitboxType.Limb] = new()
-        {
-            MinValue = 250f,
-            MaxValue = 250f
-        }
+        [HitboxType.Body] = 250f,
+        [HitboxType.Limb] = 250f,
+        [HitboxType.Headshot] = 250f
     };
+
+    /// <summary>
+    /// The Sniper Rifle role type damage multipliers.
+    /// </summary>
+    [Description("Sets the per-role damage multipliers (overrides team multipliers).")]
+    public Dictionary<RoleTypeId, float> RoleMultipliers { get; set; } = new();
+
+    /// <summary>
+    /// The Sniper Rifle team type damage multipliers.
+    /// </summary>
+    [Description("Sets the per-team damage multipliers (overriden by role_multipliers).")]
+    public Dictionary<Team, float> TeamMultipliers { get; set; } = new();
 
     /// <summary>
     /// A list of the sniper rifle's default attachments.

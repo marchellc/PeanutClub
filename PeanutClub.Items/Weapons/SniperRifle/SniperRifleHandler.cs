@@ -55,21 +55,20 @@ public static class SniperRifleHandler
             props.MaxAmmo = config.MaxAmmo;
             props.AllowAttachmentsChanging = config.AllowAttachmentsChanging;
             
+            props.BaseDamage.Clear();
+            props.TeamMultipliers.Clear();
+            props.RoleMultipliers.Clear();
             props.DefaultAttachments.Clear();
             props.BlacklistedAttachments.Clear();
-            props.DamagePerHitbox.Clear();
-
-            if (config.DamagePerHitbox?.Count > 0)
-            {
-                foreach (var pair in config.DamagePerHitbox)
-                {
-                    props.DamagePerHitbox.Add(pair.Key, new FloatRange()
-                    {
-                        MaxValue = pair.Value.MaxValue,
-                        MinValue = pair.Value.MinValue
-                    });
-                }
-            }
+            
+            if (config.BaseDamage?.Count > 0)
+                props.BaseDamage.AddRange(config.BaseDamage);
+            
+            if (config.TeamMultipliers?.Count > 0)
+                props.TeamMultipliers.AddRange(config.TeamMultipliers);
+            
+            if (config.RoleMultipliers?.Count > 0)
+                props.RoleMultipliers.AddRange(config.RoleMultipliers);
             
             if (config.DefaultAttachments?.Count > 0)
                 props.DefaultAttachments.AddRange(config.DefaultAttachments);
@@ -354,7 +353,41 @@ public static class SniperRifleHandler
         if (args.DamageHandler is FirearmDamageHandler firearmDamageHandler
             && firearmDamageHandler.Firearm.IsSniperRifle(out var properties))
         {
-            firearmDamageHandler.Damage = FloatRange.GetRandom(firearmDamageHandler.Hitbox, properties.DamagePerHitbox);
+            if (!properties.BaseDamage.TryGetValue(firearmDamageHandler.Hitbox, out var baseDamage))
+            {
+                if (properties.BaseDamage.Count > 0)
+                {
+                    baseDamage = properties.BaseDamage.First().Value;
+                }
+                else
+                {
+                    baseDamage = firearmDamageHandler.Damage;
+                }
+            }
+
+            var hasRoleMultiplier = properties.RoleMultipliers.TryGetValue(args.Player.Role, out var roleMultiplier);
+            var hasTeamMultiplier = properties.TeamMultipliers.TryGetValue(args.Player.Team, out var teamMultiplier);
+
+            if (hasTeamMultiplier)
+            {
+                if (hasRoleMultiplier)
+                {
+                    baseDamage *= roleMultiplier;
+                }
+                else
+                {
+                    baseDamage *= teamMultiplier;
+                }
+            }
+            else
+            {
+                if (hasRoleMultiplier)
+                {
+                    baseDamage *= roleMultiplier;
+                }
+            }
+
+            firearmDamageHandler.Damage = baseDamage;
         }
     }
 
