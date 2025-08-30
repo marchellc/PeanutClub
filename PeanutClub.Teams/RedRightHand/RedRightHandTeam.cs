@@ -24,7 +24,7 @@ public class RedRightHandTeam : CustomTeamHandler<RedRightHandWave>
     /// <summary>
     /// Gets the CASSIE announcement.
     /// </summary>
-    public static string CassieMessage => PluginCore.StaticConfig.RedRightHandCassieMessage;
+    public static bool CassieMessage => PluginCore.StaticConfig.RedRightHandCassieMessage;
     
     /// <inheritdoc cref="CustomTeamHandler.Name"/>
     public override string? Name { get; } = "Alpha-1 \"Red Right Hand\"";

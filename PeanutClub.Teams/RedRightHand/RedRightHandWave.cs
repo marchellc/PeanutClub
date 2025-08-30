@@ -2,8 +2,10 @@ using LabApi.Features.Wrappers;
 
 using LabExtended.API;
 using LabExtended.API.CustomTeams;
-
+using LabExtended.Extensions;
 using LabExtended.Utilities;
+
+using NorthwoodLib.Pools;
 
 using PeanutClub.LoadoutAPI;
 using PeanutClub.OverlayAPI.Alerts;
@@ -22,9 +24,24 @@ public class RedRightHandWave : CustomTeamInstance<RedRightHandTeam>
     {
         base.OnSpawned();
 
-        if (!string.IsNullOrWhiteSpace(RedRightHandTeam.CassieMessage))
+        if (RedRightHandTeam.CassieMessage)
         {
-            Cassie.Message(RedRightHandTeam.CassieMessage);
+            Cassie.Message(StringBuilderPool.Shared.BuildString(x =>
+            {
+                var scpsLeft = ExPlayer.Players.Count(x => x.Role.IsScpButNotZombie);
+
+                x.Append("Mtfunit Red Right Hand under the order of the O5 hasentered allremaining ");
+
+                if (scpsLeft == 0)
+                {
+                    x.Append("noscpsleft");
+                    return;
+                }
+
+                x.Append("awaitingrecontainment ");
+                x.Append(scpsLeft);
+                x.Append(scpsLeft == 1 ? " scpsubject" : " scpsubjects");
+            }));
         }
     }
 

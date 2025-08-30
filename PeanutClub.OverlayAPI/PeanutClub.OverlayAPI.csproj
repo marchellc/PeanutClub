@@ -63,12 +63,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\PeanutClub.LoadoutAPI\PeanutClub.LoadoutAPI.csproj" />
-      <ProjectReference Include="..\PeanutClub.OverlayAPI\PeanutClub.OverlayAPI.csproj" />
-      <ProjectReference Include="..\PeanutClub.Utilities\PeanutClub.Utilities.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
       <PackageReference Include="Lib.Harmony" Version="2.3.6" />
     </ItemGroup>
 

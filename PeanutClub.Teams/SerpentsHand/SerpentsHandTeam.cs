@@ -1,6 +1,7 @@
 using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Events.Handlers;
 using LabApi.Features.Wrappers;
+
 using LabExtended.API;
 using LabExtended.API.CustomTeams;
 
@@ -9,9 +10,13 @@ using LabExtended.Events;
 using LabExtended.Utilities;
 using LabExtended.Extensions;
 using LabExtended.Attributes;
+
 using MapGeneration;
+
 using PeanutClub.LoadoutAPI;
+
 using PlayerRoles;
+
 using ProjectMER.Features;
 using ProjectMER.Features.Objects;
 
@@ -53,7 +58,7 @@ public class SerpentsHandTeam : CustomTeamHandler<SerpentsHandWave>
     /// <summary>
     /// Gets the CASSIE announcement.
     /// </summary>
-    public static string CassieMessage => PluginCore.StaticConfig.SerpentsHandCassieMessage;
+    public static bool CassieMessage => PluginCore.StaticConfig.SerpentsHandCassieMessage;
     
     /// <summary>
     /// Gets the current spawn position.
@@ -163,14 +168,6 @@ public class SerpentsHandTeam : CustomTeamHandler<SerpentsHandWave>
         TimingUtils.AfterSeconds(() =>
         {
             WasSpawned = Spawn(MinPlayers, MaxPlayers, player => player != args.Player).SpawnedWave != null;
-
-            if (WasSpawned)
-            {
-                if (!string.IsNullOrWhiteSpace(CassieMessage))
-                {
-                    Cassie.Message(CassieMessage);
-                }
-            }
         }, 0.2f);
     }
 

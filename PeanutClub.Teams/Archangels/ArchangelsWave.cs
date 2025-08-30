@@ -17,14 +17,20 @@ namespace PeanutClub.Teams.Archangels;
 /// </summary>
 public class ArchangelsWave : CustomTeamInstance<ArchangelsTeam>
 {
+    /// <summary>
+    /// The CASSIE announcement for the Archangels team.
+    /// </summary>
+    public const string CassieMessage =
+        "Attention security personnel . Unknown chaos insurgency operative team spotted at gate A . Find safe shelter and wait for ninetailedfox backu";
+
     /// <inheritdoc cref="CustomTeamInstance.OnSpawned"/>
     public override void OnSpawned()
     {
         base.OnSpawned();
 
-        if (!string.IsNullOrWhiteSpace(ArchangelsTeam.CassieMessage))
+        if (ArchangelsTeam.CassieMessage)
         {
-            Cassie.Message(ArchangelsTeam.CassieMessage);
+            Cassie.Message(CassieMessage);
         }
     }
 

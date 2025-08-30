@@ -6,6 +6,7 @@ using LabExtended.Utilities;
 
 using PeanutClub.LoadoutAPI;
 using PeanutClub.OverlayAPI.Alerts;
+
 using PlayerRoles;
 
 namespace PeanutClub.Teams.SerpentsHand;
@@ -30,6 +31,11 @@ public class SerpentsHandWave : CustomTeamInstance<SerpentsHandTeam>
 
                 if ((player.InfoArea & PlayerInfoArea.CustomInfo) != PlayerInfoArea.CustomInfo)
                     player.InfoArea |= PlayerInfoArea.CustomInfo;
+
+                player.Toggles.CanBlockScp173 = false;
+                player.Toggles.CanTriggerScp096 = false;
+                player.Toggles.CanBeScp049Target = false;
+                player.Toggles.CanBePocketDimensionItemTarget = false;
 
                 LoadoutPlugin.TryApply(player, "SerpentsHand");
                 

@@ -35,10 +35,10 @@ public class PluginConfig
     public string SerpentsHandSpawnPositionName { get; set; } = "SerpentsHandCenter";
 
     /// <summary>
-    /// The Serpent's Hand CASSIE announcement to play.
+    /// Whether or not to play a CASSIE announcement when a Serpents Hand instance spawns
     /// </summary>
-    [Description("Sets the CASSIE announcement to play once a Serpent's Hand wave spawns.")]
-    public string SerpentsHandCassieMessage { get; set; } = string.Empty;
+    [Description("Whether or not to play a CASSIE announcement when a Serpents Hand instance spawns.")]
+    public bool SerpentsHandCassieMessage { get; set; } = true;
     
     /// <summary>
     /// Minimum amount of players in an Archangels wave.
@@ -65,10 +65,10 @@ public class PluginConfig
     public string ArchangelsPositionName { get; set; } = "ArchangelsRadio";
 
     /// <summary>
-    /// The Archangels CASSIE announcement.
+    /// Whether or not to play a CASSIE announcement when an Archangels instance spawns
     /// </summary>
-    [Description("Sets the CASSIE announcement to play once an Archangels wave spawns.")]
-    public string ArchangelsCassieMessage { get; set; } = string.Empty;
+    [Description("Whether or not to play a CASSIE announcement when an Archangels instance spawns")]
+    public bool ArchangelsCassieMessage { get; set; } = true;
     
     /// <summary>
     /// The minimum amount of players required to summon Red Right Hand.
@@ -119,8 +119,8 @@ public class PluginConfig
     public string RedRightHandButtonIdleAnimationName { get; set; } = "Idle";
 
     /// <summary>
-    /// The Red Right Hand CASSIE announcement.
+    /// Whether or not to play a CASSIE announcement when a Red Right Hand instance spawns
     /// </summary>
-    [Description("Sets the Red Right Hand CASSIE message to play once a wave spawns.")]
-    public string RedRightHandCassieMessage { get; set; } = string.Empty;
+    [Description("Whether or not to play a CASSIE announcement when a Red Right Hand instance spawns.")]
+    public bool RedRightHandCassieMessage { get; set; } = true;
 }
