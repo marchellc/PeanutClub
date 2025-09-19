@@ -156,6 +156,9 @@ public class SerpentsHandTeam : CustomTeamHandler<SerpentsHandWave>
         if (WasSpawned)
             return;
 
+        if (!ExRound.IsRunning)
+            return;
+
         if (!args.OldRole.IsScp(false))
             return;
 

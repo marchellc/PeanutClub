@@ -30,7 +30,7 @@ public class ArchangelsWave : CustomTeamInstance<ArchangelsTeam>
 
         if (ArchangelsTeam.CassieMessage)
         {
-            Cassie.Message(CassieMessage);
+            Cassie.Message(CassieMessage, false, true, false);
         }
     }
 

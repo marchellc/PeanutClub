@@ -1,12 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36414.22 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PeanutClub.Teams", "PeanutClub.Teams\PeanutClub.Teams.csproj", "{73AF887E-ADD9-4B53-86D0-133D73BBC708}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PeanutClub.LoadoutAPI", "PeanutClub.LoadoutAPI\PeanutClub.LoadoutAPI.csproj", "{6AD16783-C4F4-4861-BFDA-706D8F9B36CB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PeanutClub.Loadouts", "PeanutClub.LoadoutAPI\PeanutClub.Loadouts.csproj", "{6AD16783-C4F4-4861-BFDA-706D8F9B36CB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PeanutClub.Utilities", "PeanutClub.Utilities\PeanutClub.Utilities.csproj", "{FB39A836-CFAB-45F0-8D1D-1479070C374C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PeanutClub.OverlayAPI", "PeanutClub.OverlayAPI\PeanutClub.OverlayAPI.csproj", "{839FF478-2479-4147-BD5B-47F6FC552C60}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PeanutClub.Overlays", "PeanutClub.OverlayAPI\PeanutClub.Overlays.csproj", "{839FF478-2479-4147-BD5B-47F6FC552C60}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PeanutClub.Items", "PeanutClub.Items\PeanutClub.Items.csproj", "{96DAE50E-51EC-4AA8-92B4-5FD1921CF1E3}"
 EndProject
@@ -42,5 +45,8 @@ Global
 		{ACEDA069-5C77-43DE-BA41-C3E2EA3979AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ACEDA069-5C77-43DE-BA41-C3E2EA3979AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ACEDA069-5C77-43DE-BA41-C3E2EA3979AA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal

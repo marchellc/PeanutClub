@@ -41,7 +41,7 @@ public class RedRightHandWave : CustomTeamInstance<RedRightHandTeam>
                 x.Append("awaitingrecontainment ");
                 x.Append(scpsLeft);
                 x.Append(scpsLeft == 1 ? " scpsubject" : " scpsubjects");
-            }));
+            }), false, true, false);
         }
     }
 
