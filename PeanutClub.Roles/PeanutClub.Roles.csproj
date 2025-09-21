@@ -68,8 +68,8 @@
 
     <ItemGroup>
       <ProjectReference Include="..\PeanutClub.Items\PeanutClub.Items.csproj" />
-      <ProjectReference Include="..\PeanutClub.LoadoutAPI\PeanutClub.Loadouts.csproj" />
-      <ProjectReference Include="..\PeanutClub.OverlayAPI\PeanutClub.Overlays.csproj" />
+      <ProjectReference Include="..\PeanutClub.Loadouts\PeanutClub.Loadouts.csproj" />
+      <ProjectReference Include="..\PeanutClub.Overlays\PeanutClub.Overlays.csproj" />
       <ProjectReference Include="..\PeanutClub.Utilities\PeanutClub.Utilities.csproj" />
     </ItemGroup>
 

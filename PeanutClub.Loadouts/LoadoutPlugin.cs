@@ -15,7 +15,7 @@ using PeanutClub.Utilities.Items;
 
 using Utils.NonAllocLINQ;
 
-namespace PeanutClub.LoadoutAPI;
+namespace PeanutClub.Loadouts;
 
 /// <summary>
 /// The main class of the plugin.

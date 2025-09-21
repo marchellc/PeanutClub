@@ -4,7 +4,7 @@ using LabExtended.API.CustomTeams;
 using LabExtended.Core;
 using LabExtended.Attributes;
 
-using PeanutClub.LoadoutAPI;
+using PeanutClub.Loadouts;
 
 using PlayerRoles;
 using PlayerRoles.Spectating;

@@ -1,6 +1,6 @@
 using LabExtended.Extensions;
 
-namespace PeanutClub.LoadoutAPI;
+namespace PeanutClub.Loadouts;
 
 /// <summary>
 /// The config definition of a loadout.

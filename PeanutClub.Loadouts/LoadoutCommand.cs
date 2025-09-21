@@ -4,7 +4,7 @@ using LabExtended.Commands;
 using LabExtended.Commands.Attributes;
 using LabExtended.Commands.Interfaces;
 
-namespace PeanutClub.LoadoutAPI;
+namespace PeanutClub.Loadouts;
 
 /// <summary>
 /// Loadout commands.

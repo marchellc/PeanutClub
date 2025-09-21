@@ -15,9 +15,8 @@ using LabExtended.Events.Player;
 using LabExtended.Extensions;
 using LabExtended.Utilities.Firearms;
 
-using PeanutClub.LoadoutAPI;
-using PeanutClub.OverlayAPI.Alerts;
-using PeanutClub.Utilities.Randomness;
+using PeanutClub.Loadouts;
+using PeanutClub.Overlays.Alerts;
 
 using PlayerStatsSystem;
 
@@ -230,6 +229,30 @@ public static class SniperRifleHandler
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Creates a new Sniper Rifle item.
+    /// </summary>
+    /// <param name="firearmType">The type of the item of the Sniper Rifle.</param>
+    /// <param name="properties">The custom properties of the Sniper Rifle (uses config if null).</param>
+    /// <returns>The created Sniper Rifle item.</returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="Exception"></exception>
+    public static Firearm CreateSniperRifle(ItemType firearmType = ItemType.GunE11SR, SniperRifleProperties? properties = null)
+    {
+        if (!firearmType.TryGetTemplate<Firearm>(out var template))
+            throw new Exception($"Could not get the item template for item type {firearmType}");
+
+        var firearm = UnityEngine.Object.Instantiate(template);
+
+        firearm.ServerAddReason = ItemAddReason.AdminCommand;
+        firearm.ItemSerial = ItemSerialGenerator.GenerateNext();
+
+        properties ??= DefaultProperties;
+
+        TrackedItems[firearm.ItemSerial] = properties;
+        return firearm;
     }
 
     /// <summary>

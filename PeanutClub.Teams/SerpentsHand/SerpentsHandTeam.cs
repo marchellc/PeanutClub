@@ -13,7 +13,7 @@ using LabExtended.Attributes;
 
 using MapGeneration;
 
-using PeanutClub.LoadoutAPI;
+using PeanutClub.Loadouts;
 
 using PlayerRoles;
 

@@ -5,7 +5,7 @@ using LabExtended.Extensions;
 
 using NorthwoodLib.Pools;
 
-namespace PeanutClub.OverlayAPI.Alerts;
+namespace PeanutClub.Overlays.Alerts;
 
 /// <summary>
 /// Extensions targeting alerts.
@@ -65,7 +65,52 @@ public static class AlertExtensions
             Duration = duration
         });
     }
-    
+
+    /// <summary>
+    /// Sends a new alert to a player.
+    /// </summary>
+    /// <param name="player">The player receiving the alert.</param>
+    /// <param name="type">The type of the alert.</param>
+    /// <param name="duration">The duration of the alert (in seconds) - must be at least one.</param>
+    /// <param name="content">The content of the alert.</param>
+    public static void SendAlert(this ExPlayer player, AlertType type, float duration, string content, bool overrideCurrent)
+    {
+        if (player?.ReferenceHub == null)
+            return;
+
+        if (string.IsNullOrWhiteSpace(content))
+            return;
+
+        if (duration < 1f)
+            return;
+
+        if (!player.TryGetHintElement<AlertElement>(out var alertElement))
+            return;
+
+        if (overrideCurrent)
+        {
+            alertElement.Alerts.Clear();
+
+            alertElement.CurrentAlert = new()
+            {
+                Type = type,
+                Content = content,
+                Duration = duration
+            };
+
+            alertElement.AlertTimer.Restart();
+        }
+        else
+        {
+            alertElement.Alerts.Add(new()
+            {
+                Type = type,
+                Content = content,
+                Duration = duration
+            });
+        }
+    }
+
     /// <summary>
     /// Formats an alert's content.
     /// </summary>

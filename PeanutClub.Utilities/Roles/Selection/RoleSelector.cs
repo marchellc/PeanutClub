@@ -2,10 +2,8 @@ using LabExtended.API;
 using LabExtended.Extensions;
 
 using LabExtended.Events;
-using LabExtended.Events.Round;
 
 using LabExtended.Utilities;
-using LabExtended.Utilities.Generation;
 
 using NorthwoodLib.Pools;
 
@@ -110,7 +108,7 @@ public class RoleSelector
             }
             else
             {
-                playerCount = RandomGen.Instance.GetInt32(range.MinSpawnCount, range.MaxSpawnCount);
+                playerCount = UnityEngine.Random.Range(range.MinSpawnCount, range.MaxSpawnCount);
             }
         }
         else
@@ -153,7 +151,7 @@ public class RoleSelector
             if (range.MaxPlayers > 0 && ExPlayer.Count > range.MaxPlayers)
                 continue;
             
-            if (range.OverallChance <= 0f || (range.OverallChance < 100f && !WeightUtils.GetBool(range.OverallChance, false)))
+            if (range.OverallChance <= 0f || (range.OverallChance < 100f && !WeightUtils.GetBool(range.OverallChance)))
                 continue;
 
             return range;

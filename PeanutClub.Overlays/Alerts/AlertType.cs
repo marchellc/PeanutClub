@@ -1,4 +1,4 @@
-namespace PeanutClub.OverlayAPI.Alerts;
+namespace PeanutClub.Overlays.Alerts;
 
 /// <summary>
 /// Defines the type of an alert.

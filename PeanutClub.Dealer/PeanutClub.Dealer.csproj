@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net48</TargetFramework>
@@ -10,6 +10,12 @@
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
       <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\PeanutClub.Items\PeanutClub.Items.csproj" />
+      <ProjectReference Include="..\PeanutClub.Overlays\PeanutClub.Overlays.csproj" />
+      <ProjectReference Include="..\PeanutClub.Utilities\PeanutClub.Utilities.csproj" />
+    </ItemGroup>
 
     <ItemGroup>
       <Reference Include="0LabExtended">
@@ -61,15 +67,5 @@
         <HintPath>$(PLUGIN_REFS)\YamlDotNet.dll</HintPath>
       </Reference>
     </ItemGroup>
-
-    <ItemGroup>
-      <PackageReference Include="Lib.Harmony" Version="2.3.6" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\PeanutClub.Loadouts\PeanutClub.Loadouts.csproj" />
-      <ProjectReference Include="..\PeanutClub.Overlays\PeanutClub.Overlays.csproj" />
-      <ProjectReference Include="..\PeanutClub.Utilities\PeanutClub.Utilities.csproj" />
-    </ItemGroup>
-
+    
 </Project>

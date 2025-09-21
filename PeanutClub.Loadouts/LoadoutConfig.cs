@@ -1,6 +1,6 @@
 using System.ComponentModel;
 
-namespace PeanutClub.LoadoutAPI;
+namespace PeanutClub.Loadouts;
 
 /// <summary>
 /// The config class of the plugin.

@@ -4,8 +4,8 @@ using LabApi.Events.Handlers;
 using LabExtended.API;
 using LabExtended.Core;
 
-using PeanutClub.LoadoutAPI;
-using PeanutClub.OverlayAPI.Alerts;
+using PeanutClub.Loadouts;
+using PeanutClub.Overlays.Alerts;
 using PeanutClub.Utilities.Roles.Selection;
 
 using PlayerRoles;

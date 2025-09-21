@@ -1,6 +1,6 @@
 using System.ComponentModel;
 
-namespace PeanutClub.LoadoutAPI;
+namespace PeanutClub.Loadouts;
 
 /// <summary>
 /// An ammo definition in a loadout config.

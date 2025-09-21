@@ -9,7 +9,7 @@ using LabExtended.API.Hints.Elements.Personal;
 using LabExtended.Events;
 using LabExtended.Extensions;
 
-namespace PeanutClub.OverlayAPI.Alerts;
+namespace PeanutClub.Overlays.Alerts;
 
 /// <summary>
 /// A hint element used to display alerts to players.

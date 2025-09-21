@@ -1,4 +1,4 @@
-namespace PeanutClub.OverlayAPI.Alerts;
+namespace PeanutClub.Overlays.Alerts;
 
 /// <summary>
 /// A created alert.

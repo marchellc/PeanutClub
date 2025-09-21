@@ -2,7 +2,6 @@ using System.ComponentModel;
 
 using InventorySystem.Items.Firearms.Attachments;
 
-using PeanutClub.Utilities.Randomness;
 using PlayerRoles;
 
 namespace PeanutClub.Items.Weapons.SniperRifle;

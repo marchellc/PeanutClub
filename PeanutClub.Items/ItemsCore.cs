@@ -1,5 +1,6 @@
 using LabApi.Loader.Features.Plugins;
-
+using PeanutClub.Items.Spawning;
+using PeanutClub.Items.Stacking;
 using PeanutClub.Items.Weapons.SniperRifle;
 
 namespace PeanutClub.Items;
@@ -39,6 +40,11 @@ public class ItemsCore : Plugin<ItemsConfig>
     {
         PluginStatic = this;
         ConfigStatic = Config!;
+
+        ItemStacker.Internal_Init();
+
+        SpawnPositions.Internal_Init();
+        SpawnPrevention.Internal_Init();
         
         SniperRifleHandler.Internal_Init();
     }

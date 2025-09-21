@@ -1,6 +1,6 @@
 using System.ComponentModel;
 
-namespace PeanutClub.LoadoutAPI;
+namespace PeanutClub.Loadouts;
 
 /// <summary>
 /// An item in a config loadout.

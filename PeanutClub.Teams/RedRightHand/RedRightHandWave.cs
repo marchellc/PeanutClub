@@ -7,8 +7,8 @@ using LabExtended.Utilities;
 
 using NorthwoodLib.Pools;
 
-using PeanutClub.LoadoutAPI;
-using PeanutClub.OverlayAPI.Alerts;
+using PeanutClub.Loadouts;
+using PeanutClub.Overlays.Alerts;
 
 using PlayerRoles;
 

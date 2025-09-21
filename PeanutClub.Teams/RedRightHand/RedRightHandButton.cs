@@ -11,7 +11,7 @@ using LabExtended.Events;
 using LabExtended.Extensions;
 using LabExtended.Utilities;
 
-using PeanutClub.OverlayAPI.Alerts;
+using PeanutClub.Overlays.Alerts;
 
 using ProjectMER.Features;
 using ProjectMER.Features.Objects;

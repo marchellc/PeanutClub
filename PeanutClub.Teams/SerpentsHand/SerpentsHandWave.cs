@@ -4,8 +4,8 @@ using LabExtended.API.CustomTeams;
 using LabExtended.Core;
 using LabExtended.Utilities;
 
-using PeanutClub.LoadoutAPI;
-using PeanutClub.OverlayAPI.Alerts;
+using PeanutClub.Loadouts;
+using PeanutClub.Overlays.Alerts;
 
 using PlayerRoles;
 
