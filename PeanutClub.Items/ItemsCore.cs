@@ -1,6 +1,9 @@
 using LabApi.Loader.Features.Plugins;
+
 using PeanutClub.Items.Spawning;
 using PeanutClub.Items.Stacking;
+using PeanutClub.Items.Weapons;
+using PeanutClub.Items.Weapons.AirsoftGun;
 using PeanutClub.Items.Weapons.SniperRifle;
 
 namespace PeanutClub.Items;
@@ -41,12 +44,15 @@ public class ItemsCore : Plugin<ItemsConfig>
         PluginStatic = this;
         ConfigStatic = Config!;
 
+        CustomFirearmHandler.Internal_Init();
+
+        AirsoftGunHandler.Internal_Init();
+        SniperRifleHandler.Internal_Init();
+
         ItemStacker.Internal_Init();
 
         SpawnPositions.Internal_Init();
         SpawnPrevention.Internal_Init();
-        
-        SniperRifleHandler.Internal_Init();
     }
 
     /// <inheritdoc cref="Plugin.Disable"/>

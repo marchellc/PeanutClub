@@ -3,6 +3,8 @@ using LabExtended.Core;
 using LabExtended.Events;
 using LabExtended.Utilities;
 
+using PeanutClub.Items.Weapons;
+using PeanutClub.Items.Weapons.AirsoftGun;
 using PeanutClub.Items.Weapons.SniperRifle;
 
 using UnityEngine;
@@ -45,7 +47,11 @@ namespace PeanutClub.Items.Spawning
                                 switch (item)
                                 {
                                     case "SniperRifle":
-                                        SniperRifleHandler.SpawnSniperRifle(position);
+                                        CustomFirearmHandler.SpawnCustomFirearm(position, ItemType.GunE11SR, SniperRifleHandler.DefaultProperties);
+                                        break;
+
+                                    case "AirsoftGun":
+                                        CustomFirearmHandler.SpawnCustomFirearm(position, ItemType.GunFSP9, AirsoftGunHandler.DefaultProperties);
                                         break;
 
                                     default:

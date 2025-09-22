@@ -10,37 +10,56 @@ using LabExtended.Extensions;
 
 using MapGeneration;
 
-namespace PeanutClub.Items.Weapons.SniperRifle;
+using PeanutClub.Items.Weapons.AirsoftGun;
+using PeanutClub.Items.Weapons.SniperRifle;
+
+namespace PeanutClub.Items.Weapons;
 
 /// <summary>
 /// Commands targeting the Sniper Rifle.
 /// </summary>
-[Command("sniperrifle", "Commands for the Sniper Rifle.", "sniper")]
-public class SniperRifleCommand : CommandBase, IServerSideCommand
+[Command("customfirearm", "Commands for custom firearms.", "cf")]
+public class CustomFirearmCommand : CommandBase, IServerSideCommand
 {
     /// <summary>
-    /// Lists active Sniper Rifles.
+    /// Specifies the name of a custom firearm.
     /// </summary>
-    [CommandOverload("list", "Lists all active Sniper Rifles.")]
+    public enum FirearmName
+    {
+        /// <summary>
+        /// The sniper rifle.
+        /// </summary>
+        SniperRifle,
+
+        /// <summary>
+        /// The airsoft gun.
+        /// </summary>
+        AirsoftGun,
+    }
+
+    /// <summary>
+    /// Lists active custom firearms.
+    /// </summary>
+    [CommandOverload("list", "Lists all active custom firearms.")]
     public void List()
     {
-        if (SniperRifleHandler.TrackedItems.Count == 0)
+        if (CustomFirearmHandler.TrackedItems.Count == 0)
         {
-            Fail("No active Sniper Rifle instances.");
+            Fail("No active custom firearm instances.");
             return;
         }
         
         Ok(x =>
         {
-            x.AppendLine($"Showing '{SniperRifleHandler.TrackedItems.Count}' active Sniper Rifle instance(s):");
+            x.AppendLine($"Showing '{CustomFirearmHandler.TrackedItems.Count}' active custom firearm instance(s):");
 
-            foreach (var pair in SniperRifleHandler.TrackedItems)
+            foreach (var pair in CustomFirearmHandler.TrackedItems)
             {
                 x.AppendLine();
                 
                 if (InventoryExtensions.ServerTryGetItemWithSerial(pair.Key, out var item))
                 {
-                    x.AppendLine($"- Inventory {pair.Key}");
+                    x.AppendLine($"- [{pair.Value.GetType().Name}] Inventory {pair.Key}");
 
                     if (ExPlayer.TryGet(item.Owner, out var player))
                     {
@@ -54,7 +73,7 @@ public class SniperRifleCommand : CommandBase, IServerSideCommand
                 }
                 else if (ExMap.Pickups.TryGetFirst(y => y != null && y.Info.Serial == pair.Key, out var pickup))
                 {
-                    x.AppendLine($"- Pickup {pair.Key}");
+                    x.AppendLine($"- [{pair.Value.GetType().Name}] Pickup {pair.Key}");
                     x.AppendLine($"  >- Position: {pickup.Position.ToPreciseString()}");
 
                     if (ExPlayer.TryGet(pickup.PreviousOwner.Hub, out var player))
@@ -77,40 +96,50 @@ public class SniperRifleCommand : CommandBase, IServerSideCommand
                 }
                 else
                 {
-                    x.AppendLine($"- Serial {pair.Key}");
+                    x.AppendLine($"- [{pair.Value.GetType().Name}] Serial {pair.Key}");
                     x.AppendLine($"  >- Unknown Item");
                 }
             }
         });
     }
-    
+
     /// <summary>
-    /// Adds the Sniper Rifle.
+    /// Adds a custom firearm.
     /// </summary>
-    [CommandOverload("add", "Adds the Sniper Rifle to a player's inventory.")]
+    [CommandOverload("add", "Adds a custom firearm.")]
     public void Add(
-        [CommandParameter("Target", "The player to add the Sniper Rifle to.")] ExPlayer? target = null)
+        [CommandParameter("Target", "The player to add the firearm to.")] ExPlayer target,
+        [CommandParameter("Item", "The type of the firearm's item.")] ItemType item,
+        [CommandParameter("Type", "The type of the firearm to add.")] FirearmName type)
     {
-        target ??= Sender;
-        target.GiveSniperRifle();
-        
-        Ok($"Added the Sniper Rifle to player '{target.Nickname} ({target.UserId})'!");
+        if (type is FirearmName.AirsoftGun)
+        {
+            target.GiveCustomFirearm(item, AirsoftGunHandler.DefaultProperties);
+
+            Ok($"Added the Airsoft Gun ({item}) to {target.Nickname} ({target.UserId})!");
+        }
+        else if (type is FirearmName.SniperRifle)
+        {
+            target.GiveCustomFirearm(item, SniperRifleHandler.DefaultProperties);
+
+            Ok($"Added the Sniper Rifle ({item}) to {target.Nickname} ({target.UserId})!");
+        }
     }
 
     /// <summary>
-    /// Removes the Sniper Rifle.
+    /// Removes a custom firearm.
     /// </summary>
-    [CommandOverload("remove", "Removes the Sniper Rifle.")]
+    [CommandOverload("remove", "Removes a custom firearm.")]
     public void Remove(
-        [CommandParameter("Serial", "The serial number of the Sniper Rifle item.")] ushort sniperSerial, 
+        [CommandParameter("Serial", "The serial number of the custom firearm item.")] ushort sniperSerial, 
         [CommandParameter("Destroy", "Whether or not to destroy the item.")] bool destroyItem = true)
     {
-        if (!SniperRifleHandler.Remove(sniperSerial, destroyItem))
+        if (!CustomFirearmHandler.Remove(sniperSerial, destroyItem))
         {
-            Fail($"Could not remove Sniper Rifle of serial '{sniperSerial}'!");
+            Fail($"Could not remove custom firearm of serial '{sniperSerial}'!");
             return;
         }
         
-        Ok($"Sniper Rifle with serial '{sniperSerial}' was removed!");
+        Ok($"Custom Firearm with serial '{sniperSerial}' was removed!");
     }
 }

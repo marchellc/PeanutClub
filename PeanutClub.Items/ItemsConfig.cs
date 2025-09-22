@@ -1,5 +1,6 @@
 using System.ComponentModel;
 
+using PeanutClub.Items.Weapons.AirsoftGun;
 using PeanutClub.Items.Weapons.SniperRifle;
 
 namespace PeanutClub.Items;
@@ -44,4 +45,10 @@ public class ItemsConfig
     /// </summary>
     [Description("Sets the default properties of the Sniper Rifle.")]
     public SniperRifleProperties SniperRifle { get; set; } = new();
+
+    /// <summary>
+    /// The default properties of the Airsoft Gun.
+    /// </summary>
+    [Description("Sets the default properties of the Airsoft Gun.")]
+    public AirsoftGunProperties AirsoftGun { get; set; } = new();
 }

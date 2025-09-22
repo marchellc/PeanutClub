@@ -21,6 +21,9 @@ using InventorySystem.Items.Coin;
 
 using PlayerRoles.FirstPersonControl;
 
+using PeanutClub.Items.Weapons;
+using PeanutClub.Items.Weapons.AirsoftGun;
+
 namespace PeanutClub.Dealer.API
 {
     /// <summary>
@@ -198,15 +201,31 @@ namespace PeanutClub.Dealer.API
                     }
                     else
                     {
-                        if (purchasedItem.Entry.Item == "SniperRifle")
+                        ItemType firearmType = ItemType.None;
+                        CustomFirearmProperties? properties = null;
+
+                        switch (purchasedItem.Entry.Item)
+                        {
+                            case "SniperRifle":
+                                firearmType = ItemType.GunE11SR;
+                                properties = SniperRifleHandler.DefaultProperties;
+                                break;
+
+                            case "AirsoftGun":
+                                firearmType = ItemType.GunFSP9;
+                                properties = AirsoftGunHandler.DefaultProperties;
+                                break;
+                        }
+
+                        if (firearmType != ItemType.None && properties != null)
                         {
                             if (ActivePlayer.Inventory.ItemCount < 8)
                             {
-                                ActivePlayer.GiveSniperRifle();
+                                ActivePlayer.GiveCustomFirearm(firearmType, properties);
                             }
                             else
                             {
-                                SniperRifleHandler.SpawnSniperRifle(ActivePlayer.Position);
+                                CustomFirearmHandler.SpawnCustomFirearm(ActivePlayer.Position, firearmType, properties);
                             }
                         }
                     }
@@ -325,7 +344,7 @@ namespace PeanutClub.Dealer.API
                 return;
             }
 
-            var inventory = player.GetDealerInventory(Id);
+            var inventory = DealerManager.GetDealerInventory(Id, player.UserId, false);
 
             if (inventory.Items.Count == 0)
             {
@@ -360,13 +379,29 @@ namespace PeanutClub.Dealer.API
                 }
                 else
                 {
-                    if (item.Entry.Item == "SniperRifle")
-                    {
-                        var addedItem = player.GiveSniperRifle();
+                    ItemType firearmType = ItemType.None;
+                    CustomFirearmProperties? properties = null;
 
-                        if (addedItem != null)
+                    switch (item.Entry.Item)
+                    {
+                        case "SniperRifle":
+                            firearmType = ItemType.GunE11SR;
+                            properties = SniperRifleHandler.DefaultProperties;
+                            break;
+
+                        case "AirsoftGun":
+                            firearmType = ItemType.GunFSP9;
+                            properties = AirsoftGunHandler.DefaultProperties;
+                            break;
+                    }
+
+                    if (firearmType != ItemType.None && properties != null)
+                    {
+                        var firearm = ActivePlayer.GiveCustomFirearm(firearmType, properties);
+
+                        if (firearm != null)
                         {
-                            inventory.ActiveMapping[addedItem] = item;
+                            inventory.ActiveMapping[firearm] = item;
                         }
                     }
                 }

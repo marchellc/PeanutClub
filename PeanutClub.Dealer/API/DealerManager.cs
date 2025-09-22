@@ -1,22 +1,16 @@
-﻿using LabApi.Events.Arguments.PlayerEvents;
+﻿using InventorySystem.Items;
+using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Events.Arguments.ServerEvents;
-
 using LabApi.Events.Handlers;
-
+using LabApi.Features.Wrappers;
 using LabExtended.API;
 using LabExtended.Core;
-using LabExtended.Extensions;
-
 using LabExtended.Events;
 using LabExtended.Events.Player;
-
+using LabExtended.Extensions;
 using LabExtended.Utilities;
 using LabExtended.Utilities.Update;
-
-using PeanutClub.Utilities;
-
 using PlayerRoles;
-
 using UnityEngine;
 
 namespace PeanutClub.Dealer.API
@@ -85,7 +79,7 @@ namespace PeanutClub.Dealer.API
         /// <returns>A DealerInstance representing the newly spawned dealer NPC.</returns>
         public static DealerInstance SpawnDealer(Vector3 position, Quaternion rotation, string id)
         {
-            var npc = UtilitiesCore.SpawnHiddenNpc("Dealer");
+            var npc = new ExPlayer("Dealer", true);
             var dealer = new DealerInstance(npc, id);
 
             npc.Role.Set(RoleTypeId.Tutorial, RoleChangeReason.RemoteAdmin, RoleSpawnFlags.None);
@@ -110,22 +104,23 @@ namespace PeanutClub.Dealer.API
         }
 
         /// <summary>
-        /// Retrieves the dealer inventory associated with the specified player, creating and initializing a new
-        /// inventory if one does not already exist or if the existing inventory is outdated.
+        /// Retrieves the inventory for a specified dealer and user, optionally forcing a refresh of the inventory data.
         /// </summary>
-        /// <remarks>If the player's existing inventory is older than the configured maximum inventory
-        /// age, it is reset and refreshed. The returned inventory is always up to date for the current round.</remarks>
-        /// <param name="player">The player for whom to retrieve the dealer inventory. Cannot be null.</param>
-        /// <returns>A <see cref="DealerInventory"/> instance representing the player's current dealer inventory. A new inventory
-        /// is created and initialized if necessary.</returns>
-        public static DealerInventory GetDealerInventory(this ExPlayer player, string dealerId)
+        /// <remarks>If the inventory is older than the maximum allowed age or if forceRefresh is set to
+        /// true, the inventory data is refreshed before being returned. Otherwise, cached inventory data is
+        /// used.</remarks>
+        /// <param name="dealerId">The unique identifier of the dealer whose inventory is to be retrieved. Cannot be null.</param>
+        /// <param name="userId">The unique identifier of the user for whom the inventory is requested. Cannot be null.</param>
+        /// <param name="forceRefresh">true to force a refresh of the inventory data; otherwise, false to use cached data if available.</param>
+        /// <returns>A DealerInventory object representing the current inventory for the specified dealer and user.</returns>
+        public static DealerInventory GetDealerInventory(string dealerId, string userId, bool forceRefresh = false)
         {
             if (!Inventories.TryGetValue(dealerId, out var inventories))
                 Inventories[dealerId] = inventories = new();
 
-            if (inventories.TryGetValue(player.UserId, out var inventory))
+            if (inventories.TryGetValue(userId, out var inventory))
             {
-                if ((ExRound.RoundNumber - inventory.RoundNumber) >= Config.MaxInventoryAge)
+                if (forceRefresh || (ExRound.RoundNumber - inventory.RoundNumber) >= Config.MaxInventoryAge)
                 {
                     inventory.ResetInventory();
                     inventory.RoundNumber = ExRound.RoundNumber;
@@ -137,7 +132,7 @@ namespace PeanutClub.Dealer.API
             }
             else
             {
-                inventories[player.UserId] = inventory = new();
+                inventories[userId] = inventory = new();
 
                 inventory.ResetInventory();
                 inventory.RoundNumber = ExRound.RoundNumber;
@@ -145,6 +140,74 @@ namespace PeanutClub.Dealer.API
                 Internal_RefreshInventory(inventory);
                 return inventory;
             }
+        }
+
+        /// <summary>
+        /// Determines whether the specified item is currently present in any dealer's active inventory.
+        /// </summary>
+        /// <remarks>If the item is not found in any dealer's active inventory or if the item is null, the
+        /// method returns false and sets owningDealer to null.</remarks>
+        /// <param name="item">The item to check for ownership by a dealer. Cannot be null.</param>
+        /// <param name="owningDealer">When this method returns, contains the dealer that owns the item if found; otherwise, null.</param>
+        /// <returns>true if the item is found in a dealer's active inventory; otherwise, false.</returns>
+        public static bool IsDealerItem(this ItemBase item, out DealerInstance owningDealer)
+        {
+            owningDealer = null!;
+
+            if (item == null)
+                return false;
+
+            for (var i = 0; i < Dealers.Count; i++)
+            {
+                var dealer = Dealers[i];
+
+                if (dealer.IsDestroyed || !dealer.IsActive)
+                    continue;
+
+                if (dealer.ActiveInventory.ActiveMapping.ContainsKey(item))
+                {
+                    owningDealer = dealer;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Determines whether the specified item is currently present in any dealer's active inventory.
+        /// </summary>
+        /// <remarks>If the item is not found in any dealer's active inventory, both out parameters are
+        /// set to their default values. This method does not consider destroyed dealers or dealers without an active
+        /// inventory.</remarks>
+        /// <param name="item">The item to check for association with a dealer's active inventory. Cannot be null.</param>
+        /// <param name="owningDealer">When this method returns, contains the dealer instance that owns the item if found; otherwise, null.</param>
+        /// <param name="dealerItem">When this method returns, contains the dealer item instance associated with the specified item if found;
+        /// otherwise, the default value.</param>
+        /// <returns>true if the item is found in a dealer's active inventory; otherwise, false.</returns>
+        public static bool IsDealerItem(this ItemBase item, out DealerInstance owningDealer, out DealerItemInstance dealerItem)
+        {
+            owningDealer = null!;
+            dealerItem = default;
+
+            if (item == null)
+                return false;
+
+            for (var i = 0; i < Dealers.Count; i++)
+            {
+                var dealer = Dealers[i];
+
+                if (dealer.IsDestroyed || !dealer.IsActive)
+                    continue;
+
+                if (dealer.ActiveInventory.ActiveMapping.TryGetValue(item, out dealerItem))
+                {
+                    owningDealer = dealer;
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static float Internal_GetChanceForRarity(byte rarityLevel)
@@ -298,18 +361,43 @@ namespace PeanutClub.Dealer.API
             }
         }
 
+        private static void Internal_UsingItem(PlayerUsingItemEventArgs args)
+        {
+            if (!args.UsableItem.Base.IsDealerItem(out var dealer))
+                return;
+
+            args.IsAllowed = false;
+        }
+
+        private static void Internal_ThrowingProjectile(PlayerThrowingProjectileEventArgs args)
+        {
+            if (!args.ThrowableItem.Base.IsDealerItem(out var dealer))
+                return;
+
+            args.IsAllowed = false;
+        }
+
+        private static void Internal_ShootingWeapon(PlayerShootingWeaponEventArgs args)
+        {
+            if (!args.FirearmItem.Base.IsDealerItem(out var dealer))
+                return;
+
+            args.IsAllowed = false;
+        }
+
         internal static void Internal_Init()
         {
             ServerEvents.RoundEnding += Internal_RoundEnding;
 
             PlayerUpdateHelper.OnUpdate += Internal_Update;
 
+            PlayerEvents.UsingItem += Internal_UsingItem;
             PlayerEvents.SearchedToy += Internal_Interacted;
             PlayerEvents.DroppingItem += Internal_DroppingItem;
+            PlayerEvents.ShootingWeapon += Internal_ShootingWeapon;
+            PlayerEvents.ThrowingProjectile += Internal_ThrowingProjectile;
 
             ExPlayerEvents.SelectedItem += Internal_SelectedItem;
-            
-
             ExRoundEvents.WaitingForPlayers += Internal_RoundWaiting;
         }
     }
