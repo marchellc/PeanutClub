@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36414.22
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.11012.119 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PeanutClub.Teams", "PeanutClub.Teams\PeanutClub.Teams.csproj", "{73AF887E-ADD9-4B53-86D0-133D73BBC708}"
 EndProject
@@ -16,6 +16,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PeanutClub.Roles", "PeanutClub.Roles\PeanutClub.Roles.csproj", "{ACEDA069-5C77-43DE-BA41-C3E2EA3979AA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PeanutClub.Dealer", "PeanutClub.Dealer\PeanutClub.Dealer.csproj", "{B02A0DCA-D41C-4834-97FE-2CD091AA797F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PeanutClub.RandomPickup", "PeanutClub.RandomPickup\PeanutClub.RandomPickup.csproj", "{C3D1891B-00A5-45E1-A303-88B0788AC7DC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{B02A0DCA-D41C-4834-97FE-2CD091AA797F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B02A0DCA-D41C-4834-97FE-2CD091AA797F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B02A0DCA-D41C-4834-97FE-2CD091AA797F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3D1891B-00A5-45E1-A303-88B0788AC7DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3D1891B-00A5-45E1-A303-88B0788AC7DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3D1891B-00A5-45E1-A303-88B0788AC7DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3D1891B-00A5-45E1-A303-88B0788AC7DC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

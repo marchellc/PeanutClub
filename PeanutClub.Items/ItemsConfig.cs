@@ -44,11 +44,11 @@ public class ItemsConfig
     /// The default properties of the Sniper Rifle.
     /// </summary>
     [Description("Sets the default properties of the Sniper Rifle.")]
-    public SniperRifleProperties SniperRifle { get; set; } = new();
+    public SniperRifle SniperRifle { get; set; } = new();
 
     /// <summary>
     /// The default properties of the Airsoft Gun.
     /// </summary>
     [Description("Sets the default properties of the Airsoft Gun.")]
-    public AirsoftGunProperties AirsoftGun { get; set; } = new();
+    public AirsoftGun AirsoftGun { get; set; } = new();
 }

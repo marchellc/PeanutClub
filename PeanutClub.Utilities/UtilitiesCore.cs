@@ -2,6 +2,12 @@ namespace PeanutClub.Utilities;
 
 using Items;
 
+using LabApi.Features.Stores;
+
+using LabExtended.API;
+using LabExtended.Events;
+
+using PeanutClub.Utilities.Audio;
 using PeanutClub.Utilities.Features;
 
 /// <summary>
@@ -18,10 +24,17 @@ public static class UtilitiesCore
     {
         if (!hasInitialized)
         {
+            CustomDataStoreManager.RegisterStore<PlaybackStore>();
+
             ItemTags.Internal_Init();
             SnakeExplosion.Internal_Init();
+
+            ExPlayerEvents.Joined += Internal_Joined;
             
             hasInitialized = true;
         }
     }
+
+    private static void Internal_Joined(ExPlayer player)
+        => player.GetDataStore<PlaybackStore>();
 }

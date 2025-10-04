@@ -49,6 +49,36 @@ namespace PeanutClub.Dealer
         public float MaxDistance { get; set; } = 10f;
 
         /// <summary>
+        /// Gets or sets the minimum cooldown period, in seconds, required between playbacks of each audio clip type.
+        /// </summary>
+        [Description("Sets the minimum required amount of seconds between playbacks of audio clips.")]
+        public Dictionary<DealerAudio.ClipType, float> ClipCooldown { get; set; } = new()
+        {
+            [DealerAudio.ClipType.PurchaseFailed] = 5f,
+            [DealerAudio.ClipType.PurchaseSuccessful] = 5f,
+
+            [DealerAudio.ClipType.TradeStart] = 0f,
+
+            [DealerAudio.ClipType.TradeEndedNoPurchase] = 0f,
+            [DealerAudio.ClipType.TradeEndedWithPurchase] = 0f
+        };
+
+        /// <summary>
+        /// Gets or sets the collection of audio clip file names associated with each clip type.
+        /// </summary>
+        [Description("Sets clip file names for each audio clip.")]
+        public Dictionary<DealerAudio.ClipType, List<string>> ClipNames { get; set; } = new()
+        {
+            [DealerAudio.ClipType.PurchaseFailed] = new(),
+            [DealerAudio.ClipType.PurchaseSuccessful] = new(),
+
+            [DealerAudio.ClipType.TradeStart] = new(),
+
+            [DealerAudio.ClipType.TradeEndedNoPurchase] = new(),
+            [DealerAudio.ClipType.TradeEndedWithPurchase] = new()
+        };
+
+        /// <summary>
         /// Gets or sets the list of available spawn position names.
         /// </summary>
         [Description("Sets the list of available spawn position names.")]

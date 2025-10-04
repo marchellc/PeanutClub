@@ -12,17 +12,15 @@ using AdminToys;
 
 using UnityEngine;
 
+using PeanutClub.Items;
 using PeanutClub.Items.Stacking;
+
 using PeanutClub.Overlays.Alerts;
-using PeanutClub.Items.Weapons.SniperRifle;
 
 using InventorySystem.Items;
 using InventorySystem.Items.Coin;
 
 using PlayerRoles.FirstPersonControl;
-
-using PeanutClub.Items.Weapons;
-using PeanutClub.Items.Weapons.AirsoftGun;
 
 namespace PeanutClub.Dealer.API
 {
@@ -69,6 +67,11 @@ namespace PeanutClub.Dealer.API
         public ExPlayer ActivePlayer { get; set; }
 
         /// <summary>
+        /// Gets the dealer's audio component.
+        /// </summary>
+        public DealerAudio Audio { get; private set; }
+
+        /// <summary>
         /// Gets or sets the inventory of the currently active player, if any.
         /// </summary>
         public DealerInventory ActiveInventory { get; set; }
@@ -95,6 +98,8 @@ namespace PeanutClub.Dealer.API
 
             Id = id;
             Player = player;
+
+            Audio = new(this);
         }
 
         /// <summary>
@@ -117,6 +122,8 @@ namespace PeanutClub.Dealer.API
                 IsLocked = false
             };
 
+            Audio.Initialize();
+
             PlayerUpdateHelper.OnUpdate += Internal_Update;
         }
 
@@ -127,6 +134,9 @@ namespace PeanutClub.Dealer.API
         public void DestroyInstance()
         { 
             DealerManager.Dealers.Remove(this);
+
+            Audio?.Destroy();
+            Audio = null!;
 
             PlayerUpdateHelper.OnUpdate -= Internal_Update;
 
@@ -163,13 +173,17 @@ namespace PeanutClub.Dealer.API
             try
             {
                 var str =
-                    $"<b>Obchod s dealerem byl <color=red>ukončen</color>!</b>\n" +
-                    $"<b><color=red>Zakoupené předměty:</color></b>";
+                    $"<b>Obchod s dealerem byl <color=red>ukončen</color>!</b>\n";
 
-                foreach (var item in ActiveInventory.PurchasedItems)
-                    str += $"\n<b>- <color=yellow>{item.Entry.Item}</color> za <color=green>{item.CurrentPrice} coinů</color></b>";
+                if (ActiveInventory.PurchasedItems.Count > 0)
+                {
+                    str += $"<b><color=red>Zakoupené předměty:</color></b>";
 
-                ActivePlayer.SendAlert(AlertType.Warn, 20f, str, true);
+                    foreach (var item in ActiveInventory.PurchasedItems)
+                        str += $"\n<b>- <color=yellow>{item.Entry.Item}</color> za <color=green>{item.CurrentPrice} coinů</color></b>";
+                }
+
+                ActivePlayer.SendAlert(AlertType.Warn, 10f, str, true);
 
                 ActivePlayer.Inventory.UserInventory.Items.Clear();
                 ActivePlayer.Inventory.UserInventory.ReserveAmmo.Clear();
@@ -189,46 +203,16 @@ namespace PeanutClub.Dealer.API
                 ActiveInventory.CachedItems.ForEach(x => ActivePlayer.Inventory.UserInventory.Items[x.ItemSerial] = x);
                 ActivePlayer.Inventory.UserInventory.ReserveAmmo.AddRange(ActiveInventory.CachedAmmo);
 
+                Audio.OnTradeFinished(ActiveInventory.PurchasedItems.Count > 0);
+
                 while (ActiveInventory.PurchasedItems.Count > 0)
                 {
                     var purchasedItem = ActiveInventory.PurchasedItems.RemoveAndTake(0);
 
-                    ActiveInventory.Items.Remove(purchasedItem);
-
-                    if (Enum.TryParse<ItemType>(purchasedItem.Entry.Item, true, out var type))
-                    {
-                        ActivePlayer.Inventory.AddOrSpawnItem(type);
-                    }
+                    if (ActivePlayer.Inventory.ItemCount < 8)
+                        ItemsCore.AddBaseOrCustomItem(ActivePlayer, purchasedItem.Entry.Item);
                     else
-                    {
-                        ItemType firearmType = ItemType.None;
-                        CustomFirearmProperties? properties = null;
-
-                        switch (purchasedItem.Entry.Item)
-                        {
-                            case "SniperRifle":
-                                firearmType = ItemType.GunE11SR;
-                                properties = SniperRifleHandler.DefaultProperties;
-                                break;
-
-                            case "AirsoftGun":
-                                firearmType = ItemType.GunFSP9;
-                                properties = AirsoftGunHandler.DefaultProperties;
-                                break;
-                        }
-
-                        if (firearmType != ItemType.None && properties != null)
-                        {
-                            if (ActivePlayer.Inventory.ItemCount < 8)
-                            {
-                                ActivePlayer.GiveCustomFirearm(firearmType, properties);
-                            }
-                            else
-                            {
-                                CustomFirearmHandler.SpawnCustomFirearm(ActivePlayer.Position, firearmType, properties);
-                            }
-                        }
-                    }
+                        ItemsCore.SpawnBaseOrCustomItem(purchasedItem.Entry.Item, ActivePlayer.Position, ActivePlayer.Rotation);
                 }
 
                 Stopped?.InvokeSafe(this, ActivePlayer, ActiveInventory.PurchasedItems);
@@ -277,7 +261,11 @@ namespace PeanutClub.Dealer.API
                 });
 
                 if (closestPlayer?.ReferenceHub != null)
+                {
                     Player.Role.MouseLook.LookAtDirection(closestPlayer.Position.Position - Player.Position.Position);
+
+                    Audio.OnClosestPlayerDetected(closestPlayer, closestDistance);
+                }
             }
         }
 
@@ -313,15 +301,21 @@ namespace PeanutClub.Dealer.API
 
                 if (!ActivePlayer.IsBypassEnabled && instance.CurrentPrice > availableCoins)
                 {
+                    Audio.OnPurchasingItem(false);
+
                     ActivePlayer.SendAlert(AlertType.Warn, 10f,
                         $"<b>Tento předmět si bohužel nemůžeš dovolit, chybí ti <color=red>{instance.CurrentPrice - availableCoins}</color> coins!</b>", true);
                     return false;
                 }
 
+                Audio.OnPurchasingItem(true);
+
                 ActiveInventory.PurchasedItems.Add(instance);
                 ActivePlayer.SendAlert(AlertType.Info, 10f, 
                     $"<b>Zakoupil si předmět <color=red>{instance.Entry.Item}</color> za <color=yellow>{instance.CurrentPrice}</color> coinů!</b>\n" +
                     $"<b>Zbývá ti <color=green>{availableCoins - instance.CurrentPrice}</color> coinů.</b>", true);
+
+                Audio.OnPurchasedItem();
 
                 destroyItem = true;
                 return false;
@@ -368,49 +362,18 @@ namespace PeanutClub.Dealer.API
 
             foreach (var item in inventory.Items)
             {
-                if (Enum.TryParse<ItemType>(item.Entry.Item, true, out var type))
-                {
-                    var addedItem = player.Inventory.AddItem(type);
+                var addedItem = ItemsCore.AddBaseOrCustomItem(player, item.Entry.Item);
 
-                    if (addedItem != null)
-                    {
-                        inventory.ActiveMapping[addedItem] = item;
-                    }
-                }
-                else
-                {
-                    ItemType firearmType = ItemType.None;
-                    CustomFirearmProperties? properties = null;
-
-                    switch (item.Entry.Item)
-                    {
-                        case "SniperRifle":
-                            firearmType = ItemType.GunE11SR;
-                            properties = SniperRifleHandler.DefaultProperties;
-                            break;
-
-                        case "AirsoftGun":
-                            firearmType = ItemType.GunFSP9;
-                            properties = AirsoftGunHandler.DefaultProperties;
-                            break;
-                    }
-
-                    if (firearmType != ItemType.None && properties != null)
-                    {
-                        var firearm = ActivePlayer.GiveCustomFirearm(firearmType, properties);
-
-                        if (firearm != null)
-                        {
-                            inventory.ActiveMapping[firearm] = item;
-                        }
-                    }
-                }
+                if (addedItem != null)
+                    inventory.ActiveMapping[addedItem] = item;
             }
 
             player.SendAlert(AlertType.Info, 10f,
                 $"<b>Začal jsi obchodovat s dealerem! Máš k dispozici <color=yellow>{inventory.CoinCount} coinů</color>!</b>\n" +
                 "<b><color=red>Vyhoď předmět na zem pro jeho zakoupení</color></b>\n" +
                 "<b><color=yellow>Vyber předmět v inventáři pro zobrazení ceny!</color></b>", true);
+
+            Audio.OnTradeStarted();
 
             Started?.InvokeSafe(this, player);
         }

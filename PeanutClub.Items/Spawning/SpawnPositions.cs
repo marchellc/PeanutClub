@@ -1,11 +1,9 @@
 ﻿using LabExtended.API;
+using LabExtended.API.Custom.Items;
+
 using LabExtended.Core;
 using LabExtended.Events;
 using LabExtended.Utilities;
-
-using PeanutClub.Items.Weapons;
-using PeanutClub.Items.Weapons.AirsoftGun;
-using PeanutClub.Items.Weapons.SniperRifle;
 
 using UnityEngine;
 
@@ -42,22 +40,13 @@ namespace PeanutClub.Items.Spawning
                                     ApiLog.Error("Item Spawnpoint", "Cannot spawn item of type &1None&r");
                                 }
                             }
+                            else if (CustomItem.RegisteredItems.TryGetValue(item, out var customItem))
+                            {
+                                customItem.SpawnItem(position, rotation);
+                            }
                             else
                             {
-                                switch (item)
-                                {
-                                    case "SniperRifle":
-                                        CustomFirearmHandler.SpawnCustomFirearm(position, ItemType.GunE11SR, SniperRifleHandler.DefaultProperties);
-                                        break;
-
-                                    case "AirsoftGun":
-                                        CustomFirearmHandler.SpawnCustomFirearm(position, ItemType.GunFSP9, AirsoftGunHandler.DefaultProperties);
-                                        break;
-
-                                    default:
-                                        ApiLog.Error("Item Spawnpoint", $"Could not parse item type &1{item}&r");
-                                        break;
-                                }
+                                ApiLog.Warn("Item Spawnpoints", $"Unknown item: &3{item}&r");
                             }
                         }
                     }

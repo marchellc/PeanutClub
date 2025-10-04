@@ -1,10 +1,17 @@
+using InventorySystem.Items;
+using InventorySystem.Items.Pickups;
+
 using LabApi.Loader.Features.Plugins;
+
+using LabExtended.API;
+using LabExtended.API.Custom.Items;
+
+using LabExtended.Extensions;
 
 using PeanutClub.Items.Spawning;
 using PeanutClub.Items.Stacking;
-using PeanutClub.Items.Weapons;
-using PeanutClub.Items.Weapons.AirsoftGun;
-using PeanutClub.Items.Weapons.SniperRifle;
+
+using UnityEngine;
 
 namespace PeanutClub.Items;
 
@@ -44,20 +51,78 @@ public class ItemsCore : Plugin<ItemsConfig>
         PluginStatic = this;
         ConfigStatic = Config!;
 
-        CustomFirearmHandler.Internal_Init();
-
-        AirsoftGunHandler.Internal_Init();
-        SniperRifleHandler.Internal_Init();
-
         ItemStacker.Internal_Init();
 
         SpawnPositions.Internal_Init();
         SpawnPrevention.Internal_Init();
+
+        Config?.AirsoftGun.Register();
+        Config?.SniperRifle.Register();
     }
 
     /// <inheritdoc cref="Plugin.Disable"/>
     public override void Disable()
     {
 
+    }
+
+    /// <summary>
+    /// Adds an item to the specified player, resolving the item name as either a base item type or a registered custom
+    /// item.
+    /// </summary>
+    /// <remarks>If the item name matches a base item type, the corresponding item is instantiated and
+    /// transferred to the player. If the item name matches a registered custom item, that custom item is added to the
+    /// player. The method prioritizes base item types over custom items when both exist with the same name.</remarks>
+    /// <param name="player">The player to whom the item will be added.</param>
+    /// <param name="item">The name of the item to add. This can be either a base item type name or the identifier of a registered custom
+    /// item. The comparison is case-insensitive.</param>
+    /// <returns>An instance of the item that was added to the player.</returns>
+    /// <exception cref="Exception">Thrown if the specified item name does not correspond to a valid base item type or a registered custom item.</exception>
+    public static ItemBase AddBaseOrCustomItem(ExPlayer player, string item)
+    {
+        if (Enum.TryParse<ItemType>(item, true, out var itemType))
+        {
+            var itemInstance = itemType.GetItemInstance<ItemBase>()!;
+
+            itemInstance.TransferItem(player.ReferenceHub);
+            return itemInstance;
+        }
+        else if (CustomItem.RegisteredItems.TryGetValue(item, out var customItem))
+        {
+            return customItem.AddItem(player);
+        }
+        else
+        {
+            throw new Exception($"Unknown item: {item}");
+        }
+    }
+
+    /// <summary>
+    /// Spawns an item pickup at the specified position and rotation, using either a base item type or a registered
+    /// custom item.
+    /// </summary>
+    /// <remarks>If <paramref name="item"/> matches a base item type, the corresponding item is spawned. If it
+    /// matches a registered custom item, that custom item is spawned instead. The method prioritizes base item types
+    /// over custom items if both exist with the same name.</remarks>
+    /// <param name="item">The name of the item to spawn. This can be the name of a base item type or a registered custom item. The
+    /// comparison is case-insensitive.</param>
+    /// <param name="position">The world position where the item will be spawned.</param>
+    /// <param name="rotation">The rotation to apply to the spawned item.</param>
+    /// <returns>An instance of <see cref="ItemPickupBase"/> representing the spawned item pickup.</returns>
+    /// <exception cref="Exception">Thrown if <paramref name="item"/> does not match any known base item type or registered custom item.</exception>
+    public static ItemPickupBase SpawnBaseOrCustomItem(string item, Vector3 position, Quaternion rotation)
+    {
+        if (Enum.TryParse<ItemType>(item, true, out var itemType))
+        {
+            return ExMap.SpawnItem(itemType, position, Vector3.one, rotation);
+        }
+        else if (CustomItem.RegisteredItems.TryGetValue(item, out var customItem))
+        {
+            return customItem.SpawnItem(position, rotation);
+        }
+        else
+        {
+            throw new Exception($"Unknown item: {item}");
+        }
     }
 }

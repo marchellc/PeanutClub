@@ -110,7 +110,7 @@ public class LoadoutDefinition
     /// <summary>
     /// Adds a custom item.
     /// </summary>
-    public LoadoutDefinition WithCustomItem(ushort itemId, string? itemTag = null)
+    public LoadoutDefinition WithCustomItem(string itemId, string? itemTag = null)
     {
         Items.Add(new()
         {
@@ -141,7 +141,7 @@ public class LoadoutDefinition
     /// <summary>
     /// Adds custom ammo.
     /// </summary>
-    public LoadoutDefinition WithCustomAmmo(ushort ammoId, ushort amount)
+    public LoadoutDefinition WithCustomAmmo(string ammoId, ushort amount)
     {
         Ammo.Add(new()
         {

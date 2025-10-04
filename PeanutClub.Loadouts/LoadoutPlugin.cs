@@ -3,9 +3,7 @@ using InventorySystem.Items;
 using LabApi.Loader.Features.Plugins;
 
 using LabExtended.API;
-
-using LabExtended.API.CustomItems;
-using LabExtended.API.CustomItems.Behaviours;
+using LabExtended.API.Custom.Items;
 
 using LabExtended.Core;
 using LabExtended.Extensions;
@@ -50,7 +48,7 @@ public class LoadoutPlugin : Plugin<LoadoutConfig>
     /// <summary>
     /// Gets called once a player receives a custom item from a loadout.
     /// </summary>
-    public static event Action<ExPlayer, LoadoutDefinition, LoadoutItem, CustomItemInventoryBehaviour>? AddedCustomItem;
+    public static event Action<ExPlayer, LoadoutDefinition, LoadoutItem, CustomItem, ItemBase>? AddedCustomItem;
 
     /// <summary>
     /// Ensures that a loadout of a specific name exists.
@@ -177,28 +175,28 @@ public class LoadoutPlugin : Plugin<LoadoutConfig>
                                                $"player &3{player.Nickname}&r (&6{player.UserId}&r): Could not add vanilla item &6{loadoutItem.BaseType.Value} to inventory!");
                 }
             }
-            else if (loadoutItem.CustomType.HasValue)
+            else if (loadoutItem.CustomType != null)
             {
-                if (!CustomItemRegistry.TryGetHandler(loadoutItem.CustomType.Value, out var customItemHandler))
+                if (!CustomItem.RegisteredItems.TryGetValue(loadoutItem.CustomType, out var customItem))
                 {
                     ApiLog.Warn("Loadout API", $"Error while processing loadout &3{loadoutName}&r for " +
-                                               $"player &3{player.Nickname}&r (&6{player.UserId}&r): Could not find custom item of ID &6{loadoutItem.CustomType.Value}&r!");
+                                               $"player &3{player.Nickname}&r (&6{player.UserId}&r): Could not find custom item of ID &6{loadoutItem.CustomType}&r!");
                 }
                 else
                 {
-                    var behaviour = customItemHandler.Give(player);
+                    var itemInstance = customItem.AddItem(player);
                     
-                    if (behaviour != null)
+                    if (itemInstance != null)
                     {
-                        if (behaviour.Item != null && !string.IsNullOrWhiteSpace(loadoutItem.ItemTag))
-                            behaviour.Item.SetTag(loadoutItem.ItemTag!);
+                        if (!string.IsNullOrWhiteSpace(loadoutItem.ItemTag))
+                            itemInstance.SetTag(loadoutItem.ItemTag!);
                         
-                        AddedCustomItem?.Invoke(player, loadout, loadoutItem, behaviour);
+                        AddedCustomItem?.Invoke(player, loadout, loadoutItem, customItem, itemInstance);
                     }
                     else
                     {
                         ApiLog.Warn("Loadout API", $"Error while processing loadout &3{loadoutName}&r for " +
-                                                   $"player &3{player.Nickname}&r (&6{player.UserId}&r): Could not add custom item &6{customItemHandler.Name}&r to inventory!");
+                                                   $"player &3{player.Nickname}&r (&6{player.UserId}&r): Could not add custom item &6{customItem.Name}&r to inventory!");
                     }
                 }
             }
@@ -222,9 +220,9 @@ public class LoadoutPlugin : Plugin<LoadoutConfig>
             {
                 player.Ammo.AddAmmo(loadoutAmmo.BaseType.Value, loadoutAmmo.Amount);
             }
-            else if (loadoutAmmo.CustomType.HasValue)
+            else if (loadoutAmmo.CustomType != null)
             {
-                player.Inventory?.CustomAmmo.Add(loadoutAmmo.CustomType.Value, loadoutAmmo.Amount);
+                player.Ammo.AddCustomAmmo(loadoutAmmo.CustomType, loadoutAmmo.Amount);
             }
             else
             {

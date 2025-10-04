@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net48</TargetFramework>
@@ -10,7 +10,7 @@
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
       <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
-
+    
     <ItemGroup>
       <Reference Include="0LabExtended">
         <HintPath>$(PLUGIN_REFS)\0LabExtended.dll</HintPath>
@@ -61,10 +61,10 @@
         <HintPath>$(PLUGIN_REFS)\YamlDotNet.dll</HintPath>
       </Reference>
     </ItemGroup>
-
+    
     <ItemGroup>
-      <PackageReference Include="Lib.Harmony" Version="2.3.6" />
-      <PackageReference Include="SecretLabNAudio.Core" Version="1.0.2" />
+      <ProjectReference Include="..\PeanutClub.Items\PeanutClub.Items.csproj" />
+      <ProjectReference Include="..\PeanutClub.Utilities\PeanutClub.Utilities.csproj" />
     </ItemGroup>
-
+    
 </Project>

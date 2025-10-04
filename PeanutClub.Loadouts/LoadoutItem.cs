@@ -17,7 +17,7 @@ public class LoadoutItem
     /// Gets or sets the ID of the custom item (null if the item is a vanilla item).
     /// </summary>
     [Description("Sets the ID of the custom item.")]
-    public ushort? CustomType { get; set; }
+    public string? CustomType { get; set; }
     
     /// <summary>
     /// Gets or sets a custom tag for the item.

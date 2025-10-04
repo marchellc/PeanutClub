@@ -23,5 +23,5 @@ public class LoadoutAmmo
     /// Gets or sets the ID of the custom ammo (null if this is vanilla ammo).
     /// </summary>
     [Description("Sets the ID of the custom ammo.")]
-    public ushort? CustomType { get; set; }
+    public string? CustomType { get; set; }
 }
