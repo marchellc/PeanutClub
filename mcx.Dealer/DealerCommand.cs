@@ -16,7 +16,7 @@ namespace mcx.Dealer
         /// <summary>
         /// Lists all active dealers.
         /// </summary>
-        [CommandOverload("list", "Lists all active dealers.")]
+        [CommandOverload("list", "Lists all active dealers.", null)]
         public void List()
         {
             if (DealerManager.Dealers.Count == 0)
@@ -42,7 +42,7 @@ namespace mcx.Dealer
         /// <summary>
         /// Destroys a dealer by ID.
         /// </summary>
-        [CommandOverload("destroy", "Destroys an active dealer instance.")]
+        [CommandOverload("destroy", "Destroys an active dealer instance.", null)]
         public void Destroy(
             [CommandParameter("ID", "The ID of the instance")] string dealerId)
         {
@@ -60,7 +60,7 @@ namespace mcx.Dealer
         /// <summary>
         /// Spawns a new dealer.
         /// </summary>
-        [CommandOverload("spawn", "Spawns a new dealer instance.")]
+        [CommandOverload("spawn", "Spawns a new dealer instance.", null)]
         public void Spawn(
             [CommandParameter("ID", "The ID of the new instance.")] string dealerId)
         {
@@ -76,7 +76,7 @@ namespace mcx.Dealer
         /// <summary>
         /// Refreshes dealer inventories.
         /// </summary>
-        [CommandOverload("refresh", "Refreshes dealer inventories.")]
+        [CommandOverload("refresh", "Refreshes dealer inventories.", null)]
         public void Refresh(
             [CommandParameter("ID", "The ID of the targeted dealer (or 'all' for all dealers)")] string dealerId, 
             [CommandParameter("UserID", "The user ID of the player for whom to refresh the inventory (or 'all' for all players).")] string targetId)
@@ -153,7 +153,7 @@ namespace mcx.Dealer
         /// <summary>
         /// Shows the inventory for a specific player.
         /// </summary>
-        [CommandOverload("view", "Shows the inventory for a specific player.")]
+        [CommandOverload("view", "Shows the inventory for a specific player.", null)]
         public void View(
             [CommandParameter("ID", "The ID of the target dealer.")] string dealerId, 
             [CommandParameter("UserID", "The user ID of the target player.")] string targetId)
@@ -193,7 +193,7 @@ namespace mcx.Dealer
         /// <summary>
         /// Adds a new item to the inventory of a specified dealer for sale.
         /// </summary>
-        [CommandOverload("add", "Adds a new item to be sold by a dealer.")]
+        [CommandOverload("add", "Adds a new item to be sold by a dealer.", null)]
         public void Add(
             [CommandParameter("ID", "The ID of the targeted dealer.")] string dealerId, 
             [CommandParameter("UserID", "The user ID of the targeted inventory.")] string targetId, 
@@ -234,7 +234,7 @@ namespace mcx.Dealer
         /// <summary>
         /// Removes an item from a dealer's inventory.
         /// </summary>
-        [CommandOverload("remove", "Removes an item from a dealer's inventory.")]
+        [CommandOverload("remove", "Removes an item from a dealer's inventory.", null)]
         public void Remove(
             [CommandParameter("ID", "The ID of the targeted dealer.")] string dealerId,
             [CommandParameter("UserID", "The user ID of the targeted inventory.")] string targetId,

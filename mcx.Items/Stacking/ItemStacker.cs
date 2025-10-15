@@ -4,8 +4,11 @@ using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Events.Handlers;
 
 using LabExtended.API;
+
 using LabExtended.Events;
 using LabExtended.Extensions;
+
+using Utils.NonAllocLINQ;
 
 namespace mcx.Items.Stacking
 {
@@ -290,6 +293,21 @@ namespace mcx.Items.Stacking
 
         private static void Internal_Left(ExPlayer player)
         {
+            if (Stacks.TryGetValue(player, out var stackInfo))
+            {
+                stackInfo.StackedItems.ForEachValue(items =>
+                {
+                    items.ForEach(item =>
+                    {
+                        item.DestroyItem();
+                    });
+
+                    items.Clear();
+                }); 
+
+                stackInfo.StackedItems.Clear();
+            }
+
             Stacks.Remove(player);
         }
 

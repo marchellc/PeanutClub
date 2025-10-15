@@ -1,11 +1,5 @@
-﻿using InventorySystem.Items.Pickups;
-
-using LabExtended.API;
+﻿using LabExtended.API;
 using LabExtended.Utilities;
-
-using NorthwoodLib.Pools;
-
-using mcx.Items;
 
 namespace mcx.RandomPickup.API.Scenarios.LowHealth
 {
@@ -28,6 +22,9 @@ namespace mcx.RandomPickup.API.Scenarios.LowHealth
         {
             scenarioData = null!;
 
+            if (Config.BaseChance < 1)
+                return false;
+
             var healthPercent = (double)player.Stats.CurHealth / player.Stats.MaxHealth * 100;
 
             if (healthPercent < Config.HealthPercentageThreshold)
@@ -40,16 +37,9 @@ namespace mcx.RandomPickup.API.Scenarios.LowHealth
         }
 
         /// <inheritdoc/>
-        public override void FillLoot(ExPlayer player, object scenarioData, List<ItemPickupBase> loot)
+        public override void FillLoot(ExPlayer player, object scenarioData, List<string> loot)
         {
-            var lootItems = ListPool<string>.Shared.Rent();
-
-            Config.LowHealthLoot.GetLoot(player, Config.ItemCount.GetRandom(), lootItems.Add, lootItems.Contains);
-
-            foreach (var item in lootItems)
-                ItemsCore.AddBaseOrCustomItem(player, item);
-
-            ListPool<string>.Shared.Return(lootItems);
+            Config.LowHealthLoot.GetLoot(player, Config.ItemCount.GetRandom(), loot.Add);
         }
     }
 }

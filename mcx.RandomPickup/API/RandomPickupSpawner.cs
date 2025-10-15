@@ -2,8 +2,12 @@
 using LabApi.Events.Handlers;
 
 using LabExtended.API;
+
+using LabExtended.Core;
 using LabExtended.Events;
 using LabExtended.Extensions;
+
+using LabExtended.Utilities;
 using LabExtended.Utilities.Update;
 
 using ProjectMER.Features;
@@ -74,7 +78,8 @@ namespace mcx.RandomPickup.API
         /// scenario is used.</param>
         /// <returns>A RandomPickupInstance representing the newly spawned pickup.</returns>
         /// <exception cref="Exception">Thrown if the schematic could not be spawned at the specified position and rotation.</exception>
-        public static RandomPickupInstance SpawnInstance(Vector3 position, Quaternion rotation, ExPlayer? triggerPlayer = null, RandomPickupScenario? scenario = null)
+        public static RandomPickupInstance SpawnInstance(Vector3 position, Quaternion rotation, RandomPickupSpawnReason reason, ExPlayer? triggerPlayer = null, 
+            RandomPickupScenario? scenario = null)
         {
             if (!ExRound.IsRunning)
                 throw new Exception($"Pickups can be spawned only while the round is in progress!");
@@ -84,7 +89,9 @@ namespace mcx.RandomPickup.API
 
             var instance = new RandomPickupInstance(schematic);
 
+            instance.SpawnReason = reason;
             instance.SpawnScenario = scenario;
+
             instance.TriggerPlayer = triggerPlayer;
 
             instance.Initialize();
@@ -104,6 +111,39 @@ namespace mcx.RandomPickup.API
 
         private static void Internal_RoundStarted()
         {
+            var spawnLocationCount = RandomPickupCore.ConfigStatic.DefinedSpawnCount.GetRandom();
+            var spawnLocations = RandomPickupCore.ConfigStatic.SpawnLocations.ToDictionary();
+
+            spawnLocationCount = Mathf.Min(spawnLocationCount, spawnLocations.Count);
+
+            while (spawnLocationCount > 0 && spawnLocations.Count > 0)
+            {
+                var spawnLocation = spawnLocations.GetRandomWeighted(x => x.Value);
+
+                spawnLocations.Remove(spawnLocation.Key);
+
+                if (string.IsNullOrEmpty(spawnLocation.Key))
+                    continue;
+
+                if (!MapUtilities.TryGet(spawnLocation.Key, null, out var position, out var rotation))
+                {
+                    ApiLog.Warn("Random Pickup", $"Could not find spawn location &1{spawnLocation.Key}&r");
+                    continue;
+                }
+
+                if (!RandomPickupCore.ConfigStatic.SpawnLocationsLoot.TryGetValue(spawnLocation.Key, out var loot))
+                {
+                    ApiLog.Warn("Random Pickup", $"Could not get loot for spawn location &1{spawnLocation.Key}&r");
+                    continue;
+                }
+
+                var instance = SpawnInstance(position, rotation, RandomPickupSpawnReason.DefinedLocation);
+
+                instance.Loot = loot;
+
+                spawnLocationCount--;
+            }
+
             spawnCount = RandomPickupCore.ConfigStatic.SpawnCount.GetRandom();
             spawnDelay = RandomPickupCore.ConfigStatic.SpawnDelay.GetRandom();
 
@@ -136,7 +176,9 @@ namespace mcx.RandomPickup.API
                 if (instance.Interactable.Base != args.Interactable.Base)
                     continue;
 
+                instance.TriggerPlayer = player;
                 instance.Internal_Interacted(player);
+
                 break;
             }
         }
@@ -146,6 +188,10 @@ namespace mcx.RandomPickup.API
             if (!ExRound.IsRunning)
                 return;
 
+            if (RandomPickupCore.ConfigStatic.MinimumRoundDuration > 0
+                && ExRound.Duration.TotalSeconds < RandomPickupCore.ConfigStatic.MinimumRoundDuration)
+                return;
+
             RandomPickupScenario.Internal_UpdateScenarios();
 
             if (!spawnStopwatch.IsRunning || spawnCount < 1)
@@ -153,6 +199,18 @@ namespace mcx.RandomPickup.API
 
             if (spawnStopwatch.Elapsed.TotalSeconds < spawnDelay)
                 return;
+
+            if (RandomPickupCore.ConfigStatic.SpawnChance < 100f
+                && RandomPickupCore.ConfigStatic.SpawnChance > 0f)
+            {
+                if (!WeightUtils.GetBool(RandomPickupCore.ConfigStatic.SpawnChance))
+                {
+                    spawnDelay = RandomPickupCore.ConfigStatic.SpawnDelay.GetRandom();
+                    spawnStopwatch.Restart();
+
+                    return;
+                }
+            }
 
             var targetPlayer = ExPlayer.Players.GetRandomItem(x =>
             {
@@ -173,16 +231,21 @@ namespace mcx.RandomPickup.API
                 return true;
             });
 
-            if (targetPlayer?.ReferenceHub == null)
+            if (targetPlayer?.ReferenceHub == null
+                || !PhysicsUtils.TryGetGroundPosition(targetPlayer, out var groundPosition, true))
             {
                 spawnDelay = RandomPickupCore.ConfigStatic.SpawnDelay.GetRandom();
+                spawnStopwatch.Restart();
+
                 return;
             }
 
             spawnCount--;
             spawnDelay = RandomPickupCore.ConfigStatic.SpawnDelay.GetRandom();
 
-            SpawnInstance(targetPlayer.Position, targetPlayer.Rotation, targetPlayer);
+            groundPosition.y += 0.1f;
+
+            SpawnInstance(groundPosition, targetPlayer.Rotation, RandomPickupSpawnReason.RandomPlayer, targetPlayer);
 
             PlayerSpawnCache[targetPlayer.UserId] = ExRound.RoundNumber;
         }

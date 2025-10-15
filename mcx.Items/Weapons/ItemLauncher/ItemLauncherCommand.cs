@@ -17,7 +17,7 @@ namespace mcx.Items.Weapons.ItemLauncher
         /// <summary>
         /// Creates and registers a new item launcher with the specified parameters.
         /// </summary>
-        [CommandOverload("Creates and registers a new item launcher with the specified parameters.")]
+        [CommandOverload("Creates and registers a new item launcher with the specified parameters.", null)]
         public void Invoke(
              [CommandParameter("ID", "The ID of the launcher.")] string launcherId,
              [CommandParameter("Item", "The type of the item to launch.")] ItemType launchedItem, 
@@ -26,7 +26,7 @@ namespace mcx.Items.Weapons.ItemLauncher
              [CommandParameter("Force", "The force to launch the item with.")] float launchForce = 3f,
              [CommandParameter("Scale", "The scale of launched items.")] Vector3 scale = default)
         {
-            if (CustomItem.RegisteredItems.ContainsKey(launcherId))
+            if (CustomItem.RegisteredObjects.ContainsKey(launcherId))
             {
                 Fail($"An item with ID '{launcherId}' is already registered.");
                 return;

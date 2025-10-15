@@ -15,7 +15,7 @@ public class JanitorCommand : CommandBase, IServerSideCommand
     /// <summary>
     /// Sets a player as the Janitor role.
     /// </summary>
-    [CommandOverload("set", "Sets a player as the Janitor role.")]
+    [CommandOverload("set", "Sets a player as the Janitor role.", null)]
     public void Set(
         [CommandParameter("Target", "The player to set as the Janitor role (defaults to you).")] ExPlayer? target = null)
     {

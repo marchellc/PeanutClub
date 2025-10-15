@@ -39,7 +39,7 @@ namespace mcx.RandomPickup.API
         /// </summary>
         /// <param name="player">The player for whom the loot is being generated. Cannot be null.</param>
         /// <param name="loot">The collection to which generated loot items will be added. Must not be null.</param>
-        public abstract void FillLoot(ExPlayer player, object scenarioData, List<ItemPickupBase> loot);
+        public abstract void FillLoot(ExPlayer player, object scenarioData, List<string> loot);
 
         internal static void Internal_UpdateScenarios()
         {
@@ -68,10 +68,7 @@ namespace mcx.RandomPickup.API
                         scenario.ActivatedPlayers[player.UserId] = ExRound.RoundNumber;
 
                         RandomPickupSpawner.TimerPaused = true;
-
-                        var pickup = RandomPickupSpawner.SpawnInstance(player.Position, player.Rotation, player, scenario);
-
-                        scenario.FillLoot(player, scenarioData, pickup.Loot);
+                        RandomPickupSpawner.SpawnInstance(player.Position, player.Rotation, RandomPickupSpawnReason.Scenario, player, scenario);
 
                         anyActivated = true;
                         return;

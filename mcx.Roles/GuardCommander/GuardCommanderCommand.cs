@@ -15,7 +15,7 @@ public class GuardCommanderCommand : CommandBase, IServerSideCommand
     /// <summary>
     /// Sets a player as the Guard Commander.
     /// </summary>
-    [CommandOverload("set", "Sets a player as the Guard Commander.")]
+    [CommandOverload("set", "Sets a player as the Guard Commander.", null)]
     public void Set(
         [CommandParameter("Target", "The player to set as the Guard Commander (defaults to you).")] ExPlayer? target = null)
     {

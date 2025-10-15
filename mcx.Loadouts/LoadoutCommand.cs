@@ -12,7 +12,7 @@ namespace mcx.Loadouts;
 [Command("loadout", "Loadout management commands.")]
 public class LoadoutCommand : CommandBase, IServerSideCommand
 {
-    [CommandOverload("list", "Lists all loaded loadouts.")]
+    [CommandOverload("list", "Lists all loaded loadouts.", null)]
     public void List()
     {
         if (LoadoutPlugin.Loadouts.Count == 0)
@@ -32,7 +32,7 @@ public class LoadoutCommand : CommandBase, IServerSideCommand
         });
     }
 
-    [CommandOverload("apply", "Applies a loadout.")]
+    [CommandOverload("apply", "Applies a loadout.", null)]
     public void Apply(
         [CommandParameter("Name", "Name of the loadout.")] string name, 
         [CommandParameter("Player", "The target player (defaults to you if not specified.)")] ExPlayer? player = null)

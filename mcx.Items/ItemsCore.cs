@@ -10,7 +10,7 @@ using LabExtended.Extensions;
 
 using mcx.Items.Spawning;
 using mcx.Items.Stacking;
-
+using Mirror;
 using UnityEngine;
 
 namespace mcx.Items;
@@ -96,7 +96,7 @@ public class ItemsCore : Plugin<ItemsConfig>
             itemInstance.TransferItem(player.ReferenceHub);
             return itemInstance;
         }
-        else if (CustomItem.RegisteredItems.TryGetValue(item, out var customItem))
+        else if (CustomItem.RegisteredObjects.TryGetValue(item, out var customItem))
         {
             return customItem.AddItem(player);
         }
@@ -119,15 +119,20 @@ public class ItemsCore : Plugin<ItemsConfig>
     /// <param name="rotation">The rotation to apply to the spawned item.</param>
     /// <returns>An instance of <see cref="ItemPickupBase"/> representing the spawned item pickup.</returns>
     /// <exception cref="Exception">Thrown if <paramref name="item"/> does not match any known base item type or registered custom item.</exception>
-    public static ItemPickupBase SpawnBaseOrCustomItem(string item, Vector3 position, Quaternion rotation)
+    public static ItemPickupBase SpawnBaseOrCustomItem(string item, Vector3 position, Quaternion rotation, bool spawnItem = true)
     {
         if (Enum.TryParse<ItemType>(item, true, out var itemType))
         {
-            return ExMap.SpawnItem(itemType, position, Vector3.one, rotation);
+            return ExMap.SpawnItem(itemType, position, Vector3.one, rotation, null, spawnItem);
         }
-        else if (CustomItem.RegisteredItems.TryGetValue(item, out var customItem))
+        else if (CustomItem.RegisteredObjects.TryGetValue(item, out var customItem))
         {
-            return customItem.SpawnItem(position, rotation);
+            var pickup = customItem.SpawnItem(position, rotation);
+
+            if (!spawnItem)
+                NetworkServer.UnSpawn(pickup.gameObject);
+
+            return pickup;
         }
         else
         {

@@ -1,6 +1,7 @@
 ﻿using InventorySystem.Items;
 
 using LabApi.Events.Arguments.PlayerEvents;
+using LabApi.Events.Arguments.Scp939Events;
 using LabApi.Events.Arguments.ServerEvents;
 
 using LabApi.Events.Handlers;
@@ -17,7 +18,7 @@ using LabExtended.Utilities;
 using LabExtended.Utilities.Update;
 
 using PlayerRoles;
-
+using PlayerRoles.Spectating;
 using UnityEngine;
 
 namespace mcx.Dealer.API
@@ -98,13 +99,13 @@ namespace mcx.Dealer.API
 
                 npc.IsGodModeEnabled = true;
 
+                SpectatableVisibilityManager.SetHidden(npc.ReferenceHub, true);
+
                 Dealers.Add(dealer);
 
                 dealer.Initialize();
 
                 Spawned?.InvokeSafe(dealer);
-
-                ApiLog.Debug("Dealer Manager", $"Spawned a new dealer instance at &3{position.ToPreciseString()}&r");
             }, 0.2f);
 
             return dealer;
@@ -147,6 +148,40 @@ namespace mcx.Dealer.API
                 Internal_RefreshInventory(inventory);
                 return inventory;
             }
+        }
+
+        /// <summary>
+        /// Determines whether the specified player is currently engaged in a trading session.
+        /// </summary>
+        /// <remarks>A player is considered to be trading if they are actively engaged with a dealer that
+        /// is not destroyed  and is marked as active. If the player is trading, the associated dealer is returned via
+        /// the  <paramref name="targetDealer"/> parameter.</remarks>
+        /// <param name="player">The player to check for an active trading session.</param>
+        /// <param name="targetDealer">When this method returns, contains the <see cref="DealerInstance"/> associated with the trading session,  if
+        /// the player is trading; otherwise, <see langword="null"/>.</param>
+        /// <returns><see langword="true"/> if the player is currently trading with a dealer; otherwise, <see langword="false"/>.</returns>
+        public static bool IsTrading(this ExPlayer player, out DealerInstance targetDealer)
+        {
+            targetDealer = null!;
+
+            if (player?.ReferenceHub == null)
+                return false;
+
+            for (var i = 0; i < Dealers.Count; i++)
+            {
+                var dealer = Dealers[i];
+
+                if (dealer.IsDestroyed || !dealer.IsActive)
+                    continue;
+
+                if (dealer.ActivePlayer != player)
+                    continue;
+
+                targetDealer = dealer;
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -250,7 +285,9 @@ namespace mcx.Dealer.API
                     if (entry.DiscountChance > 0 && WeightUtils.GetBool(entry.DiscountChance))
                     {
                         discount = entry.DiscountRange.GetRandom();
-                        price -= price * (discount / 100);
+
+                        if (discount > 0)
+                            price -= price * (discount / 100);
                     }
 
                     inventory.Items.Add(new(entry, entry.Price, price, discount));
@@ -303,7 +340,7 @@ namespace mcx.Dealer.API
             remainingSpawnWait = 0f;
         }
 
-        private static void Internal_RoundEnding(RoundEndingEventArgs _)
+        private static void Internal_RoundRestarting()
         {
             foreach (var dealer in Dealers.ToArray())
             {
@@ -311,7 +348,7 @@ namespace mcx.Dealer.API
             }
         }
 
-        private static void Internal_Interacted(LabApi.Events.Arguments.PlayerEvents.PlayerSearchedToyEventArgs args)
+        private static void Internal_Interacted(PlayerSearchedToyEventArgs args)
         {
             if (args.Player is not ExPlayer player)
                 return;
@@ -368,6 +405,72 @@ namespace mcx.Dealer.API
             }
         }
 
+        private static void Internal_Cuffing(PlayerCuffingEventArgs args)
+        {
+            if (args.Target is not ExPlayer player)
+                return;
+
+            if (!player.IsTrading(out _) && !Dealers.Any(x => !x.IsDestroyed && x.Player == player))
+                return;
+
+            args.IsAllowed = false;
+        }
+
+        private static void Internal_Dying(PlayerDyingEventArgs args)
+        {
+            if (!args.IsAllowed || args.Player is not ExPlayer player)
+                return;
+
+            if (!player.IsTrading(out var dealer))
+                return;
+
+            dealer.Internal_Dying();
+        }
+
+        private static void Internal_PickingUpItem(PlayerPickingUpItemEventArgs args)
+        {
+            if (args.Player is not ExPlayer player)
+                return;
+
+            if (!player.IsTrading(out var _))
+                return;
+
+            args.IsAllowed = false;
+        }
+
+        private static void Internal_PickingUpAmmo(PlayerPickingUpAmmoEventArgs args)
+        {
+            if (args.Player is not ExPlayer player)
+                return;
+
+            if (!player.IsTrading(out var _))
+                return;
+
+            args.IsAllowed = false;
+        }
+
+        private static void Internal_PickingUpArmor(PlayerPickingUpArmorEventArgs args)
+        {
+            if (args.Player is not ExPlayer player)
+                return;
+
+            if (!player.IsTrading(out var _))
+                return;
+
+            args.IsAllowed = false;
+        }
+
+        private static void Internal_PickingUpScp330(PlayerPickingUpScp330EventArgs args)
+        {
+            if (args.Player is not ExPlayer player)
+                return;
+
+            if (!player.IsTrading(out var _))
+                return;
+
+            args.IsAllowed = false;
+        }
+
         private static void Internal_UsingItem(PlayerUsingItemEventArgs args)
         {
             if (!args.UsableItem.Base.IsDealerItem(out var dealer))
@@ -392,20 +495,40 @@ namespace mcx.Dealer.API
             args.IsAllowed = false;
         }
 
+        private static void Internal_Scp939Attacking(Scp939AttackingEventArgs args)
+        {
+            if (args.Target is not ExPlayer player)
+                return;
+
+            if (!Dealers.Any(x => !x.IsDestroyed && x.Player == player))
+                return;
+
+            args.IsAllowed = false;
+        }
+
         internal static void Internal_Init()
         {
-            ServerEvents.RoundEnding += Internal_RoundEnding;
+            ServerEvents.RoundRestarted += Internal_RoundRestarting;
 
             PlayerUpdateHelper.OnUpdate += Internal_Update;
 
+            PlayerEvents.Dying += Internal_Dying;
+            PlayerEvents.Cuffing += Internal_Cuffing;
             PlayerEvents.UsingItem += Internal_UsingItem;
             PlayerEvents.SearchedToy += Internal_Interacted;
             PlayerEvents.DroppingItem += Internal_DroppingItem;
             PlayerEvents.ShootingWeapon += Internal_ShootingWeapon;
             PlayerEvents.ThrowingProjectile += Internal_ThrowingProjectile;
 
+            PlayerEvents.PickingUpItem += Internal_PickingUpItem;
+            PlayerEvents.PickingUpAmmo += Internal_PickingUpAmmo;
+            PlayerEvents.PickingUpArmor += Internal_PickingUpArmor;
+            PlayerEvents.PickingUpScp330 += Internal_PickingUpScp330;
+
             ExPlayerEvents.SelectedItem += Internal_SelectedItem;
             ExRoundEvents.WaitingForPlayers += Internal_RoundWaiting;
+
+            Scp939Events.Attacking += Internal_Scp939Attacking;
         }
     }
 }

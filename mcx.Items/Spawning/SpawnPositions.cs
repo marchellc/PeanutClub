@@ -40,7 +40,7 @@ namespace mcx.Items.Spawning
                                     ApiLog.Error("Item Spawnpoint", "Cannot spawn item of type &1None&r");
                                 }
                             }
-                            else if (CustomItem.RegisteredItems.TryGetValue(item, out var customItem))
+                            else if (CustomItem.RegisteredObjects.TryGetValue(item, out var customItem))
                             {
                                 customItem.SpawnItem(position, rotation);
                             }

@@ -1,5 +1,4 @@
 ﻿using LabExtended.API;
-using LabExtended.Core;
 
 using mcx.Utilities.Audio;
 
@@ -33,6 +32,21 @@ namespace mcx.Dealer.API
             TradeEndedWithPurchase,
 
             /// <summary>
+            /// The trading player has died.
+            /// </summary>
+            PlayerDied,
+
+            /// <summary>
+            /// A player is close to the dealer.
+            /// </summary>
+            PlayerClose,
+
+            /// <summary>
+            /// The trader's inventory is empty.
+            /// </summary>
+            EmptyInventory,
+
+            /// <summary>
             /// A purchase was attempted but the player could not afford it.
             /// </summary>
             PurchaseFailed,
@@ -43,6 +57,7 @@ namespace mcx.Dealer.API
             PurchaseSuccessful,
         }
 
+        private ExPlayer? lastClosePlayer;
         private Dictionary<ClipType, float> lastClipPlayTimes = new();
         private bool isPlaying;
 
@@ -106,12 +121,12 @@ namespace mcx.Dealer.API
             if (string.IsNullOrWhiteSpace(clipPath))
                 return;
 
-            isPlaying = PlaybackUtils.PlayAt(clipPath, Dealer.Player.Position, null, () =>
+            isPlaying = PlaybackUtils.PlayAt(clipPath, Dealer.Player.Position, null, false, () =>
             {
                 lastClipPlayTimes[type] = Time.realtimeSinceStartup;
 
                 isPlaying = false;
-            });
+            }).HasValue;
         }
 
         /// <summary>
@@ -119,7 +134,15 @@ namespace mcx.Dealer.API
         /// </summary>
         public void OnClosestPlayerDetected(ExPlayer closestPlayer, float distance)
         {
+            if (lastClosePlayer != null && lastClosePlayer == closestPlayer)
+                return;
 
+            if (distance > DealerCore.ConfigStatic.MaxAudioDistance)
+                return;
+
+            lastClosePlayer = closestPlayer;
+
+            PlayRandomClip(ClipType.PlayerClose);
         }
 
         /// <summary>
@@ -139,6 +162,22 @@ namespace mcx.Dealer.API
         public void OnPurchasedItem()
         {
             PlayRandomClip(ClipType.PurchaseSuccessful);
+        }
+
+        /// <summary>
+        /// Gets called before the player dies.
+        /// </summary>
+        public void OnPlayerDied()
+        {
+            PlayRandomClip(ClipType.PlayerDied);
+        }
+
+        /// <summary>
+        /// Gets called when a trade start fails due to an empty inventory.
+        /// </summary>
+        public void OnTradeFailedEmptyInventory()
+        {
+            PlayRandomClip(ClipType.EmptyInventory);
         }
 
         /// <summary>

@@ -22,6 +22,8 @@ using InventorySystem.Items.Coin;
 
 using PlayerRoles.FirstPersonControl;
 
+using LabExtended.API.Custom.Items;
+
 namespace mcx.Dealer.API
 {
     /// <summary>
@@ -29,8 +31,6 @@ namespace mcx.Dealer.API
     /// </summary>
     public class DealerInstance
     {
-        public const string CloseDealerAlert = "<b>Jsi v blízkosti dealera</b>!";
-
         /// <summary>
         /// Gets called when a player starts interacting with the dealer.
         /// </summary>
@@ -40,6 +40,8 @@ namespace mcx.Dealer.API
         /// Gets called when a player stops interacting with the dealer where the list is the list of purchased items.
         /// </summary>
         public static event Action<DealerInstance, ExPlayer, List<DealerItemInstance>>? Stopped;
+
+        private PlayerUpdateComponent updateComponent;
 
         /// <summary>
         /// Gets the ID of the dealer instance.
@@ -124,7 +126,8 @@ namespace mcx.Dealer.API
 
             Audio.Initialize();
 
-            PlayerUpdateHelper.OnUpdate += Internal_Update;
+            updateComponent = PlayerUpdateComponent.Create();
+            updateComponent.OnUpdate += Internal_Update;
         }
 
         /// <summary>
@@ -138,7 +141,8 @@ namespace mcx.Dealer.API
             Audio?.Destroy();
             Audio = null!;
 
-            PlayerUpdateHelper.OnUpdate -= Internal_Update;
+            updateComponent?.Destroy();
+            updateComponent = null!;
 
             if (ActivePlayer?.ReferenceHub != null)
             {
@@ -173,46 +177,59 @@ namespace mcx.Dealer.API
             try
             {
                 var str =
-                    $"<b>Obchod s dealerem byl <color=red>ukončen</color>!</b>\n";
+                    $"<b>Obchod s dealerem byl <color=red>ukončen</color>!</b>";
 
                 if (ActiveInventory.PurchasedItems.Count > 0)
                 {
-                    str += $"<b><color=red>Zakoupené předměty:</color></b>";
+                    str += $"\n<b><color=red>Zakoupené předměty:</color></b>";
 
                     foreach (var item in ActiveInventory.PurchasedItems)
-                        str += $"\n<b>- <color=yellow>{item.Entry.Item}</color> za <color=green>{item.CurrentPrice} coinů</color></b>";
+                    {
+                        var itemName = item.Entry.Item;
+
+                        if (ActiveInventory.ActiveMapping.TryGetKey(item, out var itemBase)
+                            && CustomItem.IsCustomItem(itemBase.ItemSerial, out var customItem))
+                            itemName = customItem.Name;
+
+                        str += $"\n<b>- <color=yellow>{itemName}</color> za <color=green>{item.CurrentPrice} mincí</color></b>";
+                    }
                 }
 
-                ActivePlayer.SendAlert(AlertType.Warn, 10f, str, true);
-
-                ActivePlayer.Inventory.UserInventory.Items.Clear();
-                ActivePlayer.Inventory.UserInventory.ReserveAmmo.Clear();
-
-                foreach (var item in ActiveInventory.ActiveMapping)
-                    item.Key.DestroyItem();
-
-                ActiveInventory.ActiveMapping.Clear();
-
-                var coinsToAdd = ActivePlayer.IsBypassEnabled
-                    ? ActiveInventory.CoinCount
-                    : ActiveInventory.CoinCount - ActiveInventory.PurchasedItems.Sum(x => x.CurrentPrice);
-
-                if (coinsToAdd > 0)
-                    ActivePlayer.AddStackable(ItemType.Coin, coinsToAdd);
-
-                ActiveInventory.CachedItems.ForEach(x => ActivePlayer.Inventory.UserInventory.Items[x.ItemSerial] = x);
-                ActivePlayer.Inventory.UserInventory.ReserveAmmo.AddRange(ActiveInventory.CachedAmmo);
-
-                Audio.OnTradeFinished(ActiveInventory.PurchasedItems.Count > 0);
-
-                while (ActiveInventory.PurchasedItems.Count > 0)
+                if (ActivePlayer.Role.IsAlive)
                 {
-                    var purchasedItem = ActiveInventory.PurchasedItems.RemoveAndTake(0);
+                    ActivePlayer.SendAlert(AlertType.Warn, 10f, str, true);
 
-                    if (ActivePlayer.Inventory.ItemCount < 8)
-                        ItemsCore.AddBaseOrCustomItem(ActivePlayer, purchasedItem.Entry.Item);
-                    else
-                        ItemsCore.SpawnBaseOrCustomItem(purchasedItem.Entry.Item, ActivePlayer.Position, ActivePlayer.Rotation);
+                    ActivePlayer.Inventory.UserInventory.Items.Clear();
+                    ActivePlayer.Inventory.UserInventory.ReserveAmmo.Clear();
+
+                    foreach (var item in ActiveInventory.ActiveMapping)
+                        item.Key.DestroyItem();
+
+                    ActiveInventory.ActiveMapping.Clear();
+
+                    var coinsToAdd = ActivePlayer.IsBypassEnabled
+                        ? ActiveInventory.CoinCount
+                        : ActiveInventory.CoinCount - ActiveInventory.PurchasedItems.Sum(x => x.CurrentPrice);
+
+                    if (coinsToAdd > 0)
+                        ActivePlayer.AddStackable(ItemType.Coin, coinsToAdd);
+
+                    ActiveInventory.CachedItems.ForEach(x => ActivePlayer.Inventory.UserInventory.Items[x.ItemSerial] = x);
+
+                    ActivePlayer.Inventory.UserInventory.ReserveAmmo.AddRange(ActiveInventory.CachedAmmo);
+                    ActivePlayer.Inventory.Inventory.SendAmmoNextFrame = true;
+
+                    Audio.OnTradeFinished(ActiveInventory.PurchasedItems.Count > 0);
+
+                    while (ActiveInventory.PurchasedItems.Count > 0)
+                    {
+                        var purchasedItem = ActiveInventory.PurchasedItems.RemoveAndTake(0);
+
+                        if (ActivePlayer.Inventory.ItemCount < 8)
+                            ItemsCore.AddBaseOrCustomItem(ActivePlayer, purchasedItem.Entry.Item);
+                        else
+                            ItemsCore.SpawnBaseOrCustomItem(purchasedItem.Entry.Item, ActivePlayer.Position, ActivePlayer.Rotation);
+                    }
                 }
 
                 Stopped?.InvokeSafe(this, ActivePlayer, ActiveInventory.PurchasedItems);
@@ -276,7 +293,12 @@ namespace mcx.Dealer.API
 
             if (ActiveInventory.ActiveMapping.TryGetValue(item, out var instance))
             {
-                var str = $"<b>Vybral si předmět <color=yellow>{instance.Entry.Item}</color> za <color=red>{instance.CurrentPrice}</color> coinů!";
+                var itemName = instance.Entry.Item;
+
+                if (CustomItem.IsCustomItem(item.ItemSerial, out var customItem))
+                    itemName = customItem.Name;
+
+                var str = $"<b>Vybral si předmět <color=yellow>{itemName}</color> za <color=red>{instance.CurrentPrice}</color> mincí!";
 
                 if (instance.DiscountPercentage > 0)
                     str += $" <color=yellow>({instance.DiscountPercentage}% sleva!)</color>";
@@ -304,7 +326,7 @@ namespace mcx.Dealer.API
                     Audio.OnPurchasingItem(false);
 
                     ActivePlayer.SendAlert(AlertType.Warn, 10f,
-                        $"<b>Tento předmět si bohužel nemůžeš dovolit, chybí ti <color=red>{instance.CurrentPrice - availableCoins}</color> coins!</b>", true);
+                        $"<b>Tento předmět si bohužel nemůžeš dovolit, chybí ti <color=red>{instance.CurrentPrice - availableCoins}</color> mincí!</b>", true);
                     return false;
                 }
 
@@ -312,8 +334,8 @@ namespace mcx.Dealer.API
 
                 ActiveInventory.PurchasedItems.Add(instance);
                 ActivePlayer.SendAlert(AlertType.Info, 10f, 
-                    $"<b>Zakoupil si předmět <color=red>{instance.Entry.Item}</color> za <color=yellow>{instance.CurrentPrice}</color> coinů!</b>\n" +
-                    $"<b>Zbývá ti <color=green>{availableCoins - instance.CurrentPrice}</color> coinů.</b>", true);
+                    $"<b>Zakoupil si předmět <color=red>{instance.Entry.Item}</color> za <color=yellow>{instance.CurrentPrice}</color> mincí!</b>\n" +
+                    $"<b>Zbývá ti <color=green>{availableCoins - instance.CurrentPrice}</color> mincí.</b>", true);
 
                 Audio.OnPurchasedItem();
 
@@ -322,6 +344,30 @@ namespace mcx.Dealer.API
             }
 
             return true;
+        }
+
+        internal void Internal_Dying()
+        {
+            ActivePlayer.Inventory.UserInventory.Items.Clear();
+            ActivePlayer.Inventory.UserInventory.ReserveAmmo.Clear();
+
+            foreach (var item in ActiveInventory.ActiveMapping)
+                item.Key.DestroyItem();
+
+            ActiveInventory.ActiveMapping.Clear();
+            ActivePlayer.AddStackable(ItemType.Coin, ActiveInventory.CoinCount);
+
+            ActiveInventory.CachedItems.ForEach(x => ActivePlayer.Inventory.UserInventory.Items[x.ItemSerial] = x);
+
+            ActivePlayer.Inventory.UserInventory.ReserveAmmo.AddRange(ActiveInventory.CachedAmmo);
+            ActivePlayer.Inventory.Inventory.SendAmmoNextFrame = true;
+
+            Audio.OnPlayerDied();
+
+            ActivePlayer = null!;
+
+            ActiveInventory.ClearInventory();
+            ActiveInventory = null!;
         }
 
         internal void Internal_Interacted(ExPlayer player)
@@ -342,6 +388,8 @@ namespace mcx.Dealer.API
 
             if (inventory.Items.Count == 0)
             {
+                Audio.OnTradeFailedEmptyInventory();
+
                 player.SendAlert(AlertType.Warn, 5f, $"<b>Dealer <color=red>nemá žádné předměty</color> na prodej!</b>", true);
                 return;
             }
@@ -369,7 +417,7 @@ namespace mcx.Dealer.API
             }
 
             player.SendAlert(AlertType.Info, 10f,
-                $"<b>Začal jsi obchodovat s dealerem! Máš k dispozici <color=yellow>{inventory.CoinCount} coinů</color>!</b>\n" +
+                $"<b>Začal jsi obchodovat s dealerem! Máš k dispozici <color=yellow>{inventory.CoinCount} mincí</color>!</b>\n" +
                 "<b><color=red>Vyhoď předmět na zem pro jeho zakoupení</color></b>\n" +
                 "<b><color=yellow>Vyber předmět v inventáři pro zobrazení ceny!</color></b>", true);
 

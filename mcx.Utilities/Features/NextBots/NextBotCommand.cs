@@ -14,7 +14,7 @@ namespace mcx.Utilities.Features.NextBots
     [Command("nextbots", "Commands related to NextBots", "nb")]
     public class NextBotCommand : CommandBase, IServerSideCommand
     {
-        [CommandOverload("spawn", "Spawns a new next bot.")]
+        [CommandOverload("spawn", "Spawns a new next bot.", null)]
         public void Spawn(
             [CommandParameter("Image", "Name of the image file.")] string imageName, 
             [CommandParameter("Audio", "Name of the audio file.")] string audioName)
@@ -33,7 +33,7 @@ namespace mcx.Utilities.Features.NextBots
             Ok($"Spawned a new next bot instance ({toy.NetId})");
         }
 
-        [CommandOverload("destroy", "Destroys a next bot instance.")]
+        [CommandOverload("destroy", "Destroys a next bot instance.", null)]
         public void Destroy(
              [CommandParameter("ID", "The ID of the next bot")] uint botId)
         {
@@ -48,7 +48,7 @@ namespace mcx.Utilities.Features.NextBots
             Ok($"Bot destroyed!");
         }
 
-        [CommandOverload("target", "Sets a new target.")]
+        [CommandOverload("target", "Sets a new target.", null)]
         public void Target(
             [CommandParameter("ID", "The ID of the next bot")] uint botId,
             [CommandParameter("Target", "The new target (set to 'null' to stop chasing.")] string newTarget)

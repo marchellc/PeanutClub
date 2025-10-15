@@ -12,19 +12,19 @@ namespace mcx.RandomPickup.API
         private float initialY = 0f;
 
         /// <summary>
-        /// Gets or sets the rotation angle in degrees per second.
+        /// Gets the rotation angle in degrees per second.
         /// </summary>
-        public float RotationAngle { get; set; } = 45f;
+        public float RotationAngle => RandomPickupCore.ConfigStatic.RotationAngle;
 
         /// <summary>
-        /// Gets or sets the speed at which the object floats.
+        /// Gets the speed at which the object floats.
         /// </summary>
-        public float FloatSpeed { get; set; } = 1f;
+        public float FloatSpeed => RandomPickupCore.ConfigStatic.FloatSpeed;
 
         /// <summary>
-        /// Gets or sets the amplitude value as a floating-point number.
+        /// Gets  the amplitude value as a floating-point number.
         /// </summary>
-        public float FloatAmplitude { get; set; } = 0.25f;
+        public float FloatAmplitude => RandomPickupCore.ConfigStatic.FloatAmplitude;
 
         /// <summary>
         /// Whether or not the rotation is paused.
@@ -63,21 +63,31 @@ namespace mcx.RandomPickup.API
 
         private void Internal_Update()
         {
+            if (IsPaused)
+                return;
+
             if (TargetInstance is null || TargetInstance.Schematic == null)
             {
                 Destroy();
                 return;
             }
 
-            var pos = TargetInstance.Schematic.Position;
+            if (RandomPickupCore.ConfigStatic.FloatPickup)
+            {
+                var pos = TargetInstance.Schematic.Position;
 
-            pos.y = initialY + Mathf.Sin(Time.time * FloatSpeed) * FloatAmplitude;
+                pos.y = initialY + Mathf.Sin(Time.time * FloatSpeed) * FloatAmplitude;
 
-            TargetInstance.Schematic.Position = pos;
-            TargetInstance.Schematic.Rotation *= 
-                Quaternion.Inverse(TargetInstance.Schematic.Rotation)
-                * Quaternion.Euler(0f, RotationAngle * Time.deltaTime, 0f)
-                * TargetInstance.Schematic.Rotation;
+                TargetInstance.Schematic.Position = pos;
+            }
+
+            if (RandomPickupCore.ConfigStatic.RotatePickup)
+            {
+                TargetInstance.Schematic.Rotation *=
+                    Quaternion.Inverse(TargetInstance.Schematic.Rotation)
+                    * Quaternion.Euler(0f, RotationAngle * Time.deltaTime, 0f)
+                    * TargetInstance.Schematic.Rotation;
+            }
         }
     }
 }

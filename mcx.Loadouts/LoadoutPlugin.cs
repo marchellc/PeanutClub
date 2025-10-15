@@ -177,7 +177,7 @@ public class LoadoutPlugin : Plugin<LoadoutConfig>
             }
             else if (loadoutItem.CustomType != null)
             {
-                if (!CustomItem.RegisteredItems.TryGetValue(loadoutItem.CustomType, out var customItem))
+                if (!CustomItem.RegisteredObjects.TryGetValue(loadoutItem.CustomType, out var customItem))
                 {
                     ApiLog.Warn("Loadout API", $"Error while processing loadout &3{loadoutName}&r for " +
                                                $"player &3{player.Nickname}&r (&6{player.UserId}&r): Could not find custom item of ID &6{loadoutItem.CustomType}&r!");

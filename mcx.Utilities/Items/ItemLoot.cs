@@ -23,13 +23,6 @@ namespace mcx.Utilities.Items
             ["UserIdOne"] = new()
             {
                 ["ItemGroupNameOne"] = 0.2f,
-                ["ItemGroupNameTwo"] = 0.5f
-            },
-
-            ["UserIdTwo"] = new()
-            {
-                ["ItemGroupNameThree"] = 0.1f,
-                ["ItemGroupNameFour"] = 0.3f
             }
         };
 
@@ -42,13 +35,6 @@ namespace mcx.Utilities.Items
             ["RaGroupNameOne"] = new()
             {
                 ["ItemGroupNameOne"] = 0.2f,
-                ["ItemGroupNameTwo"] = 0.5f
-            },
-
-            ["RaGroupNameTwo"] = new()
-            {
-                ["ItemGroupNameThree"] = 0.1f,
-                ["ItemGroupNameFour"] = 0.3f
             }
         };
 
@@ -59,7 +45,6 @@ namespace mcx.Utilities.Items
         public Dictionary<string, ItemGroup> ItemGroups { get; set; } = new()
         {
             ["ItemGroupOne"] = new(),
-            ["ItemGroupTwo"] = new()
         };
 
         /// <summary>
@@ -78,7 +63,7 @@ namespace mcx.Utilities.Items
         /// identifier; if the function returns <see langword="true"/>, the item is skipped.</param>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="targetPlayer"/> is null or does not have a valid reference hub, or if <paramref
         /// name="lootAdder"/> is null.</exception>
-        public void GetLoot(ExPlayer targetPlayer, int itemCount, Action<string> lootAdder, Func<string, bool>? duplicateChecker = null)
+        public void GetLoot(ExPlayer targetPlayer, int itemCount, Action<string> lootAdder)
         {
             if (targetPlayer?.ReferenceHub == null)
                 throw new ArgumentNullException(nameof(targetPlayer), "Target player cannot be null.");
@@ -100,7 +85,7 @@ namespace mcx.Utilities.Items
 
                 if (!string.IsNullOrEmpty(targetPlayer.PermissionsGroupName))
                 {
-                    if (GroupChanceMultipliers.TryGetValue(targetPlayer.PermissionsGroupName, out var groupMultipliers))
+                    if (GroupChanceMultipliers.TryGetValue(targetPlayer.PermissionsGroupName!, out var groupMultipliers))
                     {
                         if (groupMultipliers.TryGetValue(pair.Key, out var groupMultiplier))
                         {
@@ -112,21 +97,27 @@ namespace mcx.Utilities.Items
                 return baseChance;
             }
 
-            var pickedGroup = ItemGroups.GetRandomWeighted(x => WeightPicker(x));
+            var pickedGroup = ItemGroups.GetRandomWeighted(WeightPicker);
 
             while (pickedGroup.Value is null)
-                pickedGroup = ItemGroups.GetRandomWeighted(x => WeightPicker(x));
+                pickedGroup = ItemGroups.GetRandomWeighted(WeightPicker);
 
             while (itemCount > 0)
             {
-                var pickedItem = pickedGroup.Value.Items.GetRandomWeighted(x => x.Value);
+                var pickedItem = pickedGroup.Value.Items.ElementAtOrDefault(UnityEngine.Random.Range(0, pickedGroup.Value.Items.Count));
 
-                if (duplicateChecker != null && duplicateChecker(pickedItem.Key))
+                if (pickedItem.Value < 1 || pickedItem.Key is null)
                     continue;
 
-                lootAdder(pickedItem.Key);
+                for (var i = 0; i < pickedItem.Value; i++)
+                {
+                    lootAdder(pickedItem.Key);
 
-                itemCount--;
+                    itemCount--;
+
+                    if (itemCount < 1)
+                        break;
+                }
             }
         }
     }

@@ -49,6 +49,13 @@ namespace mcx.Dealer
         public float MaxDistance { get; set; } = 10f;
 
         /// <summary>
+        /// Gets or sets the maximum distance, in meters, at which a player can be from a dealer  for the player close
+        /// audio clip to play.
+        /// </summary>
+        [Description("Sets the maximum distance (in meters) a player can be from a dealer for the player close audio clip to play.")]
+        public float MaxAudioDistance { get; set; } = 5f;
+
+        /// <summary>
         /// Gets or sets the minimum cooldown period, in seconds, required between playbacks of each audio clip type.
         /// </summary>
         [Description("Sets the minimum required amount of seconds between playbacks of audio clips.")]

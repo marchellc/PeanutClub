@@ -19,11 +19,11 @@ namespace mcx.Utilities.Items
         /// <remarks>Each entry in the dictionary represents an item and its relative chance of being
         /// selected. Higher values increase the likelihood of an item being picked compared to others in the group. The
         /// weights do not need to sum to any particular value.</remarks>
-        [Description("Sets the items in this group and their relative chance of being picked.")]
-        public Dictionary<string, float> Items { get; set; } = new()
+        [Description("Sets the items in this group and their relative item count.")]
+        public Dictionary<string, int> Items { get; set; } = new()
         {
-            ["Medkit"] = 0f,
-            ["Adrenaline"] = 100f
+            ["Medkit"] = 1,
+            ["Adrenaline"] = 1
         };
     }
 }

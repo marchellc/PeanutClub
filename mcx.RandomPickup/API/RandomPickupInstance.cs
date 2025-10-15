@@ -1,12 +1,15 @@
 ﻿using AdminToys;
 
-using InventorySystem.Items.Pickups;
-
 using LabExtended.API;
 using LabExtended.API.Toys;
+
+using LabExtended.Core;
 using LabExtended.Extensions;
 
-using Mirror;
+using mcx.Utilities.Audio;
+using mcx.Utilities.Items;
+
+using NorthwoodLib.Pools;
 
 using ProjectMER.Features.Objects;
 
@@ -19,10 +22,17 @@ namespace mcx.RandomPickup.API
     /// </summary>
     public class RandomPickupInstance
     {
+        private PlaybackHandle? playbackHandle;
+
         /// <summary>
         /// Gets the status of this random pickup instance.
         /// </summary>
         public RandomPickupStatus Status { get; private set; } = RandomPickupStatus.NotInitialized;
+
+        /// <summary>
+        /// Gets the reason of this instance spawning.
+        /// </summary>
+        public RandomPickupSpawnReason SpawnReason { get; internal set; }
 
         /// <summary>
         /// Gets the scenario that spawned this random pickup instance, if any.
@@ -47,7 +57,7 @@ namespace mcx.RandomPickup.API
         /// <summary>
         /// Gets the light toy.
         /// </summary>
-        public LightToy Light { get; private set; }
+        public LightToy? Light { get; private set; }
 
         /// <summary>
         /// Gets the interactable toy.
@@ -55,9 +65,14 @@ namespace mcx.RandomPickup.API
         public InteractableToy Interactable { get; private set; }
 
         /// <summary>
-        /// Gets the loot contained in this random pickup instance.
+        /// Gets or sets the loot table used by this random pickup instance.
         /// </summary>
-        public List<ItemPickupBase> Loot { get; } = new();
+        public ItemLoot Loot { get; set; }
+
+        /// <summary>
+        /// Gets or sets custom data of the scenario that spawned this random pickup instance, if any.
+        /// </summary>
+        public object ScenarioData { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the RandomPickupInstance class.
@@ -79,12 +94,17 @@ namespace mcx.RandomPickup.API
             if (Status is not RandomPickupStatus.NotInitialized)
                 return;
 
-            Light = new(Schematic.Position, Schematic.Rotation)
+            if (RandomPickupCore.ConfigStatic.SpawnLight)
             {
-                Color = Color.red.FixPrimitiveColor(),
-                Range = 1.5f,
-                Intensity = 0.6f
-            };
+                Light = new(Schematic.Position, Schematic.Rotation)
+                {
+                    Color = RandomPickupCore.ConfigStatic.LightColor.Color.FixPrimitiveColor(),
+                    Range = RandomPickupCore.ConfigStatic.LightRange,
+                    Intensity = RandomPickupCore.ConfigStatic.LightIntensity,
+                };
+
+                Light.Transform.parent = Schematic.transform;
+            }
 
             Interactable = new(Schematic.Position, Schematic.Rotation)
             {
@@ -94,9 +114,13 @@ namespace mcx.RandomPickup.API
                 IsLocked = false
             };
 
+            Interactable.Transform.parent = Schematic.transform;
+
             Rotation.Initialize();
 
             Status = RandomPickupStatus.Waiting;
+
+            playbackHandle = PlaybackUtils.PlayAt(RandomPickupCore.ConfigStatic.WaitingAudioClip, Schematic.Position, null, true, () => playbackHandle = null);
         }
 
         /// <summary>
@@ -107,11 +131,11 @@ namespace mcx.RandomPickup.API
             if (Status is RandomPickupStatus.Destroyed)
                 return;
 
+            playbackHandle?.Destroy();
+            playbackHandle = null;
+
             Rotation?.Destroy();
             Rotation = null!;
-
-            if (Status is RandomPickupStatus.Waiting)
-                Loot.ForEach(x => x.DestroySelf());
 
             Interactable?.Delete();
             Interactable = null!;
@@ -121,8 +145,6 @@ namespace mcx.RandomPickup.API
 
             Schematic?.Destroy();
             Schematic = null!;
-
-            Loot.Clear();
 
             Status = RandomPickupStatus.Destroyed;
 
@@ -131,18 +153,43 @@ namespace mcx.RandomPickup.API
 
         internal void Internal_Interacted(ExPlayer player)
         {
+            playbackHandle?.Destroy();
+
             if (Status is RandomPickupStatus.Waiting)
             {
-                foreach (var pickup in Loot)
+                playbackHandle = PlaybackUtils.PlayAt(RandomPickupCore.ConfigStatic.OpenedAudioClip, Schematic.Position, null, false, () => playbackHandle = null);
+
+                var lootItems = ListPool<string>.Shared.Rent();
+
+                if (SpawnReason is RandomPickupSpawnReason.DefinedLocation)
                 {
-                    pickup.Position = player.Position;
-                    pickup.Rotation = player.Rotation;
-
-                    NetworkServer.Spawn(pickup.gameObject);
+                    Loot.GetLoot(player, RandomPickupCore.ConfigStatic.DefinedItemCount.GetRandom(), lootItems.Add);
                 }
-            }
+                else if (SpawnReason is RandomPickupSpawnReason.RandomPlayer)
+                {
+                    Loot.GetLoot(player, RandomPickupCore.ConfigStatic.ItemCount.GetRandom(), lootItems.Add);
+                }
+                else if (SpawnReason is RandomPickupSpawnReason.Scenario)
+                {
+                    SpawnScenario?.FillLoot(player, ScenarioData, lootItems);
+                }
 
-            Loot.Clear();
+                foreach (var lootItem in lootItems)
+                {
+                    if (!ItemHandler.TryApplyOrSpawnItemFromString(player, Schematic.Position, Schematic.Rotation, true, lootItem, out _, out var entry))
+                    {
+                        ApiLog.Warn("Random Pickup", $"Unrecognized loot item: &1{lootItem}&r!");
+                    }
+                    else
+                    {
+                        ApiLog.Debug("Random Pickup", $"Added item &3{lootItem}&r (&6{entry.Name}&r / &6{entry.GetType().Name}&r)");
+                    }
+                }
+
+                ListPool<string>.Shared.Return(lootItems);
+
+                Status = RandomPickupStatus.Opened;
+            }
 
             Rotation?.Destroy();
             Rotation = null!;
@@ -155,8 +202,6 @@ namespace mcx.RandomPickup.API
 
             Schematic?.Destroy();
             Schematic = null!;
-
-            Status = RandomPickupStatus.Opened;
         }
     }
 }
