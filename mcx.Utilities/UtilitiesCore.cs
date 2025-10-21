@@ -28,7 +28,6 @@ public static class UtilitiesCore
         {
             CustomDataStoreManager.RegisterStore<PlaybackStore>();
 
-            ItemTags.Internal_Init();
             ItemHandler.Internal_Init();
             SnakeExplosion.Internal_Init();
             NextBotInstance.Internal_Init();

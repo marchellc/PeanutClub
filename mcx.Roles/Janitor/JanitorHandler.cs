@@ -46,8 +46,6 @@ public static class JanitorHandler
             player.InfoArea |= PlayerInfoArea.CustomInfo;
         
         player.SendAlert(AlertType.Info, 10f, "<b>Tvoje role je</b>\n<size=30><color=yellow><b>UKLÍZEČ</b></color></size>!");
-        
-        ApiLog.Debug("Janitor Handler", $"Made player &3{player.Nickname}&r (&6{player.UserId}&r) the Janitor.");
     }
 
     private static void Internal_ChangedRole(PlayerChangedRoleEventArgs args)

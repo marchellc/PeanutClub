@@ -1,5 +1,4 @@
-﻿using mcx.Utilities.Items;
-using mcx.Utilities.Randomness;
+﻿using mcx.Utilities.Items.Loot;
 
 using System.ComponentModel;
 
@@ -26,19 +25,9 @@ namespace mcx.RandomPickup.API.Scenarios.LowHealth
         public int HealthPercentageThreshold { get; set; } = 3;
 
         /// <summary>
-        /// Gets or sets the range specifying the minimum and maximum number of items awarded to a player.
-        /// </summary>
-        [Description("Sets the minimum and maximum amount of items given to a player.")]
-        public Int32Range ItemCount { get; set; } = new()
-        {
-            MinValue = 1,
-            MaxValue = 3
-        };
-
-        /// <summary>
         /// Gets or sets the loot to be awarded when a low health scenario is triggered.
         /// </summary>
         [Description("Sets the loot to be given when the low health scenario triggers.")]
-        public ItemLoot LowHealthLoot { get; set; } = new();
+        public LootConfig LowHealthLoot { get; set; } = new();
     }
 }

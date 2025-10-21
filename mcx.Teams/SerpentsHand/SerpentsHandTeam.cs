@@ -99,8 +99,6 @@ public class SerpentsHandTeam : CustomTeamHandler<SerpentsHandWave>
         LoadoutPlugin.Ensure("SerpentsHand", new LoadoutDefinition()
             .WithAmmo(ItemType.Ammo556x45, 120)
             .WithItems(ItemType.GunE11SR, ItemType.GrenadeHE, ItemType.KeycardChaosInsurgency, ItemType.Adrenaline, ItemType.SCP500, ItemType.SCP1344, ItemType.ArmorHeavy));
-        
-        ApiLog.Debug("Serpent's Hand", "Registered");
     }
 
     private void Internal_Started()
@@ -135,9 +133,6 @@ public class SerpentsHandTeam : CustomTeamHandler<SerpentsHandWave>
 
             SpawnPosition = centerPos;
             
-            ApiLog.Debug("Serpent's Hand", $"Team Spawn Point set to &3{centerName}&r (&6{centerPos.ToPreciseString()}&r)");
-            ApiLog.Debug("Serpent's Hand", $"Hole Spawn Point set to &3{holeName}&r (&6{holePos.ToPreciseString()}&r)");
-            
             if (!ObjectSpawner.TrySpawnSchematic(HoleSchematicName, holePos, out var spawnedHole))
             {
                 ApiLog.Warn("Serpent's Hand", "Could not spawn the hole schematic!");
@@ -145,8 +140,6 @@ public class SerpentsHandTeam : CustomTeamHandler<SerpentsHandWave>
             }
             
             HoleObject = spawnedHole;
-        
-            ApiLog.Debug("Serpent's Hand", "Spawned the hole schematic!");
             break;
         }
     }

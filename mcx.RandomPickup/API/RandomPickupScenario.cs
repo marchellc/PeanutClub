@@ -1,8 +1,7 @@
-﻿using InventorySystem.Items.Pickups;
-
-using LabExtended.API;
+﻿using LabExtended.API;
 
 using mcx.RandomPickup.API.Scenarios.LowHealth;
+using mcx.Utilities.Items.Loot;
 
 namespace mcx.RandomPickup.API
 {
@@ -38,8 +37,7 @@ namespace mcx.RandomPickup.API
         /// Populates the specified loot collection with items appropriate for the given player.
         /// </summary>
         /// <param name="player">The player for whom the loot is being generated. Cannot be null.</param>
-        /// <param name="loot">The collection to which generated loot items will be added. Must not be null.</param>
-        public abstract void FillLoot(ExPlayer player, object scenarioData, List<string> loot);
+        public abstract LootGroup GetLoot(ExPlayer player, object scenarioData);
 
         internal static void Internal_UpdateScenarios()
         {
@@ -51,6 +49,9 @@ namespace mcx.RandomPickup.API
                     return;
 
                 var player = ExPlayer.Players[i];
+
+                if (player?.ReferenceHub == null || player.UserId == null)
+                    continue;
 
                 for (var x = 0; x < AllScenarios.Count; x++)
                 {

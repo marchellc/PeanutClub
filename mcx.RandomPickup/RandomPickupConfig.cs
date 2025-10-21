@@ -1,7 +1,10 @@
 ﻿using LabExtended.Core.Configs.Objects;
 
+using mcx.RandomPickup.API;
 using mcx.RandomPickup.API.Scenarios.LowHealth;
-using mcx.Utilities.Items;
+
+using mcx.Utilities.Audio;
+using mcx.Utilities.Items.Loot;
 using mcx.Utilities.Randomness;
 
 using System.ComponentModel;
@@ -20,18 +23,6 @@ namespace mcx.RandomPickup
         /// </summary>
         [Description("Sets the name of the pickup schematic.")]
         public string SchematicName { get; set; } = "RandomPickup";
-
-        /// <summary>
-        /// Gets or sets the file name of the audio clip to play while the pickup is waiting to be opened.
-        /// </summary>
-        [Description("Sets the file name of the audio clip to play when the pickup is waiting to be opened.")]
-        public string WaitingAudioClip { get; set; } = "RandomPickupWaitingLoop.mp3";
-
-        /// <summary>
-        /// Gets or sets the file name of the audio clip to play when the pickup is opened.
-        /// </summary>
-        [Description("Sets the file name of the audio clip to play when the pickup is opened.")]
-        public string OpenedAudioClip { get; set; } = "RandomPickupOpened.mp3";
 
         /// <summary>
         /// Gets or sets the minimum number of rounds that must pass between each scenario activation for a player.
@@ -120,6 +111,32 @@ namespace mcx.RandomPickup
         public bool TargetScps { get; set; }
 
         /// <summary>
+        /// Gets or sets the configuration for audio clips, including their types and associated cooldowns.
+        /// </summary>
+        /// <remarks>The <see cref="Clips"/> property allows customization of audio behavior by
+        /// associating specific audio clips with predefined event types, such as <see
+        /// cref="RandomPickupClipType.Spawned"/>, <see cref="RandomPickupClipType.Waiting"/>, and <see
+        /// cref="RandomPickupClipType.Opened"/>. Cooldown values determine the minimum time between consecutive plays
+        /// of the same clip type.</remarks>
+        [Description("Sets the list of audio clips to play.")]
+        public ClipConfig<RandomPickupClipType> Clips { get; set; } = new()
+        {
+            Clips = new()
+            {
+                [RandomPickupClipType.Spawned] = new() { new() },
+                [RandomPickupClipType.Waiting] = new() { new() },
+                [RandomPickupClipType.Opened] = new() { new() }
+            },
+
+            Cooldowns = new()
+            {
+                [RandomPickupClipType.Spawned] = 0f,
+                [RandomPickupClipType.Waiting] = 0f,
+                [RandomPickupClipType.Opened] = 0f
+            }
+        };
+
+        /// <summary>
         /// Gets or sets the range specifying the minimum and maximum number of random pickups that can spawn per round.
         /// </summary>
         [Description("Sets the maximum number of random pickups that can spawn per round.")]
@@ -129,25 +146,11 @@ namespace mcx.RandomPickup
             MaxValue = 10
         };
 
-        [Description("Sets how many items will be received from random pickups spawned for players randomly.")]
-        public Int32Range ItemCount { get; set; } = new()
-        {
-            MinValue = 1,
-            MaxValue = 3
-        };
-
         /// <summary>
         /// Gets or sets the range of the number of pickups to spawn at the start of the round on each spawn location.
         /// </summary>
         [Description("Sets the range of how many pickups to spawn at the start of the round on each spawn location.")]
         public Int32Range DefinedSpawnCount { get; set; } = new()
-        {
-            MinValue = 1,
-            MaxValue = 3
-        };
-
-        [Description("Sets how many items will be received from random pickups spawned at the start of the round.")]
-        public Int32Range DefinedItemCount { get; set; } = new()
         {
             MinValue = 1,
             MaxValue = 3
@@ -167,7 +170,7 @@ namespace mcx.RandomPickup
         /// Gets or sets the loot configuration for each randomly spawned pickup.
         /// </summary>
         [Description("Sets the loot for each randomly spawned pickup.")]
-        public ItemLoot SpawnedLoot { get; set; } = new();
+        public LootConfig SpawnedLoot { get; set; } = new();
 
         /// <summary>
         /// Gets or sets the possible spawn locations and their associated spawn chances.
@@ -188,7 +191,7 @@ namespace mcx.RandomPickup
         /// locations.  Each key in the dictionary corresponds to a unique spawn location, and the associated value
         /// defines the loot configuration for that location.</remarks>
         [Description("Sets the loot for each spawn location.")]
-        public Dictionary<string, ItemLoot> SpawnLocationsLoot { get; set; } = new()
+        public Dictionary<string, LootConfig> SpawnLocationsLoot { get; set; } = new()
         {
             ["ExamplePosition"] = new(),
             ["ExamplePosition2"] = new()

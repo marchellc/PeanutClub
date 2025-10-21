@@ -24,12 +24,12 @@ namespace mcx.Utilities.Items.Entries
         /// Applies the effect of this item to the given player.
         /// </summary>
         /// <param name="player">The player.</param>
-        public abstract void ApplyEffect(ExPlayer player, string? effectString);
+        public abstract void ApplyEffect(ExPlayer player, string[]? effectString);
 
         /// <inheritdoc/>
         public ItemBase AddToInventory(ExPlayer player)
         {
-            ApplyEffect(player, string.Empty);
+            ApplyEffect(player, null);
             return null!;
         }
 

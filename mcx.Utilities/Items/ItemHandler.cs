@@ -9,6 +9,7 @@ using LabExtended.Extensions;
 
 using mcx.Utilities.Items.Entries;
 using mcx.Utilities.Items.Interfaces;
+
 using UnityEngine;
 
 namespace mcx.Utilities.Items
@@ -18,9 +19,107 @@ namespace mcx.Utilities.Items
     /// </summary>
     public static class ItemHandler
     {
+        /// <summary>
+        /// Represents a method that attempts to convert the specified string representation of a value to its
+        /// corresponding type and returns a value indicating whether the conversion succeeded.
+        /// </summary>
+        /// <typeparam name="T">The type of the value to parse.</typeparam>
+        /// <param name="value">The string representation of the value to parse.</param>
+        /// <param name="result">When this method returns, contains the parsed value of type <typeparamref name="T"/> if the conversion
+        /// succeeded; otherwise, the default value of <typeparamref name="T"/>.</param>
+        /// <returns><see langword="true"/> if the conversion succeeded; otherwise, <see langword="false"/>.</returns>
+        public delegate bool TryParseDelegate<T>(string value, out T result);
+
         private static Dictionary<string, IItemEntry> vanillaItems = new();
         private static Dictionary<string, IItemEntry> customItems = new();
         private static Dictionary<string, IItemEntry> effectItems = new();
+
+        /// <summary>
+        /// Represents the character used to split parameters in a delimited string.
+        /// </summary>
+        /// <remarks>This constant is commonly used to separate multiple parameters in scenarios where a
+        /// single string contains a list of values, such as in configuration files or query strings.</remarks>
+        public const char ParameterSplit = ',';
+
+        /// <summary>
+        /// Represents the character used to separate a parameter name from its value in a key-value pair.
+        /// </summary>
+        /// <remarks>This constant is commonly used in scenarios where parameters are represented as
+        /// key-value pairs, such as query strings or configuration settings.</remarks>
+        public const char ParameterValueSplit = '=';
+
+        /// <summary>
+        /// Attempts to parse a value from the specified dictionary using a custom parsing delegate.
+        /// </summary>
+        /// <typeparam name="T">The type of the value to parse.</typeparam>
+        /// <param name="effectParameters">The dictionary containing the key-value pairs to search.</param>
+        /// <param name="key">The key whose associated value is to be parsed.</param>
+        /// <param name="tryParseDelegate">A delegate that defines the custom parsing logic for the value.</param>
+        /// <param name="result">When this method returns, contains the parsed value of type <typeparamref name="T"/> if the parsing
+        /// succeeds; otherwise, the default value for the type <typeparamref name="T"/>.</param>
+        /// <returns><see langword="true"/> if the value associated with the specified key was found and successfully parsed;
+        /// otherwise, <see langword="false"/>.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="effectParameters"/>, <paramref name="key"/>, or <paramref
+        /// name="tryParseDelegate"/> is <see langword="null"/>.</exception>
+        public static bool TryParseEffectParameter<T>(this Dictionary<string, string> effectParameters, string key, TryParseDelegate<T> tryParseDelegate, 
+            out T result)
+        {
+            if (effectParameters is null)
+                throw new ArgumentNullException(nameof(effectParameters));
+
+            if (key is null)
+                throw new ArgumentNullException(nameof(key));
+
+            if (tryParseDelegate is null)
+                throw new ArgumentNullException(nameof(tryParseDelegate));
+
+            result = default!;
+
+            if (!effectParameters.TryGetValue(key, out var value)
+                || string.IsNullOrEmpty(value))
+                return false;
+
+            return tryParseDelegate(value, out result);
+        }
+
+        /// <summary>
+        /// Attempts to process an array of effect strings into a dictionary of key-value pairs.
+        /// </summary>
+        /// <remarks>This method does not throw exceptions for invalid input strings. Instead, it
+        /// gracefully handles malformed strings by adding them to the dictionary with an empty value.</remarks>
+        /// <param name="effectString">An array of strings, where each string represents a key-value pair in the format "key=value". If <paramref
+        /// name="effectString"/> is <see langword="null"/> or empty, the method returns <see langword="true"/> and the
+        /// output dictionary will be empty.</param>
+        /// <param name="parameters">When this method returns, contains a dictionary populated with the processed key-value pairs. If a string in
+        /// <paramref name="effectString"/> does not contain a valid key-value pair, the key will be added to the
+        /// dictionary with an empty string as its value.</param>
+        /// <returns><see langword="true"/> in all cases. The method does not indicate success or failure through its return
+        /// value.</returns>
+        public static bool TryProcessEffectString(string[]? effectString, out Dictionary<string, string> parameters)
+        {
+            parameters = new Dictionary<string, string>();
+
+            if (effectString == null || effectString.Length == 0)
+                return true;
+
+            foreach (var part in effectString)
+            {
+                var splitIndex = part.IndexOf(ParameterValueSplit);
+
+                if (splitIndex <= 0 || splitIndex >= part.Length - 1)
+                {
+                    parameters[part] = string.Empty;
+                    continue;
+                }
+
+                var key = part.Substring(0, splitIndex).Trim();
+                var value = part.Substring(splitIndex + 1).Trim();
+
+                parameters[key] = value;
+            }
+
+            return true;
+        }
 
         /// <summary>
         /// Attempts to apply an item to the player or add it to their inventory based on the specified item string.
@@ -88,9 +187,16 @@ namespace mcx.Utilities.Items
             if (!TryGetItemFromString(itemString, out var effectString, out itemEntry))
                 return false;
 
-            if (itemEntry.IsEffect && itemEntry is EffectItemEntry effectItemEntry)
+            if (itemEntry.IsEffect)
             {
-                effectItemEntry.ApplyEffect(player, effectString);
+                if (itemEntry is EffectItemEntry effectItemEntry)
+                {
+                    effectItemEntry.ApplyEffect(player, effectString);
+                }
+                else
+                {
+                    itemEntry.SpawnPickup(player.Position, player.Rotation, true);
+                }
             }
             else
             {
@@ -123,9 +229,16 @@ namespace mcx.Utilities.Items
             if (!TryGetItemFromString(itemString, out var effectString, out itemEntry))
                 return false;
 
-            if (itemEntry.IsEffect && itemEntry is EffectItemEntry effectItemEntry)
+            if (itemEntry.IsEffect)
             {
-                effectItemEntry.ApplyEffect(player, effectString);
+                if (itemEntry is EffectItemEntry effectItemEntry)
+                {
+                    effectItemEntry.ApplyEffect(player, effectString);
+                }
+                else
+                {
+                    itemEntry.SpawnPickup(player.Position, player.Rotation, true);
+                }
             }
             else
             {
@@ -158,9 +271,16 @@ namespace mcx.Utilities.Items
             if (!TryGetItemFromString(itemString, out var effectString, out itemEntry))
                 return false;
 
-            if (itemEntry.IsEffect && itemEntry is EffectItemEntry effectItemEntry)
+            if (itemEntry.IsEffect)
             {
-                effectItemEntry.ApplyEffect(player, effectString);
+                if (itemEntry is EffectItemEntry effectItemEntry)
+                {
+                    effectItemEntry.ApplyEffect(player, effectString);
+                }
+                else
+                {
+                    itemEntry.SpawnPickup(player.Position, player.Rotation, true);
+                }
             }
             else
             {
@@ -183,9 +303,13 @@ namespace mcx.Utilities.Items
         /// <param name="itemEntry">When this method returns, contains the item entry corresponding to the input string, if found; otherwise,
         /// <see langword="null"/>.</param>
         /// <returns><see langword="true"/> if the item entry was successfully retrieved; otherwise, <see langword="false"/>.</returns>
-        public static bool TryGetItemFromString(string itemString, out string effectString, out IItemEntry itemEntry)
+        public static bool TryGetItemFromString(string itemString, out string[] effectString, out IItemEntry itemEntry)
         {
-            effectString = string.Empty;
+            effectString = null!;
+
+            itemString = itemString
+                .Trim()
+                .ToLowerInvariant();
 
             if (vanillaItems.TryGetValue(itemString, out itemEntry))
                 return true;
@@ -193,10 +317,10 @@ namespace mcx.Utilities.Items
             if (customItems.TryGetValue(itemString, out itemEntry))
                 return true;
 
-            if (itemString.TrySplit('_', true, null, out var parts))
+            if (itemString.TrySplit(ParameterSplit, true, null, out var parts))
             {
                 itemString = parts[0].Trim();
-                effectString = string.Join("_", parts.Skip(1)).Trim();
+                effectString = parts.Skip(1).ToArray();
             }
 
             if (effectItems.TryGetValue(itemString, out itemEntry))
@@ -224,7 +348,7 @@ namespace mcx.Utilities.Items
             if (entry is null)
                 throw new ArgumentNullException(nameof(entry));
 
-            effectItems[effectKey] = entry;
+            effectItems[effectKey.ToLowerInvariant()] = entry;
         }
 
         /// <summary>
@@ -239,17 +363,17 @@ namespace mcx.Utilities.Items
             if (string.IsNullOrEmpty(effectKey))
                 throw new ArgumentNullException(nameof(effectKey));
 
-            return effectItems.Remove(effectKey);
+            return effectItems.Remove(effectKey.ToLowerInvariant());
         }
 
         private static void Internal_Registered(CustomItem customItem)
         {
-            customItems[customItem.Id] = new CustomItemEntry(customItem);
+            customItems[customItem.Id.ToLowerInvariant()] = new CustomItemEntry(customItem);
         }
 
         private static void Internal_Unregistered(CustomItem customItem)
         {
-            customItems.Remove(customItem.Id);
+            customItems.Remove(customItem.Id.ToLowerInvariant());
         }
 
         internal static void Internal_Init()
@@ -262,12 +386,12 @@ namespace mcx.Utilities.Items
                 if (!InventoryItemLoader.TryGetItem<ItemBase>(itemType, out var itemBase) || itemBase == null)
                     continue;
 
-                vanillaItems[itemType.ToString()] = new VanillaItemEntry(itemBase);
+                vanillaItems[itemType.ToString().ToLowerInvariant()] = new VanillaItemEntry(itemBase);
             }
 
             foreach (var customItem in CustomItem.RegisteredObjects)
             {
-                customItems[customItem.Key] = new CustomItemEntry(customItem.Value);
+                customItems[customItem.Key.ToLowerInvariant()] = new CustomItemEntry(customItem.Value);
             }
 
             CustomItem.Registered += Internal_Registered;

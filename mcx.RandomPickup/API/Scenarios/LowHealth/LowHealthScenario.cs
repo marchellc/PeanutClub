@@ -1,6 +1,8 @@
 ﻿using LabExtended.API;
 using LabExtended.Utilities;
 
+using mcx.Utilities.Items.Loot;
+
 namespace mcx.RandomPickup.API.Scenarios.LowHealth
 {
     /// <summary>
@@ -37,9 +39,7 @@ namespace mcx.RandomPickup.API.Scenarios.LowHealth
         }
 
         /// <inheritdoc/>
-        public override void FillLoot(ExPlayer player, object scenarioData, List<string> loot)
-        {
-            Config.LowHealthLoot.GetLoot(player, Config.ItemCount.GetRandom(), loot.Add);
-        }
+        public override LootGroup GetLoot(ExPlayer player, object scenarioData)
+            => Config.LowHealthLoot.GetGroup(player)!;
     }
 }

@@ -92,7 +92,7 @@ public static class RedRightHandButton
 
     private static void Internal_Interacted(PlayerSearchedToyEventArgs args)
     {
-        if (WasUsed)
+        if (WasUsed || ButtonInteractable?.Base == null)
             return;
 
         if (args.Interactable?.Base == null || ButtonInteractable?.Base == null)
@@ -104,19 +104,20 @@ public static class RedRightHandButton
         if (args.Player is not ExPlayer player)
             return;
 
-        try
+        if (ButtonObject != null)
         {
-            ButtonObject?.AnimationController.Play(PressAnimationName, AnimatorName);
-        }
-        catch
-        {
-            ApiLog.Warn("Red Right Hand Button", "Could not play the button press animation!");
+            try
+            {
+                ButtonObject.AnimationController.Play(PressAnimationName, AnimatorName);
+            }
+            catch
+            {
+                ApiLog.Warn("Red Right Hand Button", "Could not play the button press animation!");
+            }
         }
 
-        if (!player.Inventory!.HasItem(ItemType.KeycardO5))
+        if (!player.Inventory.HasItem(ItemType.KeycardO5))
         {
-            ApiLog.Debug("Red Right Hand Button", $"Player &3{player.Nickname}&r (&6{player.UserId}&r) tried to spawn a wave without an O5 keycard.");
-            
             player.SendAlert(AlertType.Warn, 10f, "Pro zavolání týmu <color=red>Red Right Hand</color> je třeba mít <b>O5 kartu</b>!");
             
             Failed?.InvokeSafe(player);
@@ -130,17 +131,12 @@ public static class RedRightHandButton
             player.SendAlert(AlertType.Info, 10f, "<b><color=green>Úspěšně</color> jsi zavolal</b>\n<color=red><b>Red Right Hand</b></color>!");
             
             Used?.InvokeSafe(player);
-            
-            ApiLog.Debug("Red Right Hand Button",
-                $"Player &3{player.Nickname}&r (&6{player.UserId}&r) called a new wave!");
         }
         else
         {
             player.SendAlert(AlertType.Warn, 10f, "Aktuálně <color=red>nelze</color> zavolat tým <color=red>Red Right Hand</color>, zkus to znova později!");
             
             Failed?.InvokeSafe(player);
-            
-            ApiLog.Debug("Red Right Hand Button", "Could not spawn a new wave");
         }
     }
     
@@ -167,8 +163,6 @@ public static class RedRightHandButton
                 ButtonInteractable = new(position, rotation) { Scale = Vector3.one / 8.5f };
                 ButtonInteractable.Shape = InvisibleInteractableToy.ColliderShape.Box;
                 ButtonInteractable.InteractionDuration = 1f;
-
-                ApiLog.Debug("Red Right Hand Button", $"Spawned the Red Right Hand button schematic at &3{position.ToPreciseString()}&r!");
             }
             else
             {

@@ -70,7 +70,5 @@ public class RedRightHandTeam : CustomTeamHandler<RedRightHandWave>
             .WithHealth(250f, 250f)
             .WithAmmo(ItemType.Ammo556x45, 120)
             .WithItems(ItemType.GunFRMG0, ItemType.GrenadeHE, ItemType.KeycardMTFCaptain, ItemType.Medkit, ItemType.Adrenaline, ItemType.Radio, ItemType.ArmorHeavy));
-        
-        ApiLog.Debug("Red Right Hand Team", "Registered");
     }
 }

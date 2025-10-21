@@ -77,7 +77,7 @@ public static class ArchangelsRadio
 
     private static void Internal_Interacted(PlayerSearchedToyEventArgs args)
     {
-        if (WasUsed)
+        if (WasUsed || RadioInteractable?.Base == null)
             return;
 
         if (args.Interactable?.Base == null || RadioInteractable?.Base == null)
@@ -96,17 +96,12 @@ public static class ArchangelsRadio
             player.SendAlert(AlertType.Info, 10f, "<b><color=green>Úspěšně</color> jsi zavolal</b>\n<color=green><b>Archangels</b></color>!");
             
             Used?.InvokeSafe(player);
-            
-            ApiLog.Debug("Archangels Radio",
-                $"Player &3{player.Nickname}&r (&6{player.UserId}&r) called a new wave!");
         }
         else
         {
             player.SendAlert(AlertType.Warn, 10f, "Aktuálně <color=red>nelze</color> zavolat tým <color=green>Archangels</color>, zkus to znova později!");
             
             Failed?.InvokeSafe(player);
-            
-            ApiLog.Debug("Archangels Radio", "Could not spawn a new wave");
         }
     }
     

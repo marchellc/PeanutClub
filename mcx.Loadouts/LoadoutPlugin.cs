@@ -162,9 +162,6 @@ public class LoadoutPlugin : Plugin<LoadoutConfig>
 
                 if (addedItem != null)
                 {
-                    if (!string.IsNullOrWhiteSpace(loadoutItem.ItemTag))
-                        addedItem.SetTag(loadoutItem.ItemTag!);
-                    
                     itemProcessor?.InvokeSafe(loadoutItem, addedItem);
                     
                     AddedVanillaItem?.Invoke(player, loadout, loadoutItem, addedItem);
@@ -188,9 +185,6 @@ public class LoadoutPlugin : Plugin<LoadoutConfig>
                     
                     if (itemInstance != null)
                     {
-                        if (!string.IsNullOrWhiteSpace(loadoutItem.ItemTag))
-                            itemInstance.SetTag(loadoutItem.ItemTag!);
-                        
                         AddedCustomItem?.Invoke(player, loadout, loadoutItem, customItem, itemInstance);
                     }
                     else

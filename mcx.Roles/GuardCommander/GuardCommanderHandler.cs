@@ -43,8 +43,6 @@ public static class GuardCommanderHandler
         LoadoutPlugin.TryApply(player, "GuardCommander");
         
         player.SendAlert(AlertType.Info, 10f, "<b>Tvoje role je</b>\n<size=30><color=blue><b>VELITEL HLÍDAČŮ</b></color></size>!");
-        
-        ApiLog.Debug("Guard Comamnder Handler", $"Spawned player &3{player.Nickname}&r (&6{player.UserId}&r) as the Guard Commander");
     }
 
     private static void Internal_ChangedRole(PlayerChangedRoleEventArgs args)

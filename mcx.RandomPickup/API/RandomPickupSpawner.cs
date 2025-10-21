@@ -131,7 +131,8 @@ namespace mcx.RandomPickup.API
                     continue;
                 }
 
-                if (!RandomPickupCore.ConfigStatic.SpawnLocationsLoot.TryGetValue(spawnLocation.Key, out var loot))
+                if (!RandomPickupCore.ConfigStatic.SpawnLocationsLoot.TryGetValue(spawnLocation.Key, out var loot)
+                    && !RandomPickupCore.ConfigStatic.SpawnLocationsLoot.TryGetValue("*", out loot))
                 {
                     ApiLog.Warn("Random Pickup", $"Could not get loot for spawn location &1{spawnLocation.Key}&r");
                     continue;
@@ -165,8 +166,17 @@ namespace mcx.RandomPickup.API
             if (args.Player is not ExPlayer player)
                 return;
 
+            if (args.Interactable?.Base == null)
+                return;
+
+            if (player?.ReferenceHub == null)
+                return;
+
             foreach (var instance in SpawnedInstances)
             {
+                if (instance is null)
+                    continue;
+
                 if (instance.Status is not RandomPickupStatus.Waiting)
                     continue;
 
@@ -212,6 +222,14 @@ namespace mcx.RandomPickup.API
                 }
             }
 
+            if (ExPlayer.Players.Count < 1)
+            {
+                spawnDelay = RandomPickupCore.ConfigStatic.SpawnDelay.GetRandom();
+                spawnStopwatch.Restart();
+
+                return;
+            }
+
             var targetPlayer = ExPlayer.Players.GetRandomItem(x =>
             {
                 if (!x.Role.IsAlive)
@@ -243,7 +261,7 @@ namespace mcx.RandomPickup.API
             spawnCount--;
             spawnDelay = RandomPickupCore.ConfigStatic.SpawnDelay.GetRandom();
 
-            groundPosition.y += 0.1f;
+            groundPosition.y += 0.5f;
 
             SpawnInstance(groundPosition, targetPlayer.Rotation, RandomPickupSpawnReason.RandomPlayer, targetPlayer);
 

@@ -3,13 +3,10 @@
 using LabExtended.API;
 using LabExtended.API.Toys;
 
-using LabExtended.Core;
 using LabExtended.Extensions;
 
 using mcx.Utilities.Audio;
-using mcx.Utilities.Items;
-
-using NorthwoodLib.Pools;
+using mcx.Utilities.Items.Loot;
 
 using ProjectMER.Features.Objects;
 
@@ -22,8 +19,6 @@ namespace mcx.RandomPickup.API
     /// </summary>
     public class RandomPickupInstance
     {
-        private PlaybackHandle? playbackHandle;
-
         /// <summary>
         /// Gets the status of this random pickup instance.
         /// </summary>
@@ -67,7 +62,12 @@ namespace mcx.RandomPickup.API
         /// <summary>
         /// Gets or sets the loot table used by this random pickup instance.
         /// </summary>
-        public ItemLoot Loot { get; set; }
+        public LootConfig Loot { get; set; }
+
+        /// <summary>
+        /// Gets the clip manager.
+        /// </summary>
+        public ClipManager<RandomPickupClipType> Clips { get; private set; }
 
         /// <summary>
         /// Gets or sets custom data of the scenario that spawned this random pickup instance, if any.
@@ -84,6 +84,7 @@ namespace mcx.RandomPickup.API
 
             Schematic = schematic;
             Rotation = new RandomPickupRotation(this);
+            Clips = new(RandomPickupCore.ConfigStatic.Clips, Schematic.transform);
         }
 
         /// <summary>
@@ -118,9 +119,9 @@ namespace mcx.RandomPickup.API
 
             Rotation.Initialize();
 
-            Status = RandomPickupStatus.Waiting;
+            Clips.PlayRandomClip(RandomPickupClipType.Waiting);
 
-            playbackHandle = PlaybackUtils.PlayAt(RandomPickupCore.ConfigStatic.WaitingAudioClip, Schematic.Position, null, true, () => playbackHandle = null);
+            Status = RandomPickupStatus.Waiting;
         }
 
         /// <summary>
@@ -131,8 +132,8 @@ namespace mcx.RandomPickup.API
             if (Status is RandomPickupStatus.Destroyed)
                 return;
 
-            playbackHandle?.Destroy();
-            playbackHandle = null;
+            Clips?.Destroy();
+            Clips = null!;
 
             Rotation?.Destroy();
             Rotation = null!;
@@ -153,55 +154,72 @@ namespace mcx.RandomPickup.API
 
         internal void Internal_Interacted(ExPlayer player)
         {
-            playbackHandle?.Destroy();
+            try
+            {
+                Clips.Stop();
+            }
+            catch
+            {
+
+            }
 
             if (Status is RandomPickupStatus.Waiting)
             {
-                playbackHandle = PlaybackUtils.PlayAt(RandomPickupCore.ConfigStatic.OpenedAudioClip, Schematic.Position, null, false, () => playbackHandle = null);
+                Clips.PlayRandomClip(RandomPickupClipType.Opened);
 
-                var lootItems = ListPool<string>.Shared.Rent();
+                var lootGroup = SpawnReason switch
+                {
+                    RandomPickupSpawnReason.DefinedLocation => Loot?.GetGroup(player),
+                    RandomPickupSpawnReason.RandomPlayer => Loot?.GetGroup(player),
+                    RandomPickupSpawnReason.Scenario => SpawnScenario?.GetLoot(player, ScenarioData) ?? Loot?.GetGroup(player),
 
-                if (SpawnReason is RandomPickupSpawnReason.DefinedLocation)
-                {
-                    Loot.GetLoot(player, RandomPickupCore.ConfigStatic.DefinedItemCount.GetRandom(), lootItems.Add);
-                }
-                else if (SpawnReason is RandomPickupSpawnReason.RandomPlayer)
-                {
-                    Loot.GetLoot(player, RandomPickupCore.ConfigStatic.ItemCount.GetRandom(), lootItems.Add);
-                }
-                else if (SpawnReason is RandomPickupSpawnReason.Scenario)
-                {
-                    SpawnScenario?.FillLoot(player, ScenarioData, lootItems);
-                }
+                    _ => null
+                };
 
-                foreach (var lootItem in lootItems)
-                {
-                    if (!ItemHandler.TryApplyOrSpawnItemFromString(player, Schematic.Position, Schematic.Rotation, true, lootItem, out _, out var entry))
-                    {
-                        ApiLog.Warn("Random Pickup", $"Unrecognized loot item: &1{lootItem}&r!");
-                    }
-                    else
-                    {
-                        ApiLog.Debug("Random Pickup", $"Added item &3{lootItem}&r (&6{entry.Name}&r / &6{entry.GetType().Name}&r)");
-                    }
-                }
-
-                ListPool<string>.Shared.Return(lootItems);
+                lootGroup?.ApplyGroup(player);
 
                 Status = RandomPickupStatus.Opened;
             }
 
-            Rotation?.Destroy();
-            Rotation = null!;
+            try
+            {
+                Rotation?.Destroy();
+                Rotation = null!;
+            }
+            catch
+            {
 
-            Interactable?.Delete();
-            Interactable = null!;
+            }
 
-            Light?.Delete();
-            Light = null!;
+            try
+            {
+                Interactable?.Delete();
+                Interactable = null!;
+            }
+            catch
+            {
 
-            Schematic?.Destroy();
-            Schematic = null!;
+            }
+
+            try
+            {
+                Light?.Delete();
+                Light = null!;
+            }
+            catch
+            {
+
+            }
+
+            try
+            {
+                Schematic?.Destroy();
+                Schematic = null!;
+            }
+            catch
+            {
+
+            }
         }
     }
 }
