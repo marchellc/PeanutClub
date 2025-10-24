@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 18
-VisualStudioVersion = 18.0.11012.119
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36603.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mcx.Teams", "mcx.Teams\mcx.Teams.csproj", "{73AF887E-ADD9-4B53-86D0-133D73BBC708}"
 EndProject
@@ -19,7 +19,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mcx.Dealer", "mcx.Dealer\mc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mcx.RandomPickup", "mcx.RandomPickup\mcx.RandomPickup.csproj", "{C3D1891B-00A5-45E1-A303-88B0788AC7DC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mcx.Voting", "mcx.Voting\mcx.Voting.csproj", "{2E6E6B77-E4D8-A512-A74D-89583ED14E75}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mcx.Levels", "mcx.Levels\mcx.Levels.csproj", "{38C16CD1-C534-4181-99C0-99E6A5470CD2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -59,10 +64,10 @@ Global
 		{C3D1891B-00A5-45E1-A303-88B0788AC7DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C3D1891B-00A5-45E1-A303-88B0788AC7DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C3D1891B-00A5-45E1-A303-88B0788AC7DC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2E6E6B77-E4D8-A512-A74D-89583ED14E75}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2E6E6B77-E4D8-A512-A74D-89583ED14E75}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2E6E6B77-E4D8-A512-A74D-89583ED14E75}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2E6E6B77-E4D8-A512-A74D-89583ED14E75}.Release|Any CPU.Build.0 = Release|Any CPU
+		{38C16CD1-C534-4181-99C0-99E6A5470CD2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38C16CD1-C534-4181-99C0-99E6A5470CD2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38C16CD1-C534-4181-99C0-99E6A5470CD2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38C16CD1-C534-4181-99C0-99E6A5470CD2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

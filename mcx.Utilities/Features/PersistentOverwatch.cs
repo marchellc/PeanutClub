@@ -56,7 +56,10 @@ namespace mcx.Utilities.Features
 
         internal static void Internal_Init()
         {
-            Storage = StorageManager.CreateStorage("PersistentOverwatch", true);
+            if (!UtilitiesCore.Config.PersistentOverwatchEnabled)
+                return;
+
+            Storage = StorageManager.CreateStorage("PersistentOverwatch", UtilitiesCore.Config.PersistentOverwatchShared);
 
             ExPlayerEvents.Verified += Internal_Verified;
 

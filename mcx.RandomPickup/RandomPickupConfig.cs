@@ -167,6 +167,26 @@ namespace mcx.RandomPickup
         };
 
         /// <summary>
+        /// Gets or sets the range of time, in seconds, that a pickup can remain active before despawning.
+        /// </summary>
+        [Description("Sets the maximum amount of time (in seconds) a pickup can remain active before despawning.")]
+        public FloatRange PickupLifetime { get; set; } = new()
+        {
+            MinValue = 60f,
+            MaxValue = 300f
+        };
+
+        /// <summary>
+        /// Gets or sets the range of experience gain when opening a pickup.
+        /// </summary>
+        [Description("Sets the experience gain range when opening a pickup.")]
+        public FloatRange OpenExperienceGain { get; set; } = new()
+        {
+            MinValue = 15f,
+            MaxValue = 30f
+        };
+
+        /// <summary>
         /// Gets or sets the loot configuration for each randomly spawned pickup.
         /// </summary>
         [Description("Sets the loot for each randomly spawned pickup.")]

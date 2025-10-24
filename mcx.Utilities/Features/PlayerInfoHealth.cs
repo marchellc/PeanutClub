@@ -17,7 +17,7 @@ namespace mcx.Utilities.Features
             if (!player.Role.IsAlive)
                 return;
 
-            builder.AppendLine($"{Mathf.CeilToInt(player.Health)} HP / {Mathf.CeilToInt(player.MaxHealth)}");
+            builder.AppendLine($"{Mathf.CeilToInt(player.Health)} HP / {Mathf.CeilToInt(player.MaxHealth)} HP");
         }
 
         internal static void Internal_Init()

@@ -99,6 +99,8 @@ namespace mcx.Dealer.API
 
                 npc.IsGodModeEnabled = true;
 
+                npc.Toggles.IsVisibleInRemoteAdmin = false;
+
                 SpectatableVisibilityManager.SetHidden(npc.ReferenceHub, true);
 
                 Dealers.Add(dealer);

@@ -64,6 +64,7 @@
     
     <ItemGroup>
       <ProjectReference Include="..\mcx.Items\mcx.Items.csproj" />
+      <ProjectReference Include="..\mcx.Levels\mcx.Levels.csproj" />
       <ProjectReference Include="..\mcx.Utilities\mcx.Utilities.csproj" />
     </ItemGroup>
     

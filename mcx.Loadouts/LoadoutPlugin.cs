@@ -249,8 +249,6 @@ public class LoadoutPlugin : Plugin<LoadoutConfig>
     {
         Singleton = this;
         StaticConfig = Config!;
-        
-        UtilitiesCore.Initialize();
     }
 
     /// <inheritdoc cref="Plugin.Name"/>

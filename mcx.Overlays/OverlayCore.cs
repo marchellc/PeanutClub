@@ -1,6 +1,7 @@
 ﻿using LabApi.Loader.Features.Plugins;
 
 using mcx.Overlays.Alerts;
+using mcx.Overlays.Levels;
 
 namespace mcx.Overlays
 {
@@ -41,6 +42,8 @@ namespace mcx.Overlays
             ConfigStatic = Config!;
 
             AlertElement.Internal_Init();
+
+            LevelHandler.Initialize();
         }
 
         /// <inheritdoc cref="Plugin.Disable"/>

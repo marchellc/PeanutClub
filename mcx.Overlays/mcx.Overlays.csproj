@@ -66,4 +66,8 @@
       <PackageReference Include="Lib.Harmony" Version="2.3.6" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\mcx.Levels\mcx.Levels.csproj" />
+    </ItemGroup>
+
 </Project>

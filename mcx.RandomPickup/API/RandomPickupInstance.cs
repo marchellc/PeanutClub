@@ -4,11 +4,14 @@ using LabExtended.API;
 using LabExtended.API.Toys;
 
 using LabExtended.Extensions;
-
+using LabExtended.Utilities.Update;
+using mcx.Levels.API;
 using mcx.Utilities.Audio;
 using mcx.Utilities.Items.Loot;
 
 using ProjectMER.Features.Objects;
+
+using System.Diagnostics;
 
 using UnityEngine;
 
@@ -63,6 +66,16 @@ namespace mcx.RandomPickup.API
         /// Gets or sets the loot table used by this random pickup instance.
         /// </summary>
         public LootConfig Loot { get; set; }
+
+        /// <summary>
+        /// Gets the timer started when the pickup spawned.
+        /// </summary>
+        public Stopwatch Timer { get; private set; } = new();
+
+        /// <summary>
+        /// Gets the amount of seconds the pickup will be spawned for.
+        /// </summary>
+        public static float DespawnTime { get; private set; }
 
         /// <summary>
         /// Gets the clip manager.
@@ -122,6 +135,15 @@ namespace mcx.RandomPickup.API
             Clips.PlayRandomClip(RandomPickupClipType.Waiting);
 
             Status = RandomPickupStatus.Waiting;
+
+            DespawnTime = RandomPickupCore.ConfigStatic.PickupLifetime.GetRandom();
+
+            if (DespawnTime <= 0f)
+                return;
+
+            Timer.Restart();
+
+            PlayerUpdateHelper.OnUpdate += Internal_Update;
         }
 
         /// <summary>
@@ -131,6 +153,10 @@ namespace mcx.RandomPickup.API
         {
             if (Status is RandomPickupStatus.Destroyed)
                 return;
+
+            Status = RandomPickupStatus.Destroyed;
+
+            PlayerUpdateHelper.OnUpdate -= Internal_Update;
 
             Clips?.Destroy();
             Clips = null!;
@@ -147,7 +173,8 @@ namespace mcx.RandomPickup.API
             Schematic?.Destroy();
             Schematic = null!;
 
-            Status = RandomPickupStatus.Destroyed;
+            Timer?.Stop();
+            Timer = null!;
 
             RandomPickupSpawner.Internal_Destroyed(this);
         }
@@ -178,48 +205,24 @@ namespace mcx.RandomPickup.API
 
                 lootGroup?.ApplyGroup(player);
 
+                var experience = RandomPickupCore.ConfigStatic.OpenExperienceGain.GetRandom();
+
+                if (experience > 0f)
+                    player.AddExperience("RandomPickup", experience);
+
                 Status = RandomPickupStatus.Opened;
             }
 
-            try
-            {
-                Rotation?.Destroy();
-                Rotation = null!;
-            }
-            catch
-            {
+            Destroy();
+        }
 
-            }
+        private void Internal_Update()
+        {
+            if (Timer is null || !Timer.IsRunning || Status is not RandomPickupStatus.Waiting)
+                return;
 
-            try
-            {
-                Interactable?.Delete();
-                Interactable = null!;
-            }
-            catch
-            {
-
-            }
-
-            try
-            {
-                Light?.Delete();
-                Light = null!;
-            }
-            catch
-            {
-
-            }
-
-            try
-            {
-                Schematic?.Destroy();
-                Schematic = null!;
-            }
-            catch
-            {
-
-            }
+            if (Timer.Elapsed.TotalSeconds >= DespawnTime)
+                Destroy();
         }
     }
 }

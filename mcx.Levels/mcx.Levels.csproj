@@ -66,4 +66,12 @@
       <PackageReference Include="Lib.Harmony" Version="2.3.6" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\mcx.Utilities\mcx.Utilities.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="API\Rewards\" />
+    </ItemGroup>
+
 </Project>
