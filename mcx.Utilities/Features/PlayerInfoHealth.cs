@@ -5,6 +5,9 @@ using System.Text;
 
 using UnityEngine;
 
+using PlayerRoles;
+using PlayerRoles.PlayableScps.Scp3114;
+
 namespace mcx.Utilities.Features
 {
     /// <summary>
@@ -17,7 +20,18 @@ namespace mcx.Utilities.Features
             if (!player.Role.IsAlive)
                 return;
 
-            builder.AppendLine($"{Mathf.CeilToInt(player.Health)} HP / {Mathf.CeilToInt(player.MaxHealth)} HP");
+            var health = Mathf.CeilToInt(player.Health);
+            var maxHealth = Mathf.CeilToInt(player.MaxHealth);
+
+            if (player.Role.Is(RoleTypeId.Scp3114)
+                && player.Subroutines.Scp3114Identity.CurIdentity != null
+                && player.Subroutines.Scp3114Identity.CurIdentity.Status is Scp3114Identity.DisguiseStatus.Active or Scp3114Identity.DisguiseStatus.Equipping)
+            {
+                health = Mathf.CeilToInt(Mathf.Clamp(player.Health, 0f, 100f));
+                maxHealth = Mathf.CeilToInt(Mathf.Clamp(player.MaxHealth, 0f, 100f));
+            }
+
+            builder.AppendLine($"{health} HP / {maxHealth} HP");
         }
 
         internal static void Internal_Init()

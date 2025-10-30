@@ -5,8 +5,13 @@ using NAudio.Wave;
 using SecretLabNAudio.Core;
 using SecretLabNAudio.Core.Pools;
 using SecretLabNAudio.Core.Extensions;
+using SecretLabNAudio.Core.SendEngines;
 
 using UnityEngine;
+
+using LabApi.Features.Wrappers;
+
+using mcx.Utilities.Audio.Engines;
 
 namespace mcx.Utilities.Audio
 {
@@ -85,6 +90,15 @@ namespace mcx.Utilities.Audio
         {
             get => Player.IsPaused;
             set => Player.IsPaused = value;
+        }
+
+        /// <summary>
+        /// Gets or sets the send engine used for audio playback.
+        /// </summary>
+        public SendEngine? SendEngine
+        {
+            get => Player.SendEngine;
+            set => Player.SendEngine = value;
         }
 
         /// <summary>
@@ -214,6 +228,48 @@ namespace mcx.Utilities.Audio
         }
 
         /// <summary>
+        /// Sets a proximity or filtered send engine for the specified target player.
+        /// </summary>
+        public void SetPersonal(Player target, bool sendToOthers = true)
+        {
+            if (target?.ReferenceHub == null)
+                throw new ArgumentNullException(nameof(target));
+
+            if (sendToOthers)
+            {
+                if (SendEngine == SendEngine.DefaultEngine)
+                    return;
+
+                if (SendEngine is IDisposable disposable)
+                    disposable.Dispose();
+
+                SendEngine = SendEngine.DefaultEngine;
+            }
+            else
+            {
+                if (SendEngine is SpecificPlayerSendEngine specificPlayerSendEngine
+                    && specificPlayerSendEngine.Target == target)
+                    return;
+
+                if (SendEngine is IDisposable disposable)
+                    disposable.Dispose();
+
+                SendEngine = new SpecificPlayerSendEngine(target);
+            }
+        }
+
+        /// <summary>
+        /// Sets a global send engine.
+        /// </summary>
+        public void SetGlobal()
+        {
+            if (SendEngine is IDisposable disposable)
+                disposable.Dispose();
+
+            SendEngine = new GlobalSendEngine(Player.Speaker.Base);
+        }
+        
+        /// <summary>
         /// Stops the current playback and releases associated resources.
         /// </summary>
         public void Stop()
@@ -245,6 +301,17 @@ namespace mcx.Utilities.Audio
                 if (CurrentClip != null)
                     ClipEnded?.Invoke();
 
+                if (Player != null)
+                {
+                    if (SendEngine != SendEngine.DefaultEngine)
+                    {
+                        if (SendEngine is IDisposable disposable)
+                            disposable.Dispose();
+
+                        SendEngine = SendEngine.DefaultEngine;
+                    }
+                }
+
                 CurrentClip = null;
             }
         }
@@ -261,8 +328,7 @@ namespace mcx.Utilities.Audio
             if (Player != null)
             {
                 Player.NoSamplesRead -= OnEnd;
-
-                AudioPlayerPool.Return(Player);
+                Player.Destroy();
             }
 
             Player = null!;
@@ -296,6 +362,17 @@ namespace mcx.Utilities.Audio
                 ClipEnded?.Invoke();
 
             CurrentClip = null;
+
+            if (Player != null)
+            {
+                if (SendEngine != SendEngine.DefaultEngine)
+                {
+                    if (SendEngine is IDisposable disposable)
+                        disposable.Dispose();
+
+                    SendEngine = SendEngine.DefaultEngine;
+                }
+            }
         }
     }
 }

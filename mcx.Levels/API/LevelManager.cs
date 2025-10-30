@@ -1,13 +1,17 @@
-﻿using LabExtended.API;
-using LabExtended.Events;
+﻿using LabApi.Features.Wrappers;
+
+using LabExtended.API;
 using LabExtended.Core.Storage;
 
-using LabApi.Features.Wrappers;
+using LabExtended.Events;
+using LabExtended.Extensions;
 
 using mcx.Levels.API.Events;
 using mcx.Levels.API.Storage;
 
 using System.Text;
+
+using UnityEngine;
 
 namespace mcx.Levels.API
 {
@@ -298,6 +302,38 @@ namespace mcx.Levels.API
             return true;
         }
 
+        /// <summary>
+        /// Resets all levels.
+        /// </summary>
+        /// <returns>true if any levels have been reset</returns>
+        public static bool ResetLevels(string reason = "Command")
+        {
+            if (Storage.RemoveAll(true) > 0)
+            {
+                foreach (var level in Levels)
+                {
+                    Storage.Add(level.Value);
+
+                    var changingLevelArgs = new ChangingLevelEventArgs(level.Value, level.Key, reason, level.Value.Level, 1);
+                    var changingExperienceArgs = new ChangingExperienceEventArgs(level.Value, level.Key, reason, level.Value.Experience, 0f);
+
+                    LevelEvents.OnChangingLevel(changingLevelArgs);
+                    LevelEvents.OnChangingExperience(changingExperienceArgs);
+
+                    level.Value.Level = 1;
+                    level.Value.Experience = 0f;
+                    level.Value.RequiredExperience = LevelProgress.GetExperienceForLevel(2);
+
+                    LevelEvents.OnChangedLevel(new ChangedLevelEventArgs(level.Value, level.Key, reason, changingLevelArgs.CurrentLevel, level.Value.Level), changingLevelArgs.target);
+                    LevelEvents.OnChangedExperience(new ChangedExperienceEventArgs(level.Value, level.Key, reason, changingExperienceArgs.CurrentExp, level.Value.Experience), changingExperienceArgs.target);
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
         private static void Left(ExPlayer player)
         {
             Levels.Remove(player.UserId);
@@ -328,7 +364,21 @@ namespace mcx.Levels.API
             if (level is null)
                 return;
 
-            builder.AppendLine($"Level {level.Level} ({level.Experience} XP / {level.RequiredExperience} XP)");
+            builder.AppendLine($"LVL {level.Level} ({Mathf.CeilToInt(level.Experience)} XP / {Mathf.CeilToInt(level.RequiredExperience)} XP)");
+        }
+
+        internal static void Removed(StorageValue value)
+        {
+            if (value is not SavedLevel level)
+                return;
+
+            if (!Levels.TryGetKey(level, out var userId))
+                return;
+
+            if (ExPlayer.TryGet(userId, out var player))
+                LevelEvents.OnRemoved(player, level);
+
+            Levels.Remove(userId);
         }
 
         internal static void Initialize()
@@ -337,6 +387,8 @@ namespace mcx.Levels.API
 
             if (Storage != null)
             {
+                Storage.Removed += Removed;
+
                 ExPlayerEvents.Left += Left;
                 ExPlayerEvents.Verified += Verified;
 

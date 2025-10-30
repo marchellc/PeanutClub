@@ -20,6 +20,11 @@ namespace mcx.Levels.API
         /// </summary>
         public static event Action<ExPlayer, SavedLevel>? Loaded;
 
+        /// <summary>
+        /// Gets called when a player's level data is removed.
+        /// </summary>
+        public static event Action<ExPlayer, SavedLevel>? Removed;
+
         /// <inheritdoc cref="ChangingLevelEventArgs"/>
         public static event Action<ChangingLevelEventArgs>? ChangingLevel;
 
@@ -37,6 +42,12 @@ namespace mcx.Levels.API
         /// </summary>
         public static void OnLoaded(ExPlayer player, SavedLevel levelData)
             => Loaded?.InvokeSafe(player, levelData);
+
+        /// <summary>
+        /// Invokes the <see cref="Removed"/> event.
+        /// </summary>
+        public static void OnRemoved(ExPlayer player, SavedLevel levelData)
+            => Removed?.InvokeSafe(player, levelData);
 
         /// <summary>
         /// Invokes the <see cref="ChangingLevel"/> event.

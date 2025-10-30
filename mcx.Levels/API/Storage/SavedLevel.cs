@@ -48,5 +48,12 @@ namespace mcx.Levels.API.Storage
             writer.WriteInt(level);
             writer.WriteFloat(experience);
         }
+
+        /// <inheritdoc/>
+        public override void ApplyDefault()
+        {
+            Level = 1;
+            Experience = 0f;
+        }
     }
 }

@@ -1,7 +1,5 @@
 ﻿using LabExtended.API.Enums;
 
-using mcx.Overlays.Elements;
-
 using System.ComponentModel;
 
 namespace mcx.Overlays.Levels
@@ -12,10 +10,10 @@ namespace mcx.Overlays.Levels
     public class LevelSettings
     {
         /// <summary>
-        /// Gets or sets the size of the overlay.
+        /// Whether the level overlay is enabled or disabled.
         /// </summary>
-        [Description("Sets the size of the overlay.")]
-        public int Size { get; set; } = 10;
+        [Description("Enables or disables the level overlay.")]
+        public bool IsEnabled { get; set; } = true;
 
         /// <summary>
         /// Gets or sets the alignment of the level overlay on the screen.
@@ -46,11 +44,5 @@ namespace mcx.Overlays.Levels
         /// </summary>
         [Description("Sets the amount of seconds experience gain is shown for in the overlay.")]
         public float ExperienceGainDuration { get; set; } = 5f;
-
-        /// <summary>
-        /// Gets or sets the settings for the progress bar in the level overlay.
-        /// </summary>
-        [Description("Modifies options of the progress bar shown in the level overlay.")]
-        public ProgressBarSettings ProgressBar { get; set; } = new ProgressBarSettings();
     }
 }

@@ -5,8 +5,6 @@ using LabExtended.API.Hints.Elements.Personal;
 using LabExtended.Extensions;
 
 using mcx.Levels.API.Storage;
-
-using mcx.Overlays.Elements;
 using mcx.Overlays.Levels.Entries;
 
 using UnityEngine;
@@ -21,18 +19,12 @@ namespace mcx.Overlays.Levels
         private float levelTime;
         private float experienceTime;
 
-        private float lastChangeTime = -1f;
         private string? progressBar;
 
         /// <summary>
         /// Gets the options for the level overlay.
         /// </summary>
         public static LevelSettings Settings => OverlayCore.ConfigStatic.LevelOverlay;
-
-        /// <summary>
-        /// Gets the options for the progress bar.
-        /// </summary>
-        public static ProgressBarSettings BarSettings => Settings.ProgressBar;
 
         /// <summary>
         /// Gets the saved level data.
@@ -92,25 +84,6 @@ namespace mcx.Overlays.Levels
 
             if (CurrentExperienceEntry != null)
                 experienceTime = Time.realtimeSinceStartup + Settings.ExperienceGainDuration;
-
-            if (lastChangeTime != Level.LastChangeTime)
-            {
-                progressBar = ProgressBarElement.RenderBarFraction(
-                    (int)Level.Experience,
-                    (int)Level.RequiredExperience,
-                    
-                    BarSettings);
-
-                progressBar = progressBar
-                    .Replace("$ExpRequired", Level.RequiredExperience.ToString())
-                    .Replace("$ExpCurrent", Level.Experience.ToString())
-                    .Replace("$LevelCurrent", Level.Level.ToString());
-
-                if (Settings.Size > 0)
-                    progressBar = $"<size={Settings.Size}>{progressBar}</size>";
-
-                lastChangeTime = Level.LastChangeTime;
-            }
         }
 
         /// <inheritdoc/>
@@ -119,13 +92,84 @@ namespace mcx.Overlays.Levels
             if (Builder is null)
                 return false;
 
-            if (progressBar != null)
+            if (Level != null && progressBar != null)
             {
                 Builder.Append(progressBar);
                 return true;
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Refreshes the progress bar display.
+        /// </summary>
+        public void RefreshBar()
+        {
+            if (Level is null)
+            {
+                progressBar = null;
+                return;
+            }
+
+            var percentage = Mathf.CeilToInt((Level.Experience / Level.RequiredExperience) * 100);
+
+            progressBar =
+                $"<size=45%><color={GetBarColor(percentage)}>{Mathf.CeilToInt(Level.Experience)} XP " +
+                $"<b>|</b><size=45%>{RenderBar(percentage)}</size><b>|</b> {Mathf.CeilToInt(Level.RequiredExperience)} XP</color></size>";
+        }
+
+        private static string GetBarColor(int percentage)
+        {
+            if (percentage >= 85)
+                return "#1dde37";
+            else if (percentage >= 70)
+                return "#9deb21";
+            else if (percentage >= 50)
+                return "#d6f233";
+            else if (percentage >= 30)
+                return "#f2dc33";
+            else if (percentage >= 15)
+                return "#f27933";
+            else
+                return "#eb220c";
+        }
+
+        private static string RenderBar(int percentage)
+        {
+            percentage = Math.Min(percentage, 100);
+
+            var symbols = "";
+            var i = 5;
+
+            for (; i <= 95; i += 10)
+            {
+                if (i >= percentage)
+                    break;
+
+                symbols += "█";
+            }
+
+            if (i - 5 < percentage)
+                symbols += "▄";
+
+            var symbolCount = symbols.Length;
+            var invisibleBar = false;
+
+            if (symbols.Length < 10)
+            {
+                symbols += "<alpha=#00>█";
+                invisibleBar = true;
+                symbolCount++;
+            }
+
+            for (i = 0; i < 10 - symbolCount; i++)
+                symbols += "█";
+
+            if (invisibleBar)
+                symbols += "<alpha=#FF>";
+
+            return symbols;
         }
     }
 }

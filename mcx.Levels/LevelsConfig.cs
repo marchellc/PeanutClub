@@ -8,35 +8,29 @@ namespace mcx.Levels;
 public class LevelsConfig
 {
     /// <summary>
-    /// Gets or sets a value indicating whether the level is displayed in custom information.
-    /// </summary>
-    [Description("Whether or not to show level in custom info.")]
-    public bool ShowInCustomInfo { get; set; } = true;
-
-    /// <summary>
     /// Gets or sets a value indicating whether shared storage is used for levels.
     /// </summary>
     [Description("Whether or not to use shared storage for levels.")]
     public bool UseShared { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets the maximum level a player can reach. Set to -1 for no limit.
+    /// Gets or sets a value indicating whether the level is displayed in custom information.
     /// </summary>
-    [Description("Sets the maximum level a player can reach. Set to -1 for no limit.")]
-    public int MaxLevel { get; set; } = -1;
+    [Description("Whether or not to show level in custom info.")]
+    public bool ShowInCustomInfo { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets the starting experience required to reach level 2.
+    /// Gets or sets the experience increase per-level.
     /// </summary>
-    [Description("Sets the starting experience required for level 2.")]
-    public float StartLevelExperience { get; set; } = 100;
+    [Description("Sets the experience increase per-level.")]
+    public float LevelStep { get; set; } = 100;
 
     /// <summary>
-    /// 
+    /// Gets or sets the step offsets for different level ranges.
     /// </summary>
-    [Description("Sets the level multipliers for different level ranges.")]
-    public Dictionary<int, float> Multipliers { get; set; } = new()
+    [Description("Sets the level step offsets for different level ranges.")]
+    public Dictionary<int, float> StepOffsets { get; set; } = new()
     {
-        [2] = 2
+        [21] = 1900
     };
 }

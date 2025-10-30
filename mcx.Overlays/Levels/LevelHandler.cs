@@ -14,7 +14,29 @@ namespace mcx.Overlays.Levels
     {
         private static void OnLoaded(ExPlayer player, SavedLevel level)
         {
-            player.AddHintElement(new LevelOverlay() { Level = level });
+            if (player.TryGetHintElement<LevelOverlay>(out var curOverlay))
+            {
+                curOverlay.Level = level;
+                curOverlay.RefreshBar();
+
+                return;
+            }
+
+            var overlay = new LevelOverlay() { Level = level };
+
+            if (!player.AddHintElement(overlay))
+                return;
+
+            overlay.RefreshBar();
+        }
+
+        private static void OnRemoved(ExPlayer player, SavedLevel level)
+        {
+            if (player.TryGetHintElement<LevelOverlay>(out var overlay))
+            {
+                overlay.Level = null!;
+                overlay.RefreshBar();
+            }
         }
 
         private static void OnChangedLevel(ChangedLevelEventArgs args)
@@ -30,6 +52,9 @@ namespace mcx.Overlays.Levels
             else if (args.NewLevel < args.PreviousLevel)
                 amount = args.PreviousLevel - args.NewLevel;
 
+            levelOverlay.Level = args.Level;
+
+            levelOverlay.RefreshBar();
             levelOverlay.LevelEntries.Add(new(amount, args.NewLevel > args.PreviousLevel));
         }
 
@@ -46,12 +71,19 @@ namespace mcx.Overlays.Levels
             else if (args.NewExp < args.PreviousExp)
                 amount = args.PreviousExp - args.NewExp;
 
+            levelOverlay.Level = args.Level;
+
+            levelOverlay.RefreshBar();
             levelOverlay.ExperienceEntries.Add(new(amount, args.NewExp > args.PreviousExp));
         }
 
         internal static void Initialize()
         {
+            if (!OverlayCore.ConfigStatic.LevelOverlay.IsEnabled)
+                return;
+
             LevelEvents.Loaded += OnLoaded;
+            LevelEvents.Removed += OnRemoved;
 
             LevelEvents.ChangedLevel += OnChangedLevel;
             LevelEvents.ChangedExperience += OnChangedExperience;
