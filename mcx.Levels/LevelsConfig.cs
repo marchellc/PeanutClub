@@ -23,13 +23,13 @@ public class LevelsConfig
     /// Gets or sets the experience increase per-level.
     /// </summary>
     [Description("Sets the experience increase per-level.")]
-    public float LevelStep { get; set; } = 100;
+    public int LevelStep { get; set; } = 100;
 
     /// <summary>
     /// Gets or sets the step offsets for different level ranges.
     /// </summary>
     [Description("Sets the level step offsets for different level ranges.")]
-    public Dictionary<int, float> StepOffsets { get; set; } = new()
+    public Dictionary<int, int> StepOffsets { get; set; } = new()
     {
         [21] = 1900
     };

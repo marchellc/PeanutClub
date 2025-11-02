@@ -1,4 +1,6 @@
-﻿using mcx.Levels.API.Events;
+﻿using LabExtended.Core;
+
+using mcx.Levels.API.Events;
 using mcx.Levels.API.Storage;
 
 namespace mcx.Levels.API
@@ -19,23 +21,22 @@ namespace mcx.Levels.API
         /// <param name="experience">The total experience points to evaluate. Must be greater than or equal to 0.</param>
         /// <returns>The level that matches the given experience points. Returns 1 if the experience is less than the requirement
         /// for the next level.</returns>
-        public static int GetLevelForExperience(float experience)
+        public static int GetLevelForExperience(int experience)
         {
+            if (experience < 0)
+                throw new ArgumentOutOfRangeException(nameof(experience), "Experience must be non-negative.");
+
             var level = 1;
 
-            while (experience > 0f)
+            while (true)
             {
-                var requiredExp = GetExperienceForLevel(level + 1);
+                var requiredForNext = GetExperienceForLevel(level + 1);
 
-                if (experience < requiredExp)
-                    break;
-
-                experience -= requiredExp;
+                if (experience < requiredForNext)
+                    return level;
 
                 level++;
             }
-
-            return level;
         }
 
         /// <summary>
@@ -46,9 +47,9 @@ namespace mcx.Levels.API
         /// but not including, the specified level.</remarks>
         /// <param name="level">The target level for which to calculate the cumulative experience. Must be greater than or equal to 1.</param>
         /// <returns>The total experience points required to reach the specified level. Returns 0 if the level is 1.</returns>
-        public static float GetExperienceForLevel(int level)
+        public static int GetExperienceForLevel(int level)
         {
-            var exp = 0f;
+            var exp = 0;
             var step = Config.LevelStep;
 
             for (var i = 1; i < level; i++)

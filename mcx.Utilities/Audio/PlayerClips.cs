@@ -123,7 +123,6 @@ namespace mcx.Utilities.Audio
         internal static void Initialize()
         {
             ExPlayerEvents.Left += Left;
-
             ExRoundEvents.WaitingForPlayers += WaitingForPlayers;
         }
     }

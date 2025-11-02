@@ -1,13 +1,19 @@
 ﻿using LabApi.Loader.Features.Plugins;
 
+using LabExtended.API.Hints;
+using LabExtended.Attributes;
+
 using mcx.Overlays.Alerts;
+using mcx.Overlays.Common;
 using mcx.Overlays.Levels;
+using mcx.Overlays.Patches;
 
 namespace mcx.Overlays
 {
     /// <summary>
     /// Main class of the plugin.
     /// </summary>
+    [LoaderPatch]
     public class OverlayCore : Plugin<OverlayConfig>
     {
         /// <summary>
@@ -42,8 +48,21 @@ namespace mcx.Overlays
             ConfigStatic = Config!;
 
             AlertElement.Internal_Init();
-
             LevelHandler.Initialize();
+
+            foreach (var pair in ConfigStatic.StaticOverlays)
+            {
+                if (pair.Key == "ServerName" && Config.ServerNameBasicOverlays)
+                {
+                    BasicOverlaysPatches.ServerNameOverlay = pair.Value;
+                    continue;
+                }
+
+                if (!pair.Value.IsEnabled)
+                    continue;
+
+                HintController.AddHintElement(new StaticStringOverlay(pair.Value) { CustomId = pair.Key });
+            }
         }
 
         /// <inheritdoc cref="Plugin.Disable"/>

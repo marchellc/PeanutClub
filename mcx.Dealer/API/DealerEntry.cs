@@ -1,4 +1,4 @@
-﻿using mcx.Utilities.Randomness;
+﻿using mcx.Utilities.Configs;
 
 using System.ComponentModel;
 

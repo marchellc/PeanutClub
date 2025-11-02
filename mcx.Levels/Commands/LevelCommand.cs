@@ -42,7 +42,7 @@ namespace mcx.Levels.Commands
         }
 
         [CommandOverload("setxp", "Sets the experience of a player.", null)]
-        public void SetExperience(string userId, float exp)
+        public void SetExperience(string userId, int exp)
         {
             if (LevelManager.SetExperience(userId, exp))
             {
@@ -55,7 +55,7 @@ namespace mcx.Levels.Commands
         }
 
         [CommandOverload("addxp", "Adds experience points to a player.", null)]
-        public void AddExperience(string userId, float exp)
+        public void AddExperience(string userId, int exp)
         {
             if (LevelManager.AddExperience(userId, "Command", exp))
             {
@@ -68,7 +68,7 @@ namespace mcx.Levels.Commands
         }
 
         [CommandOverload("subxp", "Subtracts experience points from a player.", null)]
-        public void SubtractExperience(string userId, float exp)
+        public void SubtractExperience(string userId, int exp)
         {
             if (LevelManager.SubstractExperience(userId, "Command", exp))
             {

@@ -9,6 +9,11 @@ using LabExtended.Extensions;
 using mcx.Levels.API.Events;
 using mcx.Levels.API.Storage;
 
+using mcx.Utilities.Actions;
+using mcx.Utilities.Actions.Interfaces;
+
+using mcx.Utilities.Data;
+
 using System.Text;
 
 using UnityEngine;
@@ -68,7 +73,7 @@ namespace mcx.Levels.API
         /// <param name="player">The player to whom the experience will be added.</param>
         /// <param name="amount">The amount of experience to add. Must be a positive value.</param>
         /// <returns><see langword="true"/> if the experience was successfully added; otherwise, <see langword="false"/>.</returns>
-        public static bool AddExperience(this Player player, string reason, float amount)
+        public static bool AddExperience(this Player player, string reason, int amount)
             => AddExperience(player.UserId, reason, amount);
 
         /// <summary>
@@ -80,7 +85,7 @@ namespace mcx.Levels.API
         /// <param name="player">The player from whom experience will be subtracted.</param>
         /// <param name="amount">The amount of experience to subtract. Must be a positive value.</param>
         /// <returns><see langword="true"/> if the experience was successfully subtracted; otherwise, <see langword="false"/>.</returns>
-        public static bool SubstractExperience(this Player player, string reason, float amount)
+        public static bool SubstractExperience(this Player player, string reason, int amount)
             => SubstractExperience(player.UserId, reason, amount);
 
         /// <summary>
@@ -182,7 +187,7 @@ namespace mcx.Levels.API
         /// <returns><see langword="true"/> if the user's experience level was successfully set; otherwise, <see
         /// langword="false"/> if the user does not exist.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="userId"/> is <see langword="null"/>.</exception>
-        public static bool SetExperience(string userId, float exp)
+        public static bool SetExperience(string userId, int exp)
         {
             if (userId is null)
                 throw new ArgumentNullException(nameof(userId));
@@ -222,7 +227,7 @@ namespace mcx.Levels.API
         /// <returns><see langword="true"/> if the experience was successfully added; otherwise, <see langword="false"/> if the
         /// user does not exist.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="userId"/> is <see langword="null"/>.</exception>
-        public static bool AddExperience(string userId, string reason, float amount)
+        public static bool AddExperience(string userId, string reason, int amount)
         {
             if (userId is null)
                 throw new ArgumentNullException(nameof(userId));
@@ -251,7 +256,7 @@ namespace mcx.Levels.API
         /// <returns><see langword="true"/> if the user's experience was successfully subtracted; otherwise, <see
         /// langword="false"/> if the user ID does not exist.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="userId"/> is null.</exception>
-        public static bool SubstractExperience(string userId, string reason, float amount)
+        public static bool SubstractExperience(string userId, string reason, int amount)
         {
             if (userId is null)
                 throw new ArgumentNullException(nameof(userId));
@@ -287,13 +292,13 @@ namespace mcx.Levels.API
                 return false;
 
             var changingLevelArgs = new ChangingLevelEventArgs(savedLevel, userId, reason, savedLevel.Level, 1);
-            var changingExperienceArgs = new ChangingExperienceEventArgs(savedLevel, userId, reason, savedLevel.Experience, 0f);
+            var changingExperienceArgs = new ChangingExperienceEventArgs(savedLevel, userId, reason, savedLevel.Experience, 0);
 
             LevelEvents.OnChangingLevel(changingLevelArgs);
             LevelEvents.OnChangingExperience(changingExperienceArgs);
 
             savedLevel.Level = 1;
-            savedLevel.Experience = 0f;
+            savedLevel.Experience = 0;
             savedLevel.RequiredExperience = LevelProgress.GetExperienceForLevel(2);
 
             LevelEvents.OnChangedLevel(new ChangedLevelEventArgs(savedLevel, userId, reason, changingLevelArgs.CurrentLevel, savedLevel.Level), changingLevelArgs.target);
@@ -315,17 +320,23 @@ namespace mcx.Levels.API
                     Storage.Add(level.Value);
 
                     var changingLevelArgs = new ChangingLevelEventArgs(level.Value, level.Key, reason, level.Value.Level, 1);
-                    var changingExperienceArgs = new ChangingExperienceEventArgs(level.Value, level.Key, reason, level.Value.Experience, 0f);
+                    var changingExperienceArgs = new ChangingExperienceEventArgs(level.Value, level.Key, reason, level.Value.Experience, 0);
+
+                    if (changingLevelArgs.Target != null)
+                        LevelEvents.OnRemoved(changingLevelArgs.Target, level.Value);
 
                     LevelEvents.OnChangingLevel(changingLevelArgs);
                     LevelEvents.OnChangingExperience(changingExperienceArgs);
 
                     level.Value.Level = 1;
-                    level.Value.Experience = 0f;
+                    level.Value.Experience = 0;
                     level.Value.RequiredExperience = LevelProgress.GetExperienceForLevel(2);
 
                     LevelEvents.OnChangedLevel(new ChangedLevelEventArgs(level.Value, level.Key, reason, changingLevelArgs.CurrentLevel, level.Value.Level), changingLevelArgs.target);
                     LevelEvents.OnChangedExperience(new ChangedExperienceEventArgs(level.Value, level.Key, reason, changingExperienceArgs.CurrentExp, level.Value.Experience), changingExperienceArgs.target);
+
+                    if (changingLevelArgs.Target != null)
+                        LevelEvents.OnLoaded(changingLevelArgs.Target, level.Value);
                 }
 
                 return true;
@@ -341,6 +352,9 @@ namespace mcx.Levels.API
 
         private static void Verified(ExPlayer player)
         {
+            if (!player.CanCollect("Levels"))
+                return;
+
             var level = 
                 Levels[player.UserId] 
                         = Storage.GetOrAdd(player.UserId, () => new SavedLevel());
@@ -352,19 +366,60 @@ namespace mcx.Levels.API
 
         private static void BuildingInfo(ExPlayer player, StringBuilder builder)
         {
-            if (player?.ReferenceHub == null || player.UserId is null)
-                return;
-
-            if (builder is null)
-                return;
-
             if (!Levels.TryGetValue(player.UserId, out var level))
                 return;
 
-            if (level is null)
+            builder.AppendLine($"LVL {level.Level} ({Mathf.CeilToInt(level.Experience)} XP / {Mathf.CeilToInt(level.RequiredExperience)} XP)");
+        }
+
+        private static void OnEntryToggled(ExPlayer player, DataCollectionEntry entry, bool isAllowed)
+        {
+            if (entry.Id != "Levels")
                 return;
 
-            builder.AppendLine($"LVL {level.Level} ({Mathf.CeilToInt(level.Experience)} XP / {Mathf.CeilToInt(level.RequiredExperience)} XP)");
+            if (!isAllowed)
+            {
+                if (Levels.TryGetValue(player.UserId, out var level))
+                {
+                    Levels.Remove(player.UserId);
+                    LevelEvents.OnRemoved(player, level);
+                }
+            }
+            else
+            {
+                if (Levels.ContainsKey(player.UserId))
+                    return;
+
+                var level =
+                    Levels[player.UserId]
+                            = Storage.GetOrAdd(player.UserId, () => new SavedLevel());
+
+                level.RequiredExperience = LevelProgress.GetExperienceForLevel(level.Level + 1);
+
+                LevelEvents.OnLoaded(player, level);
+            }
+        }
+
+        private static void OnCollectingWeight(ActionLoot.Group group, IActionSource source, ExPlayer target, ref float weight)
+        {
+            if (group?.LevelMultipliers == null)
+                return;
+
+            if (!Levels.TryGetValue(target.UserId, out var level))
+                return;
+
+            var highestMultiplier = 1f;
+
+            foreach (var pair in group.LevelMultipliers)
+            {
+                if (level.Level < pair.Key 
+                    && (highestMultiplier == 1f || pair.Value > highestMultiplier))
+                {
+                    highestMultiplier = pair.Value;
+                }
+            }
+
+            weight *= highestMultiplier;
         }
 
         internal static void Removed(StorageValue value)
@@ -387,10 +442,18 @@ namespace mcx.Levels.API
 
             if (Storage != null)
             {
+                DataCollection.AddEntry(new DataCollectionEntry("Levels",
+                    "<color=red>📊</color> | <b>Level Systém</b></color>", 
+                    "Ukládá počet dosažených XP a levelů pomocí identifikátoru vašeho účtu <i>(SteamID64 pro Steam účty a Discord ID pro Discord účty)</i>."));
+
                 Storage.Removed += Removed;
 
                 ExPlayerEvents.Left += Left;
                 ExPlayerEvents.Verified += Verified;
+
+                DataCollection.EntryToggled += OnEntryToggled;
+
+                ActionLoot.CollectingGroupWeight += OnCollectingWeight;
 
                 if (LevelsPlugin.StaticConfig.ShowInCustomInfo)
                     ExPlayerEvents.RefreshingCustomInfo += BuildingInfo;

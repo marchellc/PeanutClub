@@ -8,9 +8,6 @@ using LabExtended.API.Custom.Items;
 using LabExtended.Core;
 using LabExtended.Extensions;
 
-using mcx.Utilities;
-using mcx.Utilities.Items;
-
 using Utils.NonAllocLINQ;
 
 namespace mcx.Loadouts;

@@ -1,14 +1,13 @@
 namespace mcx.Utilities;
 
-using Items;
-
 using mcx.Utilities.Audio;
+using mcx.Utilities.Textures;
 using mcx.Utilities.Features;
 
 using LabApi.Loader.Features.Plugins;
 
 using System;
-using mcx.Utilities.Textures;
+using mcx.Utilities.Actions;
 
 /// <summary>
 /// The main class of this library.
@@ -46,11 +45,11 @@ public class UtilitiesCore : Plugin<UtilitiesConfig>
         Config = base.Config!;
         Plugin = this;
 
+        ActionManager.Initialize();
         TextureManager.Initialize();
         PlaybackUtils.Initialize();
 
         PlayerClips.Initialize();
-        ItemHandler.Internal_Init();
         SnakeExplosion.Internal_Init();
         PlayerInfoHealth.Internal_Init();
         PersistentOverwatch.Internal_Init();

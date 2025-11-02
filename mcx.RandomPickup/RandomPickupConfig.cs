@@ -1,11 +1,10 @@
 ﻿using LabExtended.Core.Configs.Objects;
 
 using mcx.RandomPickup.API;
-using mcx.RandomPickup.API.Scenarios.LowHealth;
 
 using mcx.Utilities.Audio;
-using mcx.Utilities.Items.Loot;
-using mcx.Utilities.Randomness;
+using mcx.Utilities.Actions;
+using mcx.Utilities.Configs;
 
 using System.ComponentModel;
 
@@ -180,24 +179,15 @@ namespace mcx.RandomPickup
         /// Gets or sets the range of experience gain when opening a pickup.
         /// </summary>
         [Description("Sets the experience gain range when opening a pickup.")]
-        public FloatRange OpenExperienceGain { get; set; } = new()
+        public Int32Range OpenExperienceGain { get; set; } = new()
         {
-            MinValue = 15f,
-            MaxValue = 30f
+            MinValue = 15,
+            MaxValue = 30
         };
-
-        /// <summary>
-        /// Gets or sets the loot configuration for each randomly spawned pickup.
-        /// </summary>
-        [Description("Sets the loot for each randomly spawned pickup.")]
-        public LootConfig SpawnedLoot { get; set; } = new();
 
         /// <summary>
         /// Gets or sets the possible spawn locations and their associated spawn chances.
         /// </summary>
-        /// <remarks>The dictionary allows you to define multiple spawn locations, each with a specific
-        /// probability of being selected. Ensure that the sum of all spawn chances does not exceed 1.0 if they are
-        /// intended to represent a probability distribution.</remarks>
         [Description("Sets the possible spawn locations and their associated chance.")]
         public Dictionary<string, float> SpawnLocations { get; set; } = new()
         {
@@ -205,22 +195,91 @@ namespace mcx.RandomPickup
         };
 
         /// <summary>
-        /// Gets or sets the loot configuration for each spawn location.
+        /// Gets or sets the loot groups available in the random pickup.
         /// </summary>
-        /// <remarks>Use this property to define or retrieve the loot settings for specific spawn
-        /// locations.  Each key in the dictionary corresponds to a unique spawn location, and the associated value
-        /// defines the loot configuration for that location.</remarks>
-        [Description("Sets the loot for each spawn location.")]
-        public Dictionary<string, LootConfig> SpawnLocationsLoot { get; set; } = new()
+        [Description("Sets the loot groups available in the random pickup.")]
+        public Dictionary<string, List<ActionLoot.Group>> Loot { get; set; } = new()
         {
-            ["ExamplePosition"] = new(),
-            ["ExamplePosition2"] = new()
+            { "DefinedLocationRandomPickup", new() { defaultHealthLoot, defaultExplodeGroup } },
+            { "PlayerRandomPickup", new() { defaultHealthLoot, defaultExplodeGroup } },
+            { "ScenarioRandomPickup", new() { defaultHealthLoot, defaultExplodeGroup } }
         };
 
-        /// <summary>
-        /// Gets or sets the configuration for the low health scenario.
-        /// </summary>
-        [Description("Configuration for the low health scenario.")]
-        public LowHealthScenarioConfig LowHealthScenario { get; set; } = new();
+        private static ActionLoot.Group defaultExplodeGroup
+        {
+            get
+            {
+                return new ActionLoot.Group()
+                {
+                    Weight = 5f,
+
+                    Actions = new()
+                    {
+                        new()
+                        {
+                            Id = "Explode",
+
+                            Parameters = new()
+                            {
+                                { "EffectOnly", ["true"] },
+                                { "Velocity", ["10"] },
+                                { "Type", ["GrenadeHE"] },
+                                { "Reason", ["BOO"] }
+                            }
+                        }
+                    }
+                };
+            }
+        }
+
+        private static ActionLoot.Group defaultHealthLoot
+        {
+            get
+            {
+                return new ActionLoot.Group()
+                {
+                    Weight = 80f,
+
+                    Actions = new()
+                    {
+                        new()
+                        {
+                            Id = "AddItem",
+
+                            Parameters = new()
+                            {
+                                { "Type", ["Medkit"] },
+                                { "Amount", ["1"] },
+                                { "Spawn", ["true"] }
+                            }
+                        },
+
+                        new()
+                        {
+                            Id = "AddItem",
+
+                            Parameters = new()
+                            {
+                                { "Type", ["Adrenaline"] },
+                                { "Amount", ["1"] },
+                                { "Spawn", ["true"] }
+                            }
+                        },
+
+                        new()
+                        {
+                            Id = "AddItem",
+
+                            Parameters = new()
+                            {
+                                { "Type", ["SCP500"] },
+                                { "Amount", ["1"] },
+                                { "Spawn", ["true"] }
+                            }
+                        }
+                    }
+                };
+            }
+        }
     }
 }

@@ -1,4 +1,5 @@
-﻿using mcx.Utilities.Audio;
+﻿using mcx.Utilities.Actions;
+using mcx.Utilities.Audio;
 
 using System.ComponentModel;
 
@@ -32,5 +33,11 @@ namespace mcx.Utilities
         /// </summary>
         [Description("Sets the audio clips for player events.")]
         public ClipConfig<string> PlayerClips { get; set; } = new();
+
+        /// <summary>
+        /// Gets or sets the collection of custom actions, organized by action ID.
+        /// </summary>
+        [Description("Allows for custom actions to be defined.")]
+        public Dictionary<string, List<ActionInfo>> Actions { get; set; } = new();
     }
 }

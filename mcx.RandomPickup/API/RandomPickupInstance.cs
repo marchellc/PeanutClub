@@ -5,9 +5,11 @@ using LabExtended.API.Toys;
 
 using LabExtended.Extensions;
 using LabExtended.Utilities.Update;
+
 using mcx.Levels.API;
+using mcx.Utilities.Actions;
+using mcx.Utilities.Actions.Interfaces;
 using mcx.Utilities.Audio;
-using mcx.Utilities.Items.Loot;
 
 using ProjectMER.Features.Objects;
 
@@ -20,7 +22,7 @@ namespace mcx.RandomPickup.API
     /// <summary>
     /// A spawned instance of a random pickup.
     /// </summary>
-    public class RandomPickupInstance
+    public class RandomPickupInstance : IActionSource
     {
         /// <summary>
         /// Gets the status of this random pickup instance.
@@ -63,19 +65,9 @@ namespace mcx.RandomPickup.API
         public InteractableToy Interactable { get; private set; }
 
         /// <summary>
-        /// Gets or sets the loot table used by this random pickup instance.
-        /// </summary>
-        public LootConfig Loot { get; set; }
-
-        /// <summary>
         /// Gets the timer started when the pickup spawned.
         /// </summary>
         public Stopwatch Timer { get; private set; } = new();
-
-        /// <summary>
-        /// Gets the amount of seconds the pickup will be spawned for.
-        /// </summary>
-        public static float DespawnTime { get; private set; }
 
         /// <summary>
         /// Gets the clip manager.
@@ -83,9 +75,24 @@ namespace mcx.RandomPickup.API
         public ClipManager<RandomPickupClipType> Clips { get; private set; }
 
         /// <summary>
+        /// Gets the amount of seconds the pickup will be spawned for.
+        /// </summary>
+        public float DespawnTime { get; private set; }
+
+        /// <summary>
         /// Gets or sets custom data of the scenario that spawned this random pickup instance, if any.
         /// </summary>
         public object ScenarioData { get; set; }
+
+        /// <summary>
+        /// Gets the identifier representing the spawn reason for the random pickup.
+        /// </summary>
+        public string Id =>
+            SpawnReason is RandomPickupSpawnReason.Scenario
+                ? "ScenarioRandomPickup"
+                : (SpawnReason is RandomPickupSpawnReason.RandomPlayer
+                    ? "PlayerRandomPickup"
+                    : "DefinedLocationRandomPickup");
 
         /// <summary>
         /// Initializes a new instance of the RandomPickupInstance class.
@@ -194,20 +201,11 @@ namespace mcx.RandomPickup.API
             {
                 Clips.PlayRandomClip(RandomPickupClipType.Opened);
 
-                var lootGroup = SpawnReason switch
-                {
-                    RandomPickupSpawnReason.DefinedLocation => Loot?.GetGroup(player),
-                    RandomPickupSpawnReason.RandomPlayer => Loot?.GetGroup(player),
-                    RandomPickupSpawnReason.Scenario => SpawnScenario?.GetLoot(player, ScenarioData) ?? Loot?.GetGroup(player),
-
-                    _ => null
-                };
-
-                lootGroup?.ApplyGroup(player);
+                RandomPickupCore.ConfigStatic.Loot.TriggerWeighted(this, player);
 
                 var experience = RandomPickupCore.ConfigStatic.OpenExperienceGain.GetRandom();
 
-                if (experience > 0f)
+                if (experience > 0)
                     player.AddExperience("RandomPickup", experience);
 
                 Status = RandomPickupStatus.Opened;

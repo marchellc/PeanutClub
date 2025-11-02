@@ -1,8 +1,6 @@
 ﻿using LabExtended.Events;
 using LabExtended.Events.Player.Snake;
 
-using mcx.Utilities.Items;
-
 namespace mcx.Utilities.Features
 {
     /// <summary>

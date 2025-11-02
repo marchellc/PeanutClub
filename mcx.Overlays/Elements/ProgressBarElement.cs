@@ -1,4 +1,6 @@
-﻿namespace mcx.Overlays.Elements
+﻿using UnityEngine;
+
+namespace mcx.Overlays.Elements
 {
     /// <summary>
     /// Provides methods to render a textual progress bar representation.
@@ -6,79 +8,63 @@
     public static class ProgressBarElement
     {
         /// <summary>
-        /// Renders a progress bar as a string representation based on the current progress relative to the total.
+        /// Renders a progress bar as a formatted string based on the specified percentage, color, and progress bar
+        /// settings.
         /// </summary>
-        /// <remarks>The method calculates the fraction of progress and renders a visual representation
-        /// using specified characters. If <paramref name="total"/> is zero or negative, the progress is considered as
-        /// 0%.</remarks>
-        /// <param name="current">The current progress value. Must be non-negative.</param>
-        /// <param name="total">The total value representing 100% progress. Must be greater than zero.</param>
-        /// <returns>A string representing the progress bar, including optional labels and percentage.</returns>
-        public static string RenderBarFraction(int current, int total, ProgressBarSettings progressBarSettings)
+        /// <param name="percentage">The completion percentage to display in the progress bar. Values greater than 100 are treated as 100.</param>
+        /// <param name="color">The color to use for the progress bar. The format and usage depend on the rendering context.</param>
+        /// <param name="progressBarSettings">An object containing settings that define the appearance and formatting of the progress bar, such as
+        /// symbols, labels, and percent format.</param>
+        /// <returns>A string representing the rendered progress bar, including any configured labels and percentage display.</returns>
+        public static string RenderBar(int percentage, string color, ProgressBarSettings progressBarSettings)
         {
-            if (total <= 0)
-                return RenderBar(0.0, progressBarSettings);
+            percentage = Math.Min(percentage, 100);
 
-            var progress = current / (double)total;
-            return RenderBar(progress, progressBarSettings);
-        }
+            var symbols = "";
+            var i = 5;
 
-        /// <summary>
-        /// Renders a progress bar as a string representation based on the specified progress value.
-        /// </summary>
-        /// <param name="progress">A double value representing the progress, where 0.0 indicates no progress and 1.0 indicates full progress.
-        /// Values outside this range will be clamped.</param>
-        /// <param name="width">The total width of the progress bar in characters. Must be greater than 0.</param>
-        /// <param name="fillChar">The character used to represent the filled portion of the progress bar.</param>
-        /// <param name="emptyChar">The character used to represent the unfilled portion of the progress bar.</param>
-        /// <param name="showPercent">A boolean indicating whether to display the percentage of progress next to the bar. <see langword="true"/>
-        /// to show the percentage; otherwise, <see langword="false"/>.</param>
-        /// <param name="leftLabel">An optional label to display to the left of the progress bar.</param>
-        /// <param name="rightLabel">An optional label to display to the right of the progress bar.</param>
-        /// <returns>A string representing the progress bar, including optional labels and percentage.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="width"/> is less than 1.</exception>
-        public static string RenderBar(double progress, ProgressBarSettings progressBarSettings)
-        {
-            if (progressBarSettings.Width < 1)
-                throw new ArgumentOutOfRangeException(nameof(progressBarSettings.Width));
+            var fillStr = progressBarSettings.FilledPart.GetValue();
+            var lowerFillStr = progressBarSettings.LowerPart.GetValue();
 
-            if (double.IsNaN(progress)) 
-                progress = 0.0;
+            for (; i <= 95; i += 10)
+            {
+                if (i >= percentage)
+                    break;
 
-            progress = Math.Max(0.0, Math.Min(1.0, progress));
+                symbols += fillStr;
+            }
 
-            var filled = (int)Math.Round(progress * progressBarSettings.Width);
+            if (i - 5 < percentage)
+                symbols += lowerFillStr;
 
-            if (filled > progressBarSettings.Width) 
-                filled = progressBarSettings.Width;
+            var symbolCount = symbols.Length;
+            var invisibleBar = false;
 
-            if (filled < 0) 
-                filled = 0;
+            if (symbols.Length < 10)
+            {
+                symbols += $"<alpha=#00>{fillStr}";
+                invisibleBar = true;
+                symbolCount++;
+            }
 
-            var filledPart = string.Empty;
-            var emptyPart = string.Empty;
+            for (i = 0; i < 10 - symbolCount; i++)
+                symbols += fillStr;
 
-            var filledString = progressBarSettings.FilledPart.GetValue();
-            var emptyString = progressBarSettings.EmptyPart.GetValue();
-
-            for (var i = 0; i < filled; i++)
-                filledPart += filledString;
-
-            for (var i = 0; i < progressBarSettings.Width - filled; i++)
-                emptyPart += emptyString;
+            if (invisibleBar)
+                symbols += "<alpha=#FF>";
 
             var leftLabel = progressBarSettings.LeftLabel.GetValue();
             var rightLabel = progressBarSettings.RightLabel.GetValue();
 
             var percentFormat = progressBarSettings.PercentFormat.GetValue();
-            var percent = progressBarSettings.ShowPercent 
-                ? " " + string.Format(percentFormat, Math.Round(progress * 100)) 
+            var percent = progressBarSettings.ShowPercent
+                ? " " + string.Format(percentFormat, Mathf.CeilToInt(percentage))
                 : string.Empty;
 
             var left = string.IsNullOrEmpty(leftLabel) ? string.Empty : leftLabel + " ";
             var right = string.IsNullOrEmpty(rightLabel) ? string.Empty : " " + rightLabel;
 
-            return $"{left}{filledPart}{emptyPart}{percent}{right}";
+            return $"{left}{symbols}{percent}{right}";
         }
     }
 }

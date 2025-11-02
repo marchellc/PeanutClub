@@ -1,5 +1,6 @@
 ﻿using LabExtended.API;
 using LabExtended.Events;
+
 using mcx.Levels.API.Storage;
 
 namespace mcx.Levels.API.Events
@@ -30,12 +31,12 @@ namespace mcx.Levels.API.Events
         /// <summary>
         /// Gets the current experience of the player before gaining.
         /// </summary>
-        public float CurrentExp { get; }
+        public int CurrentExp { get; }
 
         /// <summary>
         /// Gets the new experience of the player after gaining.
         /// </summary>
-        public float NewExp { get; }
+        public int NewExp { get; }
 
         /// <summary>
         /// Gets the target player associated with the current user.
@@ -62,7 +63,7 @@ namespace mcx.Levels.API.Events
         /// <param name="userId">The unique identifier of the user whose experience is changing. Cannot be null or empty.</param>
         /// <param name="currentExp">The current experience points of the user before the change.</param>
         /// <param name="newExp">The new experience points of the user after the change.</param>
-        public ChangingExperienceEventArgs(SavedLevel level, string userId, string reason, float currentExp, float newExp)
+        public ChangingExperienceEventArgs(SavedLevel level, string userId, string reason, int currentExp, int newExp)
         {
             Level = level;
             UserId = userId;

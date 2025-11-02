@@ -10,7 +10,7 @@ namespace mcx.Levels.API.Storage
     public class SavedLevel : StorageValue
     {
         private int level = 1;
-        private float experience = 0f;
+        private int experience = 0;
 
         /// <summary>
         /// Gets or sets the current level value.
@@ -24,7 +24,7 @@ namespace mcx.Levels.API.Storage
         /// <summary>
         /// Gets or sets the experience points.
         /// </summary>
-        public float Experience
+        public int Experience
         {
             get => experience;
             set => SetField(ref experience, value);
@@ -33,13 +33,13 @@ namespace mcx.Levels.API.Storage
         /// <summary>
         /// Gets or sets the experience required to reach the next level.
         /// </summary>
-        public float RequiredExperience { get; set; }
+        public int RequiredExperience { get; set; }
 
         /// <inheritdoc/>
         public override void ReadValue(NetworkReader reader)
         {
             level = reader.ReadInt();
-            experience = reader.ReadFloat();
+            experience = reader.ReadInt();
         }
 
         /// <inheritdoc/>
@@ -53,7 +53,7 @@ namespace mcx.Levels.API.Storage
         public override void ApplyDefault()
         {
             Level = 1;
-            Experience = 0f;
+            Experience = 0;
         }
     }
 }

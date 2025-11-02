@@ -131,16 +131,7 @@ namespace mcx.RandomPickup.API
                     continue;
                 }
 
-                if (!RandomPickupCore.ConfigStatic.SpawnLocationsLoot.TryGetValue(spawnLocation.Key, out var loot)
-                    && !RandomPickupCore.ConfigStatic.SpawnLocationsLoot.TryGetValue("*", out loot))
-                {
-                    ApiLog.Warn("Random Pickup", $"Could not get loot for spawn location &1{spawnLocation.Key}&r");
-                    continue;
-                }
-
                 var instance = SpawnInstance(position, rotation, RandomPickupSpawnReason.DefinedLocation);
-
-                instance.Loot = loot;
 
                 spawnLocationCount--;
             }

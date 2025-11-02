@@ -3,7 +3,7 @@
 using LabExtended.Commands;
 using LabExtended.Commands.Attributes;
 using LabExtended.Commands.Interfaces;
-
+using LabExtended.Commands.Parameters.Parsers;
 using LabExtended.Utilities;
 
 using UnityEngine;
@@ -116,7 +116,10 @@ namespace mcx.Utilities.Textures.Commands
         [CommandOverload("spawn", "Spawns a texture at a given position", null)]
         public void Spawn(
             [CommandParameter("Name", "Name of the texture to spawn.")] string textureName,
-            [CommandParameter("Position", "The position to spawn the toy at.")] Vector3 position)
+
+            [CommandParameter("Position", "The position to spawn the toy at.")]
+            [CommandParameter(ParserType = typeof(PlayerParameterParser), ParserProperty = "CameraTransform.position")]
+            Vector3 position)
         {
             if (TextureManager.IsReloading)
             {
@@ -131,37 +134,6 @@ namespace mcx.Utilities.Textures.Commands
             }
 
             instance.Position = position;
-
-            Ok($"Spawned texture '{textureName}' (ID: {instance.Id}) with {instance.Toys.Count} toy(s).");
-        }
-
-        [CommandOverload("spawnat", "Spawns a texture at a given position", null)]
-        public void SpawnAt(
-            [CommandParameter("Name", "Name of the texture to spawn.")] string textureName,
-            [CommandParameter("Player", "The player to spawn the toy at.")] ExPlayer? player = null)
-        {
-            player ??= Sender;
-
-            if (TextureManager.IsReloading)
-            {
-                Fail("TextureManager is currently reloading textures. Please wait...");
-                return;
-            }
-
-            if (!player.IsAlive)
-            {
-                Fail($"Player '{player.ToCommandString()}' is dead!");
-                return;
-            }
-
-            if (!TextureManager.TrySpawnTexture(textureName, false, out var instance))
-            {
-                Fail($"Texture '{textureName}' not found.");
-                return;
-            }
-
-            instance.Position = player.CameraTransform.position;
-            instance.Rotation = player.CameraTransform.rotation;
 
             Ok($"Spawned texture '{textureName}' (ID: {instance.Id}) with {instance.Toys.Count} toy(s).");
         }

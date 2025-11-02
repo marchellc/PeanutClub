@@ -8,11 +8,9 @@ using LabExtended.API.Custom.Items;
 
 using LabExtended.Extensions;
 
-using mcx.Items.Entries;
 using mcx.Items.Spawning;
 using mcx.Items.Stacking;
 
-using mcx.Utilities.Items;
 
 using Mirror;
 
@@ -60,8 +58,6 @@ public class ItemsCore : Plugin<ItemsConfig>
 
         SpawnPositions.Internal_Init();
         SpawnPrevention.Internal_Init();
-
-        ItemHandler.RegisterEffect("Explosion", new ExplosionEntry());
 
         if (Config != null)
         {

@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel;
 
+using mcx.Utilities.Configs;
+
 namespace mcx.Overlays.Elements
 {
     /// <summary>
@@ -7,12 +9,6 @@ namespace mcx.Overlays.Elements
     /// </summary>
     public class ProgressBarSettings
     {
-        /// <summary>
-        /// Gets or sets the total width of the progress bar in characters.
-        /// </summary>
-        [Description("Total width of the progress bar in characters.")]
-        public int Width { get; set; } = 30;
-
         /// <summary>
         /// Gets or sets a value indicating whether the percentage value is displayed next to the progress bar.
         /// </summary>
@@ -35,7 +31,7 @@ namespace mcx.Overlays.Elements
         /// Gets or sets the string used to represent the empty portion of the progress bar.
         /// </summary>
         [Description("String used for the empty portion of the progress bar.")]
-        public ConfigurableString EmptyPart { get; set; } = new() { Value = " " };
+        public ConfigurableString LowerPart { get; set; } = new() { Value = "▄" };
 
         /// <summary>
         /// Gets or sets the label displayed to the left of the progress bar.

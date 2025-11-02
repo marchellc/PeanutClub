@@ -5,7 +5,10 @@ using LabExtended.API.Hints.Elements.Personal;
 using LabExtended.Extensions;
 
 using mcx.Levels.API.Storage;
+
 using mcx.Overlays.Levels.Entries;
+
+using mcx.Utilities.Extensions;
 
 using UnityEngine;
 
@@ -19,7 +22,7 @@ namespace mcx.Overlays.Levels
         private float levelTime;
         private float experienceTime;
 
-        private string? progressBar;
+        private string? levelOverlay;
 
         /// <summary>
         /// Gets the options for the level overlay.
@@ -92,9 +95,9 @@ namespace mcx.Overlays.Levels
             if (Builder is null)
                 return false;
 
-            if (Level != null && progressBar != null)
+            if (Level != null && levelOverlay != null)
             {
-                Builder.Append(progressBar);
+                Builder.Append(levelOverlay);
                 return true;
             }
 
@@ -108,15 +111,36 @@ namespace mcx.Overlays.Levels
         {
             if (Level is null)
             {
-                progressBar = null;
+                levelOverlay = null;
                 return;
             }
 
-            var percentage = Mathf.CeilToInt((Level.Experience / Level.RequiredExperience) * 100);
+            var value = Settings.OverlayString.GetValue() ?? string.Empty;
 
-            progressBar =
-                $"<size=45%><color={GetBarColor(percentage)}>{Mathf.CeilToInt(Level.Experience)} XP " +
-                $"<b>|</b><size=45%>{RenderBar(percentage)}</size><b>|</b> {Mathf.CeilToInt(Level.RequiredExperience)} XP</color></size>";
+            if (value.Length < 1)
+                return;
+
+            var percentage = Mathf.CeilToInt((Level.Experience / Level.RequiredExperience) * 100);
+            var color = GetBarColor(percentage);
+            var curXp = Mathf.CeilToInt(Level.Experience);
+            var reqXp = Mathf.CeilToInt(Level.RequiredExperience);
+
+            value = value
+                .Replace("$BarColor", color)
+                .Replace("$BarString", RenderBar(percentage))
+
+                .Replace("$CurExp", curXp.ToString())
+                .Replace("$ReqExp", reqXp.ToString())
+                
+                .Replace("$CurLevel", Level.Level.ToString())
+                .Replace("$NextLevel", (Level.Level + 1).ToString())
+                
+                .Replace("$ServerName", OverlayCore.ConfigStatic.ServerName)
+                .ReplaceEmojis();
+
+            levelOverlay = value.Length > 0
+                ? value
+                : null;
         }
 
         private static string GetBarColor(int percentage)

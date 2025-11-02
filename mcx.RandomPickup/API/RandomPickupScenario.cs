@@ -1,8 +1,5 @@
 ﻿using LabExtended.API;
 
-using mcx.RandomPickup.API.Scenarios.LowHealth;
-using mcx.Utilities.Items.Loot;
-
 namespace mcx.RandomPickup.API
 {
     /// <summary>
@@ -15,7 +12,7 @@ namespace mcx.RandomPickup.API
         /// </summary>
         public static List<RandomPickupScenario> AllScenarios { get; } = new()
         {
-            new LowHealthScenario()
+
         };
 
         /// <summary>
@@ -33,49 +30,9 @@ namespace mcx.RandomPickup.API
         /// <returns>true if the player meets the health and chance requirements to proceed; otherwise, false.</returns>
         public abstract bool ProcessPlayer(ExPlayer player, out object scenarioData);
 
-        /// <summary>
-        /// Populates the specified loot collection with items appropriate for the given player.
-        /// </summary>
-        /// <param name="player">The player for whom the loot is being generated. Cannot be null.</param>
-        public abstract LootGroup GetLoot(ExPlayer player, object scenarioData);
-
         internal static void Internal_UpdateScenarios()
         {
-            var anyActivated = false;
 
-            for (var i = 0; i < ExPlayer.Players.Count; i++)
-            {
-                if (anyActivated)
-                    return;
-
-                var player = ExPlayer.Players[i];
-
-                if (player?.ReferenceHub == null || player.UserId == null)
-                    continue;
-
-                for (var x = 0; x < AllScenarios.Count; x++)
-                {
-                    if (anyActivated)
-                        return;
-
-                    var scenario = AllScenarios[x];
-
-                    if (scenario.ActivatedPlayers.TryGetValue(player.UserId, out var activationRound)
-                        && (ExRound.RoundNumber - activationRound) < RandomPickupCore.ConfigStatic.MinimumScenarioRoundDelay)
-                        continue;
-
-                    if (scenario.ProcessPlayer(player, out var scenarioData))
-                    {
-                        scenario.ActivatedPlayers[player.UserId] = ExRound.RoundNumber;
-
-                        RandomPickupSpawner.TimerPaused = true;
-                        RandomPickupSpawner.SpawnInstance(player.Position, player.Rotation, RandomPickupSpawnReason.Scenario, player, scenario);
-
-                        anyActivated = true;
-                        return;
-                    }
-                }
-            }
         }
     }
 }
