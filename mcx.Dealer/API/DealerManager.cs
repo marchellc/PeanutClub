@@ -2,7 +2,6 @@
 
 using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Events.Arguments.Scp939Events;
-using LabApi.Events.Arguments.ServerEvents;
 
 using LabApi.Events.Handlers;
 
@@ -19,6 +18,7 @@ using LabExtended.Utilities.Update;
 
 using PlayerRoles;
 using PlayerRoles.Spectating;
+
 using UnityEngine;
 
 namespace mcx.Dealer.API

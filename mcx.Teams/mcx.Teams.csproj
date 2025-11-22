@@ -63,9 +63,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\mcx.Loadouts\mcx.Loadouts.csproj" />
-      <ProjectReference Include="..\mcx.Overlays\mcx.Overlays.csproj" />
-      <ProjectReference Include="..\mcx.Utilities\mcx.Utilities.csproj" />
+      <ProjectReference Include="..\SecretLabAPI\SecretLabAPI.csproj" />
     </ItemGroup>
 
     <ItemGroup>

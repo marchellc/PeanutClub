@@ -1,4 +1,4 @@
-﻿using mcx.Utilities.Configs;
+﻿using SecretLabAPI.Utilities.Configs;
 
 using System.ComponentModel;
 

@@ -11,12 +11,12 @@ using LabExtended.Events;
 using LabExtended.Utilities;
 using LabExtended.Extensions;
 
-using mcx.Overlays.Alerts;
-
 using ProjectMER.Features;
 using ProjectMER.Features.Objects;
 
 using UnityEngine;
+
+using SecretLabAPI.Elements.Alerts;
 
 namespace mcx.Teams.Archangels;
 

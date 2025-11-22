@@ -1,10 +1,7 @@
 using LabExtended.API;
 using LabExtended.API.CustomTeams;
 
-using LabExtended.Core;
 using LabExtended.Attributes;
-
-using mcx.Loadouts;
 
 using PlayerRoles;
 using PlayerRoles.Spectating;

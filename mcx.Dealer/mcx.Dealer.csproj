@@ -12,9 +12,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\mcx.Items\mcx.Items.csproj" />
-      <ProjectReference Include="..\mcx.Overlays\mcx.Overlays.csproj" />
-      <ProjectReference Include="..\mcx.Utilities\mcx.Utilities.csproj" />
+      <ProjectReference Include="..\SecretLabAPI\SecretLabAPI.csproj" />
     </ItemGroup>
 
     <ItemGroup>

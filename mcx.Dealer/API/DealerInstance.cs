@@ -12,17 +12,14 @@ using AdminToys;
 
 using UnityEngine;
 
-using mcx.Items;
-using mcx.Items.Stacking;
-
-using mcx.Overlays.Alerts;
-
 using InventorySystem.Items;
 using InventorySystem.Items.Coin;
 
 using PlayerRoles.FirstPersonControl;
 
 using LabExtended.API.Custom.Items;
+using SecretLabAPI.Elements.Alerts;
+using SecretLabAPI.Items.Stacking;
 
 namespace mcx.Dealer.API
 {
@@ -226,9 +223,27 @@ namespace mcx.Dealer.API
                         var purchasedItem = ActiveInventory.PurchasedItems.RemoveAndTake(0);
 
                         if (ActivePlayer.Inventory.ItemCount < 8)
-                            ItemsCore.AddBaseOrCustomItem(ActivePlayer, purchasedItem.Entry.Item);
+                        {
+                            if (Enum.TryParse<ItemType>(purchasedItem.Entry.Item, true, out var itemType))
+                            {
+                                ActivePlayer.Inventory.AddItem(itemType);
+                            }
+                            else if (CustomItem.TryGet(purchasedItem.Entry.Item, out var customItem))
+                            {
+                                customItem.AddItem(ActivePlayer);
+                            }
+                        }
                         else
-                            ItemsCore.SpawnBaseOrCustomItem(purchasedItem.Entry.Item, ActivePlayer.Position, ActivePlayer.Rotation);
+                        {
+                            if (Enum.TryParse<ItemType>(purchasedItem.Entry.Item, true, out var itemType))
+                            {
+                                ExMap.SpawnItem(itemType, ActivePlayer.Position, Vector3.one, ActivePlayer.Rotation);
+                            }
+                            else if (CustomItem.TryGet(purchasedItem.Entry.Item, out var customItem))
+                            {
+                                customItem.SpawnItem(ActivePlayer.Position, ActivePlayer.Rotation);
+                            }
+                        }
                     }
                 }
 
@@ -410,7 +425,16 @@ namespace mcx.Dealer.API
 
             foreach (var item in inventory.Items)
             {
-                var addedItem = ItemsCore.AddBaseOrCustomItem(player, item.Entry.Item);
+                ItemBase? addedItem = null;
+
+                if (Enum.TryParse<ItemType>(item.Entry.Item, true, out var itemType))
+                {
+                    addedItem = ActivePlayer.Inventory.AddItem(itemType);
+                }
+                else if (CustomItem.TryGet(item.Entry.Item, out var customItem))
+                {
+                    addedItem = customItem.AddItem(ActivePlayer);
+                }
 
                 if (addedItem != null)
                     inventory.ActiveMapping[addedItem] = item;

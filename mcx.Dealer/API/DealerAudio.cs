@@ -1,6 +1,6 @@
 ﻿using LabExtended.API;
 
-using mcx.Utilities.Audio;
+using SecretLabAPI.Audio.Playback;
 
 using UnityEngine;
 
