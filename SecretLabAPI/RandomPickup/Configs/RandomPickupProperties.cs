@@ -106,15 +106,5 @@ namespace SecretLabAPI.RandomPickup.Configs
                 { RandomPickupClip.Waiting, 5f }
             }
         };
-
-        /// <summary>
-        /// Gets or sets the collection of loot table groups, keyed by their names, with their associated weight
-        /// configurations.
-        /// </summary>
-        [Description("Sets the list of loot table groups (keyed by their names) with their respective chances.")]
-        public Dictionary<string, float> LootTables { get; set; } = new()
-        {
-            { "default", 0f }
-        };
     }
 }

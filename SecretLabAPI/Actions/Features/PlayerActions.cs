@@ -13,7 +13,9 @@ using PlayerRoles;
 using PlayerStatsSystem;
 
 using SecretLabAPI.Audio.Clips;
+using SecretLabAPI.Extensions;
 using SecretLabAPI.Utilities;
+
 using UnityEngine;
 
 namespace SecretLabAPI.Actions.Features
@@ -106,6 +108,34 @@ namespace SecretLabAPI.Actions.Features
             return true;
         }
 
+        private static bool AddRandomItem(ref object target, ActionInfo info, int index, List<ActionInfo> actions)
+        {
+            if (target is not ExPlayer player)
+                return true;
+
+            var amount = info.GetValue(0, int.TryParse, 1);
+
+            if (amount < 1)
+                return true;
+
+            var list = info.GetValue(1, "None").SplitOutsideQuotes(',');
+
+            if (list.Length < 1)
+                return true;
+
+            for (var i = 0; i < amount; i++)
+            {
+                var random = list.RandomItem();
+
+                if (string.IsNullOrEmpty(random))
+                    continue;
+
+                ItemHelper.TryAddCustomOrBaseItem(player, random, out _);
+            }
+
+            return true;
+        }
+
         private static bool Explode(ref object target, ActionInfo info, int index, List<ActionInfo> list)
         {
             if (target is not ExPlayer player)
@@ -183,6 +213,15 @@ namespace SecretLabAPI.Actions.Features
             if (maxHeal || player.Health > player.MaxHealth)
                 player.Health = player.MaxHealth;
 
+            return true;
+        }
+
+        private static bool HealToMax(ref object target, ActionInfo info, int index, List<ActionInfo> list)
+        {
+            if (target is not ExPlayer player)
+                return true;
+
+            player.Health = player.MaxHealth;
             return true;
         }
 

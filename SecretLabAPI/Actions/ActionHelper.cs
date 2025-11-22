@@ -14,6 +14,8 @@ using SecretLabAPI.Levels;
 using SecretLabAPI.Utilities;
 using SecretLabAPI.Extensions;
 
+using LabApi.Loader;
+
 namespace SecretLabAPI.Actions
 {
     /// <summary>
@@ -262,43 +264,60 @@ namespace SecretLabAPI.Actions
             return actions.Count > 0;
         }
 
-        private static void OnDiscovered(Type type)
+        private static void SearchType(Type type)
         {
-            foreach (var method in type.GetDeclaredMethods())
+            try
             {
-                if (!method.IsStatic)
-                    continue;
-
-                if (method.ReturnType != typeof(bool))
-                    continue;
-
-                var parameters = method.GetAllParameters();
-
-                if (parameters.Length != 4 ||
-                    parameters[0].ParameterType != typeof(object) ||
-                    parameters[1].ParameterType != typeof(ActionInfo) ||
-                    parameters[2].ParameterType != typeof(int) ||
-                    parameters[3].ParameterType != typeof(List<ActionInfo>))
-                    continue;
-
-                try
+                foreach (var method in type.GetAllMethods())
                 {
-                    var action = (ActionDelegate)Delegate.CreateDelegate(typeof(ActionDelegate), method);
+                    if (!method.IsStatic)
+                        continue;
 
-                    Actions[method.Name] = action;
+                    if (method.ReturnType != typeof(bool))
+                        continue;
 
-                    ApiLog.Debug("ActionHelper", $"Registered action &3{method.Name}&r (&6{method}&r)");
+                    var parameters = method.GetAllParameters();
+
+                    if (parameters.Length != 4 ||
+                        parameters[1].ParameterType != typeof(ActionInfo) ||
+                        parameters[2].ParameterType != typeof(int) ||
+                        parameters[3].ParameterType != typeof(List<ActionInfo>))
+                        continue;
+
+                    try
+                    {
+                        var action = (ActionDelegate)Delegate.CreateDelegate(typeof(ActionDelegate), method);
+
+                        Actions[method.Name] = action;
+
+                        ApiLog.Debug("ActionHelper", $"Registered action &3{method.Name}&r");
+                    }
+                    catch (Exception ex)
+                    {
+                        ApiLog.Error("ActionHelper", $"Failed to register action from method &3{method.Name}&r in type &3{type.FullName}&r:\n{ex}");
+                    }
                 }
-                catch (Exception ex)
-                {
-                    ApiLog.Error("ActionHelper", $"Failed to register action from method &3{method.Name}&r in type &3{type.FullName}&r:\n{ex}");
-                }
+            }
+            catch (Exception ex)
+            {
+                ApiLog.Error("ActionHelper", $"Error while searching type &3{type}&r:\n{ex}");
             }
         }
 
         internal static void Initialize()
         {
-            ReflectionUtils.Discovered += OnDiscovered;
+            foreach (var type in typeof(ActionHelper).Assembly.GetTypes())
+            {
+                SearchType(type);
+            }
+
+            foreach (var plugin in PluginLoader.Plugins)
+            {
+                foreach (var type in plugin.Value.GetTypes())
+                {
+                    SearchType(type);
+                }
+            }
 
             var path = Path.Combine(PathManager.SecretLab.FullName, "actions");
 
@@ -317,9 +336,13 @@ namespace SecretLabAPI.Actions
                 {
                     return definition.CachedActions.TryExecute(target);
                 };
+
+                ApiLog.Debug("ActionHelper", $"Loaded custom action &3{Path.GetFileName(file)}&r");
             }
 
             Tables = SecretLab.LoadConfig(false, "tables", () => Tables);
+
+            ApiLog.Debug("ActionHelper", $"Loaded &6{Tables.Count}&r action table(s)");
         }
     }
 }
