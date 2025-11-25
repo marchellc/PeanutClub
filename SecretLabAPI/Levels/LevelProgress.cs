@@ -1,8 +1,6 @@
 ﻿using SecretLabAPI.Levels.Storage;
 using SecretLabAPI.Levels.Events;
 
-using LabExtended.Core;
-
 namespace SecretLabAPI.Levels
 {
     /// <summary>

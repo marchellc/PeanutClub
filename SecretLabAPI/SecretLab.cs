@@ -26,6 +26,7 @@ using LabExtended.API.Hints;
 using LabExtended.Attributes;
 
 using SecretLabAPI.Levels;
+
 using SecretLabAPI.Roles.Misc;
 using SecretLabAPI.Roles.ChaosSpy;
 
@@ -79,7 +80,7 @@ public class SecretLab : Plugin<SecretLabConfig>
         PlaybackUtils.Initialize();
         PlayerClips.Initialize();
 
-        ActionHelper.Initialize();
+        ActionManager.Initialize();
         WeightMultipliers.Initialize();
 
         LevelManager.Initialize();

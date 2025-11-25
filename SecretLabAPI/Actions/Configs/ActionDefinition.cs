@@ -1,5 +1,7 @@
 ﻿using Newtonsoft.Json;
 
+using SecretLabAPI.Actions.API;
+
 using System.ComponentModel;
 
 using YamlDotNet.Serialization;
@@ -11,8 +13,6 @@ namespace SecretLabAPI.Actions
     /// </summary>
     public class ActionDefinition
     {
-        private bool triedParse;
-
         /// <summary>
         /// Gets or sets the list of actions to be invoked, where each action is represented as a formatted string.
         /// </summary>
@@ -36,17 +36,15 @@ namespace SecretLabAPI.Actions
         /// access; changes to the source data after caching are not reflected until the cache is reset.</remarks>
         [YamlIgnore]
         [JsonIgnore]
-        public List<ActionInfo> CachedActions
+        public List<CompiledAction> CachedActions
         {
             get
             {
-                if (!triedParse)
+                if (field is null)
                 {
                     field = new();
 
-                    ActionHelper.TryParseString(Actions, field);
-
-                    triedParse = true;
+                    Actions.ParseActions(field);
                 }
 
                 return field;

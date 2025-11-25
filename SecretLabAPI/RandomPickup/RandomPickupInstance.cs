@@ -9,6 +9,7 @@ using ProjectMER.Features.Objects;
 
 using SecretLabAPI.Audio.Clips;
 
+using SecretLabAPI.Actions;
 using SecretLabAPI.Levels;
 
 using SecretLabAPI.RandomPickup.Configs;
@@ -19,7 +20,6 @@ using SecretLabAPI.Utilities.Interactions;
 using AdminToys;
 
 using UnityEngine;
-using SecretLabAPI.Actions;
 
 namespace SecretLabAPI.RandomPickup
 {
@@ -152,7 +152,7 @@ namespace SecretLabAPI.RandomPickup
             if (Properties.ExperienceGain > 0f)
                 player.AddExperience("Opened a Random Pickup", Properties.ExperienceGain);
 
-            ActionHelper.TrySelectAndExecuteTableForPlayer(player, (_, name) => name.StartsWith("RandomPickup"));
+            player.SelectAndExecuteTable((_, name) => name.StartsWith("RandomPickup"));
 
             if (clips.PlayRandomClip(RandomPickupClip.Opened))
             {

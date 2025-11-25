@@ -96,5 +96,38 @@ namespace SecretLabAPI
         {
             { "ExamplePosition", new() { "None" } }
         };
+
+        /// <summary>
+        /// Gets or sets the number of frames to skip between ray manager updates.
+        /// </summary>
+        /// <remarks>Increasing this value reduces the frequency of ray manager updates, which may improve
+        /// performance at the cost of update responsiveness. Set to 0 to update every frame.</remarks>
+        [Description("Number of frames to skip between ray manager updates.")]
+        public int RayManagerFrameSkip { get; set; } = 2;
+
+        /// <summary>
+        /// Gets or sets the forward offset applied to raycasts performed by the ray manager.
+        /// </summary>
+        [Description("Forward offset for ray manager raycasts.")]
+        public float RayManagerForwardOffset { get; set; } = 0.1f;
+
+        /// <summary>
+        /// Gets or sets the maximum distance, in units, used for raycasts performed by the ray manager.
+        /// </summary>
+        [Description("Maximum distance for ray manager raycasts.")]
+        public float RayManagerDistance { get; set; } = 100f;
+
+        /// <summary>
+        /// Gets or sets the collection of layer names used by the ray manager for raycasting operations.
+        /// </summary>
+        [Description("Layers used by the ray manager for raycasting.")]
+        public string[] RayManagerLayers { get; set; } = new string[]
+        {
+            "Default",
+            "TransparentFX",
+            "Ignore Raycast",
+            "Water",
+            "UI"
+        };
     }
 }
