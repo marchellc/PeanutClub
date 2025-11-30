@@ -69,8 +69,8 @@ namespace SecretLabAPI.Actions.Functions.Blocks
 
             var output = compiledWhileTree.Item1[compiledWhileTree.Item1.Count - 1].OutputVariableName;
 
-            var condsCtx = new ActionContext(compiledWhileTree.Item1, context.Players);
-            var actionsCtx = new ActionContext(compiledWhileTree.Item2, context.Players);
+            var condsCtx = new ActionContext(compiledWhileTree.Item1, context.Player);
+            var actionsCtx = new ActionContext(compiledWhileTree.Item2, context.Player);
 
             bool Evaluate()
             {
@@ -95,7 +95,7 @@ namespace SecretLabAPI.Actions.Functions.Blocks
                     compiledWhileTree.Item2[actionsCtx.IteratorIndex].Action.Delegate(ref actionsCtx);
             }
 
-            var nextIndex = context.Actions.FindIndex(context.Index, x => x == compiledWhileTree.Item2[compiledWhileTree.Item2.Count - 1]);
+            var nextIndex = context.Actions.FindIndex(context.IteratorIndex, x => x == compiledWhileTree.Item2[compiledWhileTree.Item2.Count - 1]);
 
             context.IteratorIndex = nextIndex + 1;
 
@@ -123,8 +123,8 @@ namespace SecretLabAPI.Actions.Functions.Blocks
 
             var output = compiledWhileTree.Item1[compiledWhileTree.Item1.Count - 1].OutputVariableName;
 
-            var condsCtx = new ActionContext(compiledWhileTree.Item1, context.Players);
-            var actionsCtx = new ActionContext(compiledWhileTree.Item2, context.Players);
+            var condsCtx = new ActionContext(compiledWhileTree.Item1, context.Player);
+            var actionsCtx = new ActionContext(compiledWhileTree.Item2, context.Player);
 
             bool Evaluate()
             {
@@ -158,7 +158,7 @@ namespace SecretLabAPI.Actions.Functions.Blocks
                 condsCtx.Dispose();
                 actionsCtx.Dispose();
 
-                var nextIndex = ctx.Actions.FindIndex(ctx.Index, x => x == compiledWhileTree.Item2[compiledWhileTree.Item2.Count - 1]) + 1;
+                var nextIndex = ctx.Actions.FindIndex(ctx.IteratorIndex, x => x == compiledWhileTree.Item2[compiledWhileTree.Item2.Count - 1]) + 1;
 
                 if (nextIndex >= ctx.Actions.Count)
                 {
@@ -167,7 +167,7 @@ namespace SecretLabAPI.Actions.Functions.Blocks
                 }
 
                 ctx.Actions.RemoveRange(nextIndex, ctx.Actions.Count - nextIndex);
-                ctx.Actions.ToList().ExecuteActions(ctx.Players.ToList());
+                ctx.Actions.ExecuteActions(ctx.Player);
 
                 ctx.Dispose();
             }
@@ -180,7 +180,7 @@ namespace SecretLabAPI.Actions.Functions.Blocks
         {
             compiledWhileTree = new(new(), new());
 
-            var endIndex = context.Actions.FindIndex(context.Index, x => x.Action.Id == "EndWhile");
+            var endIndex = context.Actions.FindIndex(context.IteratorIndex, x => x.Action.Id == "EndWhile");
 
             if (endIndex == -1)
             {
@@ -190,7 +190,7 @@ namespace SecretLabAPI.Actions.Functions.Blocks
 
             var inActions = false;
 
-            for (var i = context.Index + 1; i < endIndex - 1; i++)
+            for (var i = context.IteratorIndex + 1; i < endIndex - 1; i++)
             {
                 var action = context.Actions[i];
 

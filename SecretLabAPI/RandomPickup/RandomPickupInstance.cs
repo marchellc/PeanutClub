@@ -152,7 +152,7 @@ namespace SecretLabAPI.RandomPickup
             if (Properties.ExperienceGain > 0f)
                 player.AddExperience("Opened a Random Pickup", Properties.ExperienceGain);
 
-            player.SelectAndExecuteTable((_, name) => name.StartsWith("RandomPickup"));
+            ActionManager.Table.SelectAndExecuteTable(player, str => str.StartsWith("Rpu"));
 
             if (clips.PlayRandomClip(RandomPickupClip.Opened))
             {

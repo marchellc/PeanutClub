@@ -16,9 +16,9 @@
         public string Name { get; }
 
         /// <summary>
-        /// The default value of the parameter, if any.
+        /// The description of the parameter.
         /// </summary>
-        public object? DefaultValue { get; }
+        public string Description { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the ActionParameter class with the specified index, name and default
@@ -28,11 +28,10 @@
         /// <param name="name">The name of the parameter as defined in the action signature. Cannot be null or empty.</param>
         /// <param name="defaultValue">The default value assigned to the parameter if no value is provided. May be null if the parameter does not
         /// have a default value.</param>
-        public ActionParameter(int index, string name, object? defaultValue)
+        public ActionParameter(int index, string name)
         {
             Index = index;
             Name = name;
-            DefaultValue = defaultValue;
         }
     }
 }

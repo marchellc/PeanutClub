@@ -20,6 +20,11 @@
         /// Whether or not this function is an evaluator (returns a value).
         /// </summary>
         public bool IsEvaluator { get; }
+
+        /// <summary>
+        /// Whether or not to save arguments that overflow the defined parameters.
+        /// </summary>
+        public bool SaveArgumentsOverflow { get; }
         
         /// <summary>
         /// Initializes a new instance of the ActionAttribute class with the specified identifier and optional
@@ -27,11 +32,12 @@
         /// </summary>
         /// <param name="id">The unique identifier for the action. Cannot be null.</param>
         /// <param name="description">An optional description of the action. If not specified, the description is set to an empty string.</param>
-        public ActionAttribute(string id, string description = "", bool isEvaluator = false)
+        public ActionAttribute(string id, string description = "", bool isEvaluator = false, bool argsOverflow = false)
         {
             Id = id;
             Description = description;
             IsEvaluator = isEvaluator;
+            SaveArgumentsOverflow = argsOverflow;
         }
     }
 }

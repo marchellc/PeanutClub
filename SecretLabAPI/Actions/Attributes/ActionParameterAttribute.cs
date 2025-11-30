@@ -17,23 +17,15 @@
         public string Description { get; }
 
         /// <summary>
-        /// The default value of the parameter.
-        /// </summary>
-        public object? DefaultValue { get; }
-
-        /// <summary>
         /// Initializes a new instance of the ActionParameterAttribute class with the specified parameter name,
         /// and optional default value.
         /// </summary>
         /// <param name="name">The name of the action parameter. This value is used to identify the parameter in the action method
         /// signature.</param>
-        /// <param name="defaultValue">The default value to assign to the parameter if no value is provided. If null, the parameter does not have a
-        /// default value.</param>
-        public ActionParameterAttribute(string name, string description, object? defaultValue = null)
+        public ActionParameterAttribute(string name, string description)
         {
             Name = name;
             Description = description;
-            DefaultValue = defaultValue;
         }
     }
 }

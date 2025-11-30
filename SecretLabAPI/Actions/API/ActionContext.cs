@@ -15,13 +15,6 @@ namespace SecretLabAPI.Actions.API
     /// </summary>
     public struct ActionContext : IDisposable
     {
-        private bool disposePlayers;
-
-        /// <summary>
-        /// The index of the current action.
-        /// </summary>
-        public int Index;
-
         /// <summary>
         /// The index of the iterator.
         /// </summary>
@@ -43,9 +36,9 @@ namespace SecretLabAPI.Actions.API
         public CompiledAction? Previous;
 
         /// <summary>
-        /// The list of players targeted by the action.
+        /// The player targeted by the action.
         /// </summary>
-        public List<ExPlayer> Players;
+        public ExPlayer Player;
 
         /// <summary>
         /// The list of actions to be performed.
@@ -62,14 +55,13 @@ namespace SecretLabAPI.Actions.API
         /// </summary>
         /// <param name="actions">The list of actions to be managed by this context. Cannot be null.</param>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="actions"/> is null.</exception>
-        public ActionContext(List<CompiledAction> actions, List<ExPlayer>? players = null)
+        public ActionContext(List<CompiledAction> actions, ExPlayer? player = null)
         {
             if (actions is null)
                 throw new ArgumentNullException(nameof(actions));
 
+            Player = player;
             Actions = actions;
-
-            Index = 0;
 
             Next = null;
             Previous = null;
@@ -77,17 +69,6 @@ namespace SecretLabAPI.Actions.API
             Current = null!;
 
             Memory = DictionaryPool<string, object>.Shared.Rent();
-
-            if (players is null)
-            {
-                Players = ListPool<ExPlayer>.Shared.Rent();
-                disposePlayers = true;
-            }
-            else
-            {
-                Players = players;
-                disposePlayers = false;
-            }
         }
 
         /// <summary>
@@ -95,16 +76,10 @@ namespace SecretLabAPI.Actions.API
         /// </summary>
         public void Dispose() 
         { 
-            if (disposePlayers && Players != null)
-                ListPool<ExPlayer>.Shared.Return(Players);
-
             if (Memory != null)
                 DictionaryPool<string, object>.Shared.Return(Memory);
 
-            Players = null!;
             Memory = null!;
-
-            disposePlayers = false;
         }
 
         /// <summary>
@@ -339,6 +314,57 @@ namespace SecretLabAPI.Actions.API
         }
 
         /// <summary>
+        /// Retrieves the metadata value associated with the specified key, or creates and stores a new value using the
+        /// provided factory if the key does not exist.
+        /// </summary>
+        /// <remarks>If the metadata value for the specified key does not exist, the method invokes the
+        /// factory to create a new value, stores it, and returns it. Subsequent calls with the same key will return the
+        /// stored value. This method is not thread-safe; concurrent access may result in multiple factory invocations
+        /// or inconsistent state.</remarks>
+        /// <typeparam name="T">The type of the metadata value to retrieve or create.</typeparam>
+        /// <param name="key">The key used to identify the metadata value. Cannot be null or empty.</param>
+        /// <param name="factory">A function that creates a new metadata value of type T if the key does not exist.</param>
+        /// <returns>The metadata value of type T associated with the specified key. If the key does not exist, a new value is
+        /// created using the factory and stored.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="key"/> is null or empty.</exception>
+        /// <exception cref="Exception">Thrown if the metadata value associated with <paramref name="key"/> exists but is not of type T.</exception>
+        public T GetMetadata<T>(string key, Func<T> factory)
+        {
+            if (string.IsNullOrEmpty(key))
+                throw new ArgumentNullException(nameof(key));
+
+            if (Current.Metadata.TryGetValue(key, out var obj))
+            {
+                if (obj is T variableValue)
+                    return variableValue;
+
+                throw new Exception($"Metadata variable '{key}' is not of type {typeof(T).FullName}.");
+            }
+            else
+            {
+                var value = factory();
+
+                Current.Metadata[key] = value!;
+                return value;
+            }
+        }
+
+        /// <summary>
+        /// Sets a metadata entry with the specified key and value for the current context.
+        /// </summary>
+        /// <typeparam name="T">The type of the metadata value to associate with the specified key.</typeparam>
+        /// <param name="key">The key used to identify the metadata entry. Cannot be null or empty.</param>
+        /// <param name="value">The value to associate with the specified metadata key.</param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="key"/> is null or empty.</exception>
+        public void SetMetadata<T>(string key, T value)
+        {
+            if (string.IsNullOrEmpty(key))
+                throw new ArgumentNullException(nameof(key));
+
+            Current.Metadata[key] = value!;
+        }
+
+        /// <summary>
         /// Attempts to save the specified output value to the current output variable.
         /// </summary>
         /// <remarks>The method returns false if the output is null or if the current output variable name
@@ -373,19 +399,6 @@ namespace SecretLabAPI.Actions.API
                 return;
 
             Current.Parameters.For((index, p) => parameter(index, p));
-        }
-
-        /// <summary>
-        /// Invokes the specified action for each player in the collection.
-        /// </summary>
-        /// <param name="player">An action to perform on each <see cref="ExPlayer"/> instance in the collection. Cannot be null.</param>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="player"/> is null.</exception>
-        public void ForEach(Action<ExPlayer> player)
-        {
-            if (player is null)
-                throw new ArgumentNullException(nameof(player));
-
-            Players.ForEach(player);
         }
     }
 }

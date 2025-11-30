@@ -4,6 +4,7 @@
     /// Specifies the result of an action, indicating whether it succeeded or failed and whether subsequent processing
     /// should continue or stop.
     /// </summary>
+    [Flags]
     public enum ActionResultFlags
     {
         /// <summary>

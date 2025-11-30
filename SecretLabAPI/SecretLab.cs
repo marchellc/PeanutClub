@@ -29,6 +29,7 @@ using SecretLabAPI.Levels;
 
 using SecretLabAPI.Roles.Misc;
 using SecretLabAPI.Roles.ChaosSpy;
+using SecretLabAPI.Rays;
 
 namespace SecretLabAPI;
 
@@ -99,6 +100,8 @@ public class SecretLab : Plugin<SecretLabConfig>
         LevelHandler.Initialize();
 
         InitCustomOverlays();
+
+        RayManager.Initialize();
 
         // Old init
 

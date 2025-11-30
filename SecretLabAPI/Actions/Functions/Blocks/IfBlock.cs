@@ -66,7 +66,7 @@ namespace SecretLabAPI.Actions.Functions.Blocks
             var ifTree = compiledIfTree.Find(x => x.Type == ActionType.If);
             var endIfTree = compiledIfTree.Find(x => x.Type is ActionType.EndIf);
 
-            if (!TryInvokeTree(ifTree.Conditions, context.Players, out var conditionResult))
+            if (!TryInvokeTree(ifTree.Conditions, context.Player, out var conditionResult))
             {
                 ApiLog.Error("ActionManager", "Could not compile if-block");
                 return ActionResultFlags.StopDispose;
@@ -81,26 +81,26 @@ namespace SecretLabAPI.Actions.Functions.Blocks
                     if (tree.Type != ActionType.ElseIf)
                         continue;
 
-                    if (!TryInvokeTree(tree.Conditions, context.Players, out conditionResult))
+                    if (!TryInvokeTree(tree.Conditions, context.Player, out conditionResult))
                         return ActionResultFlags.StopDispose;
 
                     if (!conditionResult)
                         continue;
 
-                    tree.Actions.ExecuteActions(context.Players);
+                    tree.Actions.ExecuteActions(context.Player);
                     break;
                 }
             }
             else
             {
-                ifTree.Actions.ExecuteActions(context.Players);
+                ifTree.Actions.ExecuteActions(context.Player);
             }
 
             context.IteratorIndex = context.Actions.IndexOf(endIfTree.Conditions[endIfTree.Conditions.Count - 1]);
             return ActionResultFlags.SuccessDispose;
         }
 
-        private static bool TryInvokeTree(List<CompiledAction> actions, List<ExPlayer> players, out bool conditionResult)
+        private static bool TryInvokeTree(List<CompiledAction> actions, ExPlayer player, out bool conditionResult)
         {
             conditionResult = false;
 
@@ -112,7 +112,7 @@ namespace SecretLabAPI.Actions.Functions.Blocks
                 return false;
             }
 
-            var context = new ActionContext(actions, players);
+            var context = new ActionContext(actions, player);
 
             for (context.IteratorIndex = 0; context.IteratorIndex < actions.Count; context.IteratorIndex++)
             {
@@ -152,7 +152,7 @@ namespace SecretLabAPI.Actions.Functions.Blocks
         {
             actions = new();
 
-            var ifStartIndex = context.Index;
+            var ifStartIndex = context.IteratorIndex;
             var ifEndIndex = context.Actions.FindIndex(ifStartIndex, x => x.Action.Id == "EndIf");
 
             if (ifEndIndex == -1)
@@ -175,7 +175,7 @@ namespace SecretLabAPI.Actions.Functions.Blocks
 
                 if (action.Action.Id == "ElseIf")
                 {
-                    if (type is ActionType.If || type is ActionType.ElseIf)
+                    if (type is ActionType.If or ActionType.ElseIf)
                     {
                         if (conditions.Count < 1)
                         {

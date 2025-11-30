@@ -1,4 +1,5 @@
-﻿using LabApi.Loader.Features.Paths;
+﻿using LabApi.Loader;
+using LabApi.Loader.Features.Paths;
 
 using LabExtended.API;
 
@@ -6,19 +7,15 @@ using LabExtended.Core;
 using LabExtended.Utilities;
 using LabExtended.Extensions;
 
-using SecretLabAPI.Levels;
-using SecretLabAPI.Utilities;
-using SecretLabAPI.Extensions;
+using NorthwoodLib.Pools;
 
 using SecretLabAPI.Actions.API;
 using SecretLabAPI.Actions.Attributes;
 using SecretLabAPI.Actions.Extensions;
 
-using NorthwoodLib.Pools;
+using SecretLabAPI.Extensions;
 
 using System.Reflection;
-
-using LabApi.Loader;
 
 using Utils.NonAllocLINQ;
 
@@ -30,13 +27,9 @@ namespace SecretLabAPI.Actions
     public static class ActionManager
     {
         /// <summary>
-        /// Gets a collection of action definitions indexed by their table names.
+        /// Gets the action table.
         /// </summary>
-        public static Dictionary<string, WeightedActionDefinition> Tables { get; private set; } = new()
-        {
-            ["example"] = new(),
-            ["example2"] = new()
-        };
+        public static ActionTable Table { get; private set; } = new();
 
         /// <summary>
         /// Gets a dictionary of all compiled actions, keyed by their ID.
@@ -97,7 +90,7 @@ namespace SecretLabAPI.Actions
         /// constraints, the method returns false without throwing an exception.</remarks>
         /// <param name="method">The method to register as an action. Must be static, decorated with <see cref="ActionAttribute"/>, return
         /// <see cref="ActionResultFlags"/>, and accept parameters of type <see cref="ActionContext"/> by reference and
-        /// <see cref="CompiledParameter[]"/>.</param>
+        /// <see cref="CompiledParameter"/>.</param>
         /// <returns>true if the method was successfully registered as an action; otherwise, false.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="method"/> is null.</exception>
         public static bool RegisterAction(MethodInfo method)
@@ -130,11 +123,14 @@ namespace SecretLabAPI.Actions
                     return false;
 
                 var actionParameters = GetParameters(method);
-                var actionMethod = new ActionMethod(actionAttribute.Id, actionDelegate, actionParameters);
+                var actionMethod = new ActionMethod(actionAttribute.Id, actionAttribute.IsEvaluator, actionAttribute.SaveArgumentsOverflow,
+                    actionDelegate, actionParameters);
 
                 Actions[actionAttribute.Id] = actionMethod;
 
-                ApiLog.Info("ActionManager", $"Registered action &3{method.Name}&r with ID &6{actionAttribute.Id}&r");
+                if (method.DeclaringType is null || method.DeclaringType.Assembly != typeof(ActionManager).Assembly)
+                    ApiLog.Info("ActionManager", $"Registered action &3{method.Name}&r with ID &6{actionAttribute.Id}&r");
+
                 return true;
             }
             catch (Exception ex)
@@ -144,124 +140,154 @@ namespace SecretLabAPI.Actions
             }
         }
 
-        /// <summary>
-        /// Executes the specified compiled action for the given player and returns a value indicating whether the
-        /// execution was successful.
-        /// </summary>
         /// <param name="action">The compiled action to execute. Cannot be null.</param>
-        /// <param name="player">The player for whom the action is executed. Cannot be null.</param>
-        /// <returns>true if the action was executed successfully; otherwise, false.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="action"/> or <paramref name="player"/> is null.</exception>
-        public static bool ExecuteAction(this CompiledAction action, ExPlayer player)
+        extension(CompiledAction action)
         {
-            if (action is null)
-                throw new ArgumentNullException(nameof(action));
-
-            if (player is null)
-                throw new ArgumentNullException(nameof(player));
-
-            var actions = ListPool<CompiledAction>.Shared.Rent(1);
-            var players = ListPool<ExPlayer>.Shared.Rent(1);
-
-            players.Add(player);
-            actions.Add(action);
-
-            var result = actions.ExecuteActions(players);
-
-            ListPool<CompiledAction>.Shared.Return(actions);
-            ListPool<ExPlayer>.Shared.Return(players);
-
-            return result;
-        }
-
-        /// <summary>
-        /// Executes the specified compiled action for the provided list of players.
-        /// </summary>
-        /// <param name="action">The compiled action to execute. Cannot be null.</param>
-        /// <param name="players">The list of players on which to execute the action. Cannot be null.</param>
-        /// <returns>true if the action was successfully executed for all players; otherwise, false.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="action"/> or <paramref name="players"/> is null.</exception>
-        public static bool ExecuteAction(this CompiledAction action, List<ExPlayer> players)
-        {
-            if (action is null)
-                throw new ArgumentNullException(nameof(action));
-
-            if (players is null)
-                throw new ArgumentNullException(nameof(players));
-
-            var list = ListPool<CompiledAction>.Shared.Rent(1);
-
-            list.Add(action);
-
-            var result = list.ExecuteActions(players);
-
-            ListPool<CompiledAction>.Shared.Return(list);
-            return result;
-        }
-
-        /// <summary>
-        /// Executes the specified compiled actions for the given player and returns a value indicating whether all
-        /// actions completed successfully.
-        /// </summary>
-        /// <param name="actions">The list of compiled actions to execute. Cannot be null.</param>
-        /// <param name="player">The player for whom the actions will be executed. Cannot be null.</param>
-        /// <returns>true if all actions executed successfully; otherwise, false.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="actions"/> or <paramref name="player"/> is null.</exception>
-        public static bool ExecuteActions(this List<CompiledAction> actions, ExPlayer player)
-        {
-            if (actions is null)
-                throw new ArgumentNullException(nameof(actions));
-
-            if (player is null)
-                throw new ArgumentNullException(nameof(player));
-
-            var list = ListPool<ExPlayer>.Shared.Rent(1);
-
-            list.Add(player);
-
-            var result = actions.ExecuteActions(list);
-
-            ListPool<ExPlayer>.Shared.Return(list);
-            return result;
-        }
-
-        /// <summary>
-        /// Executes a sequence of compiled actions for the specified players and returns a value indicating whether all
-        /// actions completed successfully.
-        /// </summary>
-        /// <remarks>If either the actions or players list is empty, the method returns false without
-        /// executing any actions. If an action signals to stop or an error occurs during execution, the method disposes
-        /// the context and returns false or the result as indicated by the action flags. Logging is performed for
-        /// unsuccessful or error cases.</remarks>
-        /// <param name="actions">The list of compiled actions to execute. Cannot be null or empty.</param>
-        /// <param name="players">The list of players for whom the actions are executed. Cannot be null or empty.</param>
-        /// <returns>true if all actions were executed and completed successfully; otherwise, false.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if either the actions or players parameter is null.</exception>
-        public static bool ExecuteActions(this List<CompiledAction> actions, List<ExPlayer> players)
-        {
-            if (actions is null)
-                throw new ArgumentNullException(nameof(actions));
-
-            if (players is null)
-                throw new ArgumentNullException(nameof(players));
-
-            if (actions.Count < 1)
-                return false;
-
-            if (players.Count < 1)
-                return false;
-
-            var context = new ActionContext(actions, players);
-
-            for (context.IteratorIndex = 0; context.IteratorIndex < actions.Count; context.IteratorIndex++)
+            /// <summary>
+            /// Executes the specified compiled action for the given player and returns a value indicating whether the
+            /// execution was successful.
+            /// </summary>
+            /// <param name="player">The player for whom the action is executed. Cannot be null.</param>
+            /// <returns>true if the action was executed successfully; otherwise, false.</returns>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="action"/> or <paramref name="player"/> is null.</exception>
+            public bool ExecuteAction(ExPlayer? player)
             {
-                var current = actions[context.IteratorIndex];
+                if (action is null)
+                    throw new ArgumentNullException(nameof(action));
 
-                context.Index = context.IteratorIndex;
+                var actions = ListPool<CompiledAction>.Shared.Rent(1);
+
+                actions.Add(action);
+
+                var result = actions.ExecuteActions(player);
+
+                ListPool<CompiledAction>.Shared.Return(actions);
+                return result;
+            }
+
+            /// <summary>
+            /// Executes the specified compiled action.
+            /// </summary>
+            /// <returns>true if the action was successfully executed for all players; otherwise, false.</returns>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="action"/> is null.</exception>
+            public bool ExecuteAction()
+            {
+                if (action is null)
+                    throw new ArgumentNullException(nameof(action));
+
+                return action.ExecuteAction(default(ExPlayer));
+            }
+
+            /// <summary>
+            /// Executes the specified compiled action for the provided list of players.
+            /// </summary>
+            /// <param name="players">The list of players on which to execute the action. Cannot be null.</param>
+            /// <returns>true if the action was successfully executed for all players; otherwise, false.</returns>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="action"/> or <paramref name="players"/> is null.</exception>
+            public void ExecuteAction(List<ExPlayer> players)
+            {
+                if (action is null)
+                    throw new ArgumentNullException(nameof(action));
+
+                if (players is null)
+                    throw new ArgumentNullException(nameof(players));
+
+                var list = ListPool<CompiledAction>.Shared.Rent(1);
+
+                list.Add(action);
+                list.ExecuteActions(players);
+
+                ListPool<CompiledAction>.Shared.Return(list);
+            }
+        }
+
+        /// <param name="actions">The list of compiled actions to execute. Cannot be null.</param>
+        extension(List<CompiledAction> actions)
+        {
+            /// <summary>
+            /// Executes the specified collection of compiled actions and returns a value indicating whether the execution
+            /// was successful.
+            /// </summary>
+            /// <returns>true if all actions were executed successfully; otherwise, false.</returns>
+            /// <exception cref="ArgumentNullException">Thrown if the actions parameter is null.</exception>
+            public bool ExecuteActions()
+            {
+                if (actions is null)
+                    throw new ArgumentNullException(nameof(actions));
+
+                return actions.ExecuteActions(default(ExPlayer));
+            }
+
+            /// <summary>
+            /// Executes the specified compiled actions for the given player and returns a value indicating whether all
+            /// actions completed successfully.
+            /// </summary>
+            /// <param name="player">The player for whom the actions will be executed. Cannot be null.</param>
+            /// <returns>true if all actions executed successfully; otherwise, false.</returns>
+            /// <exception cref="ArgumentNullException">Thrown if <paramref name="actions"/> or <paramref name="player"/> is null.</exception>
+            public bool ExecuteActions(ExPlayer? player)
+            {
+                if (actions is null)
+                    throw new ArgumentNullException(nameof(actions));
+
+                if (player is null)
+                    throw new ArgumentNullException(nameof(player));
+
+                var context = new ActionContext(actions, player);
+                return ExecuteContext(ref context);
+            }
+
+            /// <summary>
+            /// Executes a sequence of compiled actions for the specified players and returns a value indicating whether all
+            /// actions completed successfully.
+            /// </summary>
+            /// <remarks>If either the actions or players list is empty, the method returns false without
+            /// executing any actions. If an action signals to stop or an error occurs during execution, the method disposes
+            /// the context and returns false or the result as indicated by the action flags. Logging is performed for
+            /// unsuccessful or error cases.</remarks>
+            /// <param name="players">The list of players for whom the actions are executed. Cannot be null or empty.</param>
+            /// <returns>true if all actions were executed and completed successfully; otherwise, false.</returns>
+            /// <exception cref="ArgumentNullException">Thrown if either the actions or players parameter is null.</exception>
+            public void ExecuteActions(List<ExPlayer> players)
+            {
+                if (actions is null)
+                    throw new ArgumentNullException(nameof(actions));
+
+                if (players is null)
+                    throw new ArgumentNullException(nameof(players));
+
+                if (actions.Count < 1)
+                    return;
+
+                if (players.Count < 1)
+                    return;
+
+                for (var i  = 0; i < players.Count; i++)
+                {
+                    var context = new ActionContext(actions, players[i]);
+
+                    ExecuteContext(ref context);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Executes the actions within the given context.
+        /// </summary>
+        /// <param name="context">The context to execute.</param>
+        /// <returns>true if all the actions returned success</returns>
+        public static bool ExecuteContext(ref ActionContext context)
+        {
+            for (context.IteratorIndex = 0; context.IteratorIndex < context.Actions.Count; context.IteratorIndex++)
+            {
+                if (context.IteratorIndex < 0 || context.IteratorIndex >= context.Actions.Count)
+                    break;
+
+                var current = context.Actions[context.IteratorIndex];
+
                 context.Previous = context.Current;
                 context.Current = current;
-                context.Next = context.IteratorIndex + 1 < actions.Count ? actions[context.IteratorIndex + 1] : null;
-
+                context.Next = context.IteratorIndex + 1 < context.Actions.Count ? context.Actions[context.IteratorIndex + 1] : null;
                 try
                 {
                     var flags = current.Action.Delegate(ref context);
@@ -273,13 +299,14 @@ namespace SecretLabAPI.Actions
 
                         return flags.IsSuccess();
                     }
-                    else if (!flags.IsSuccess())
-                    {
-                        context.Dispose();
 
-                        ApiLog.Warn("ActionManager", $"Action &r{current.Action.Delegate.Method}&r returned unsuccessful result.");
-                        return false;
-                    }
+                    if (flags.IsSuccess()) 
+                        continue;
+                    
+                    context.Dispose();
+
+                    ApiLog.Warn("ActionManager", $"Action &r{current.Action.Delegate.Method}&r returned unsuccessful result.");
+                    return false;
                 }
                 catch (Exception ex)
                 {
@@ -290,90 +317,7 @@ namespace SecretLabAPI.Actions
                 }
             }
 
-            context.Dispose();
             return true;
-        }
-
-        /// <summary>
-        /// Attempts to select a weighted table for the specified player and execute its associated actions.
-        /// </summary>
-        /// <remarks>Table selection is based on weighted criteria, which may be influenced by
-        /// player-specific multipliers and attributes. If no valid table is found or the player is invalid, the method
-        /// returns false.</remarks>
-        /// <param name="player">The player for whom the table selection and execution is performed. Cannot be null and must have a valid
-        /// ReferenceHub.</param>
-        /// <returns>true if a suitable table was selected and its actions executed for the player; otherwise, false.</returns>
-        public static bool SelectAndExecuteTable(this ExPlayer player, Func<WeightedActionDefinition, string, bool>? predicate = null)
-        {
-            if (player?.ReferenceHub == null)
-                return false;
-
-            var table = Tables.GetRandomWeighted(p =>
-            {
-                if (p.Value is null)
-                    return 0f;
-
-                if (predicate != null && !predicate(p.Value, p.Key))
-                    return 0f;
-
-                if (p.Value.Weight <= 0f)
-                    return 0f;
-
-                if (p.Value.Weight >= 100f)
-                    return 100f;
-
-                var weight = p.Value.Weight;
-
-                if (!string.IsNullOrEmpty(p.Value.Multipliers)
-                    && WeightMultipliers.Groups.TryGetValue(p.Value.Multipliers, out var group))
-                    weight = group.GetWeight(weight, player.UserId, player.PermissionsGroupName, player.GetLevel());
-
-                return weight;
-            }).Value;
-
-            if (table == null)
-                return false;
-
-            return table.CachedActions.ExecuteActions(player);
-        }
-
-        /// <summary>
-        /// Executes the set of actions associated with the specified table for the given player.
-        /// </summary>
-        /// <remarks>Returns false if the player is invalid or if the specified table does not
-        /// exist.</remarks>
-        /// <param name="player">The player for whom the table actions will be executed. Must not be null and must have a valid reference
-        /// hub.</param>
-        /// <param name="tableName">The name of the table whose actions are to be executed. Must correspond to an existing table.</param>
-        /// <returns>true if the table exists and its actions were executed for the player; otherwise, false.</returns>
-        public static bool ExecuteTable(this ExPlayer player, string tableName)
-        {
-            if (player?.ReferenceHub == null)
-                return false;
-
-            if (!Tables.TryGetValue(tableName, out var table))
-                return false;
-
-            return table.CachedActions.ExecuteActions(player);
-        }
-
-        /// <summary>
-        /// Executes the actions associated with the specified table for the provided list of players.
-        /// </summary>
-        /// <remarks>Returns false if the players list is null or empty, or if the specified table does
-        /// not exist.</remarks>
-        /// <param name="players">The list of players to execute table actions for. Must not be null or empty.</param>
-        /// <param name="tableName">The name of the table whose actions will be executed. Must correspond to an existing table.</param>
-        /// <returns>true if the table actions were successfully executed for the players; otherwise, false.</returns>
-        public static bool ExecuteTable(this List<ExPlayer> players, string tableName)
-        {
-            if (players is null || players.Count < 1)
-                return false;
-
-            if (!Tables.TryGetValue(tableName, out var table))
-                return false;
-
-            return table.CachedActions.ExecuteActions(players);
         }
 
         /// <summary>
@@ -386,7 +330,7 @@ namespace SecretLabAPI.Actions
         /// for action specification.</param>
         /// <param name="actions">A list to which successfully parsed and compiled actions will be added. Must not be null.</param>
         /// <returns>true if at least one action was successfully parsed and added to the actions list; otherwise, false.</returns>
-        public static bool ParseActions(this List<string> value, List<CompiledAction> actions)
+        public static bool ParseActions(this List<string> value, List<CompiledAction>? actions)
         {
             if (Actions.Count < 1)
                 return false;
@@ -404,19 +348,18 @@ namespace SecretLabAPI.Actions
                 if (string.IsNullOrEmpty(trimmed))
                     continue;
 
+                // Format of actions:
+                // Single action:
+                // - ActionID "Arg" "Arg" "Arg"
+                // Multiple actions:
+                // - ActionID "Arg" "Arg"; ActionID "Arg"; ActionID "Arg" "Arg" "Arg"
+
                 // ActionArg; ActionAndArgs; ActionAndArgs;
                 var parts = trimmed.SplitEscaped(';');
 
                 if (parts.Length < 1)
                     continue;
 
-                // - ActionID: Arg, Arg, Arg; ActionID: Arg, Arg; ActionID: Arg;
-                // OR
-                // - ActionID
-                // - ActionID: Arg
-                // - ActionID: ArgKey=ArgValue
-                // OR
-                // ActionID: Arg=Value, Arg=Value; ActionID: Arg=Value; ActionID: Arg=Value, Arg=Value, Arg=Value;
                 for (var x = 0; x < parts.Length; x++)
                 {
                     var part = parts[x].Trim();
@@ -424,10 +367,13 @@ namespace SecretLabAPI.Actions
                     if (string.IsNullOrEmpty(part))
                         continue;
 
-                    var actionParts = part.SplitEscaped(':');
+                    var spaceIndex = part.IndexOf(' ');
 
-                    var actionId = actionParts[0].Trim();
-                    var actionArgs = string.Join(":", actionParts.Skip(1));
+                    if (spaceIndex == -1)
+                        continue;
+
+                    var actionId = part.Substring(0, spaceIndex).Trim();
+                    var actionArgs = part.Substring(spaceIndex + 1).Trim().SplitOutsideQuotes(' ');
 
                     if (!Actions.TryGetValue(actionId, out var action))
                     {
@@ -435,8 +381,7 @@ namespace SecretLabAPI.Actions
                         continue;
                     }
 
-                    var argsList = actionArgs.SplitEscaped(',');
-                    var resultAction = CompileAction(action, argsList);
+                    var resultAction = action.CompileAction(actionArgs);
 
                     if (resultAction is null)
                     {
@@ -452,15 +397,39 @@ namespace SecretLabAPI.Actions
         }
 
         // Arguments can either be assigned by their position or by their name (using a key=value format).
-        private static CompiledAction? CompileAction(ActionMethod method, string[] args)
+        /// <summary>
+        /// Compiles the specified action method and its arguments into a structured representation for execution.
+        /// </summary>
+        /// <remarks>If more arguments are provided than expected and the action method allows overflow,
+        /// excess arguments are stored in the metadata. The first argument may specify an output variable if it begins
+        /// with '$'. Compilation fails and returns null if required arguments are missing, empty, or
+        /// duplicated.</remarks>
+        /// <param name="method">The action method definition to compile. Must not be null and should contain parameter metadata describing
+        /// expected arguments.</param>
+        /// <param name="args">An array of argument strings to assign to the action method's parameters. Arguments may be provided by
+        /// position or by name using the key=value format.</param>
+        /// <returns>A CompiledAction instance representing the compiled action and its arguments, or null if compilation fails
+        /// due to invalid or missing arguments.</returns>
+        public static CompiledAction? CompileAction(this ActionMethod method, string[] args)
         {
             var array = new CompiledParameter[method.Parameters.Length];
             var output = default(string);
+            var comp = new CompiledAction(method, array, string.Empty);
 
             for (var i = 0; i < args.Length; i++)
             {
                 if (i >= method.Parameters.Length)
                 {
+                    if (method.SaveArgumentsOverflow)
+                    {
+                        if (!comp.Metadata.TryGetValue("ArgsOverflow", out var argsOverflowObj)
+                            || argsOverflowObj is not List<string> argsOverflow)
+                            comp.Metadata["ArgsOverflow"] = argsOverflow = new();
+
+                        argsOverflow.Add(args[i].Trim());
+                        continue;
+                    }
+
                     ApiLog.Warn("ActionManager", $"Error while compiling action (&3{method.Id}&r): Too many arguments were provided.");
                     return null;
                 }
@@ -521,7 +490,19 @@ namespace SecretLabAPI.Actions
                 }
             }
 
-            return new(method, array, output);
+            if (args.Length < method.Parameters.Length)
+            {
+                for (var i = 0; i < method.Parameters.Length; i++)
+                {
+                    if (array[i] != null)
+                        continue;
+
+                    array[i] = new() { Source = string.Empty };
+                }
+            }
+
+            comp.OutputVariableName = output;
+            return comp;
         }
 
         private static ActionParameter[] GetParameters(MethodInfo method)
@@ -537,7 +518,7 @@ namespace SecretLabAPI.Actions
 
             foreach (var attribute in attributes)
             {
-                parameters[index] = new ActionParameter(index, attribute.Name, attribute.DefaultValue);
+                parameters[index] = new(index, attribute.Name) { Description = attribute.Description };
 
                 index++;
             }
@@ -554,32 +535,116 @@ namespace SecretLabAPI.Actions
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
 
-            foreach (var file in Directory.GetFiles(path, "*.yml"))
+            File.WriteAllText(Path.Combine(path, "example.txt"),
+                $"# This file serves as an example for custom action definitions\n" +
+                $"# Each file can contain multiple action definitions, each definition is separated by a comma before it's name, ex. :ID\n\n" +
+                $"# Actions are defined per-line like this:" +
+                $"# ActionID \"ArgumentOne\" \"ArgumentTwo\" and so on\n\n" +
+                $"# Can also define multiple actions on one line:\n" +
+                $"# ActionID \"ArgumentOne\" \"ArgumentTwo\"; ActionID \"ArgumentOne\" \"ArgumentTwo\"\n\n" +
+                $"# Both of these lines will spawn an item on all players and log a message to the console:\n" +
+                $":ExampleAction\n" +
+                $"GetPlayers \"$Players\"\n" +
+                $"Execute \"SpawnItem\" \"$Players\" \"Medkit\" \"2\"\n" +
+                $"Log \"Spawned two medkits at all players\"\n\n" +
+                $":ExampleActionOneLine\n" +
+                $"GetPlayers \"$Players\"; Execute \"SpawnItem\" \"$Players\" \"Medkit\" \"2\"\n\n" +
+                $"# And as for parsing, lines starting with a # and empty lines are ignored\n" +
+                $"# Good luck!");
+
+            void ReadFile(string file, string prefix = "")
             {
-                if (!FileUtils.TryLoadYamlFile<ActionDefinition>(file, out var definition))
+                var read = File.ReadAllLines(file);
+
+                if (read.Length < 1)
+                    return;
+
+                var lines = read.Where(str => !string.IsNullOrWhiteSpace(str) && !str.StartsWith("#")).ToList();
+
+                if (lines.Count < 1)
+                    return;
+
+                var lastIndex = 0;
+
+                while (true)
                 {
-                    ApiLog.Error("ActionHelper", $"Failed to load action definition file: &3{Path.GetFileName(file)}&r");
-                    continue;
+                    var startIndex = lines.FindIndex(lastIndex + 1, s => s.StartsWith(":"));
+                    var nextIndex = lines.FindIndex(startIndex + 1, s => s.StartsWith(":"));
+
+                    if (startIndex == -1)
+                        break;
+
+                    var id = lines[startIndex].Substring(1).Trim();
+
+                    if (!string.IsNullOrEmpty((prefix)))
+                        id = prefix + id;
+
+                    lastIndex = startIndex;
+
+                    var endIndex = nextIndex == -1
+                        ? lines.Count
+                        : nextIndex;
+
+                    var section = new List<string>();
+                    var actions = new List<CompiledAction>();
+
+                    for (var x = startIndex + 1; x < endIndex - 1; x++)
+                        section.Add(lines[x]);
+
+                    if (!section.ParseActions(actions))
+                        continue;
+
+                    var actionDelegate = new ActionDelegate((ref context) =>
+                    {
+                        actions.ExecuteActions(context.Player);
+                        return ActionResultFlags.SuccessDispose;
+                    });
+
+                    var lastAction = actions.LastOrDefault();
+
+                    if (lastAction is null)
+                    {
+                        ApiLog.Warn("ActionManager", $"Failed to load custom action &3{id}&r from &3{Path.GetFileName(file)}&r: No actions were defined.");
+                        continue;
+                    }
+
+                    var method = new ActionMethod(id,
+
+                        lastAction.Action.IsEvaluator,
+                        lastAction.Action.SaveArgumentsOverflow,
+
+                        actionDelegate,
+
+                        Array.Empty<ActionParameter>());
+
+                    Actions[Path.GetFileNameWithoutExtension(file)] = method;
+
+                    ApiLog.Info("ActionManager", $"Loaded custom action &3{Path.GetFileName(file)}&r");
                 }
-
-                var id = Path.GetFileNameWithoutExtension(file);
-
-                var action = new ActionDelegate((ref context) =>
-                {
-                    definition.CachedActions.ExecuteActions(context.Players.ToList());
-                    return ActionResultFlags.Success | ActionResultFlags.Dispose;
-                });
-
-                var method = new ActionMethod(id, action, Array.Empty<ActionParameter>());
-
-                Actions[Path.GetFileNameWithoutExtension(file)] = method;
-
-                ApiLog.Info("ActionHelper", $"Loaded custom action &3{Path.GetFileName(file)}&r");
             }
 
-            Tables = SecretLab.LoadConfig(false, "tables", () => Tables);
+            foreach (var file in Directory.GetFiles(path, "*.txt"))
+            {
+                ReadFile(file);
 
-            ApiLog.Info("ActionHelper", $"Loaded &6{Tables.Count}&r action table(s)");
+                foreach (var dir in Directory.GetDirectories(path))
+                {
+                    var dirName = Path.GetDirectoryName(dir);
+
+                    foreach (var subFile in Directory.GetFiles(dir, "*.txt"))
+                        ReadFile(subFile, dirName + "/");
+                }
+            }
+
+            if (FileUtils.TryLoadYamlFile<ActionTable>(SecretLab.RootDirectory, "action_table.yml", out var actionTable))
+            {
+                Table = actionTable;
+                Table.CacheTables();
+            }
+            else
+            {
+                FileUtils.TrySaveYamlFile(SecretLab.RootDirectory, "action_table.yml", Table);
+            }
         }
     }
 }
