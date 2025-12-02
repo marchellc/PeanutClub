@@ -1,4 +1,4 @@
-﻿namespace SecretLabAPI.Actions
+﻿namespace SecretLabAPI.Actions.Enums
 {
     /// <summary>
     /// Specifies the result of an action, indicating whether it succeeded or failed and whether subsequent processing
@@ -36,6 +36,12 @@
         /// Represents a combination of the Stop and Dispose actions, indicating that both operations should be
         /// performed together.
         /// </summary>
-        StopDispose = Stop | Dispose
+        StopDispose = Stop | Dispose,
+
+        /// <summary>
+        /// Indicates that the action completed successfully and further processing should stop.
+        /// Combines both <see cref="Success"/> and <see cref="Stop"/> flags.
+        /// </summary>
+        SuccessStop = Success | Stop,
     }
 }

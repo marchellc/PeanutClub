@@ -33,5 +33,14 @@
             Index = index;
             Name = name;
         }
+
+        /// <summary>
+        /// Creates a new instance of the ActionParameter class that is a copy of the current instance.
+        /// </summary>
+        /// <returns>A new ActionParameter object with the same values as the current instance.</returns>
+        public ActionParameter Clone()
+        {
+            return new(Index, Name) { Description = Description };
+        }
     }
 }

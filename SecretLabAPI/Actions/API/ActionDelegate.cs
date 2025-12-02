@@ -1,4 +1,6 @@
-﻿namespace SecretLabAPI.Actions.API
+﻿using SecretLabAPI.Actions.Enums;
+
+namespace SecretLabAPI.Actions.API
 {
     /// <summary>
     /// Represents a method that performs an action using the specified context and returns a set of flags indicating

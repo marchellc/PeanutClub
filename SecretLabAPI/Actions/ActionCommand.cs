@@ -190,7 +190,7 @@ namespace SecretLabAPI.Actions
             }
 
             if (list.ExecuteActions(target))
-                Ok($"Executed {list.Count} action(s) on player {target.ToLogString()}");
+                Ok($"Executed {list.Count} action(s) on player {target.ToCommandString()}");
             else
                 Fail($"Execution failed.");
         }

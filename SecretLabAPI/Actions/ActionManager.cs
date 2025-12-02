@@ -16,7 +16,8 @@ using SecretLabAPI.Actions.Extensions;
 using SecretLabAPI.Extensions;
 
 using System.Reflection;
-
+using ProjectMER.Commands.Utility;
+using SecretLabAPI.Actions.Enums;
 using Utils.NonAllocLINQ;
 
 namespace SecretLabAPI.Actions
@@ -105,22 +106,38 @@ namespace SecretLabAPI.Actions
                 return false;
 
             if (method.ReturnType != typeof(ActionResultFlags))
+            {
+                ApiLog.Warn("ActionManager", $"Could not register method &3{(method.DeclaringType ?? method.ReflectedType)?.Name ?? ""}.{method.Name}&r: " +
+                                             $"The method's return type should be &6ActionResultFlags&r!");
                 return false;
+            }
 
             var parameters = method.GetParameters();
 
             if (parameters.Length != 1)
+            {
+                ApiLog.Warn("ActionManager", $"Could not register method &3{(method.DeclaringType ?? method.ReflectedType)?.Name ?? ""}.{method.Name}&r: " +
+                                             $"The method's overload signature is incorrect! (expected one parameter)");
                 return false;
+            }
 
             if (parameters[0].ParameterType != typeof(ActionContext).MakeByRefType())
+            {
+                ApiLog.Warn("ActionManager", $"Could not register method &3{(method.DeclaringType ?? method.ReflectedType)?.Name ?? ""}.{method.Name}&r: " +
+                                             $"The method's first parameter has to be a &3ref ActionContext&r type!");
                 return false;
+            }
 
             try
             {
                 var actionDelegate = (ActionDelegate)method.CreateDelegate(typeof(ActionDelegate));
 
                 if (actionDelegate is null)
+                {
+                    ApiLog.Warn("ActionManager", $"Could not register method &3{(method.DeclaringType ?? method.ReflectedType)?.Name ?? ""}.{method.Name}&r: " +
+                                                 $"Delegate could not be compiled.");
                     return false;
+                }
 
                 var actionParameters = GetParameters(method);
                 var actionMethod = new ActionMethod(actionAttribute.Id, actionAttribute.IsEvaluator, actionAttribute.SaveArgumentsOverflow,
@@ -321,6 +338,111 @@ namespace SecretLabAPI.Actions
         }
 
         /// <summary>
+        /// Reads a set of action definitions from the provided lines and converts them into a list of
+        /// actionable methods.
+        /// </summary>
+        /// <param name="lines">An array of strings where each string represents a line of action definitions.
+        /// Lines starting with ':' indicate the beginning of an action definition, while lines prefixed with '#' or empty lines are ignored.</param>
+        /// <returns>A list of <see cref="ActionMethod"/> objects representing actions parsed from the input lines.
+        /// Returns an empty list if no valid actions are found or if the input is null or empty.</returns>
+        public static List<ActionMethod> ReadFromLines(string[] lines, string? idPrefix)
+        {
+            if (lines?.Length < 1)
+                return new();
+
+            var list = new List<ActionMethod>();
+            
+            var subList = new List<CompiledAction>();
+            var subStringList = new List<string>();
+            
+            var id = string.Empty;
+            var inMethod = false;
+
+            void SaveAction()
+            {
+                if (!string.IsNullOrEmpty(id) && subStringList.Count > 0)
+                {
+                    if (!subStringList.ParseActions(subList))
+                    {
+                        ApiLog.Error("ActionManager", $"Could not parse actions of method &3{id}&r!");
+                        
+                        subList.Clear();
+                        subStringList.Clear();
+
+                        id = string.Empty;
+                    }
+                    else
+                    {
+                        var actions = new List<CompiledAction>(subList);
+                        var last = subList.Last();
+
+                        var del = new ActionDelegate((ref ctx) =>
+                        {
+                            actions.ExecuteActions(ctx.Player);
+                            return ActionResultFlags.SuccessDispose;
+                        });
+
+                        var action = new ActionMethod(id, last.Action.IsEvaluator, last.Action.SaveArgumentsOverflow,
+                            del,
+                            Array.Empty<ActionParameter>());
+
+                        list.Add(action);
+
+                        ApiLog.Info("ActionManager",
+                            $"Loaded action &3{id}&r with &6{actions.Count}&r instruction(s)!");
+                    }
+                }
+
+                id = string.Empty;
+                
+                subList.Clear();
+                subStringList.Clear();
+            }
+
+            for (var i = 0; i < lines.Length; i++)
+            {
+                var line = lines[i].Trim();
+                
+                if (string.IsNullOrEmpty(line))
+                    continue;
+                
+                if (line.StartsWith("#"))
+                    continue;
+
+                if (line.StartsWith(":"))
+                {
+                    if (inMethod)
+                        SaveAction();
+
+                    inMethod = true;
+                    
+                    id = line.Substring(1);
+
+                    if (idPrefix != null)
+                        id = idPrefix + id;
+                    
+                    continue;
+                }
+
+                if (inMethod)
+                {
+                    subStringList.Add(line);
+                    continue;
+                }
+
+                ApiLog.Error("ActionManager", $"Encountered a line without a parent method while parsing! (&6{line}&r)");
+            }
+            
+            if (inMethod)
+                SaveAction();
+            
+            subList.Clear();
+            subStringList.Clear();
+
+            return list;
+        }
+
+        /// <summary>
         /// Attempts to parse a list of string representations into compiled actions.
         /// </summary>
         /// <remarks>Parsing will fail if the input list is empty, if the actions list is null, or if no
@@ -369,11 +491,19 @@ namespace SecretLabAPI.Actions
 
                     var spaceIndex = part.IndexOf(' ');
 
+                    string actionId = string.Empty;
+                    string[] actionArgs = Array.Empty<string>();
+                    
                     if (spaceIndex == -1)
-                        continue;
-
-                    var actionId = part.Substring(0, spaceIndex).Trim();
-                    var actionArgs = part.Substring(spaceIndex + 1).Trim().SplitOutsideQuotes(' ');
+                    {
+                        actionId = part;
+                        actionArgs = Array.Empty<string>();
+                    }
+                    else
+                    {
+                        actionId = part.Substring(0, spaceIndex).Trim();
+                        actionArgs = part.Substring(spaceIndex + 1).Trim().SplitOutsideQuotes(' ', true, true, true);
+                    }
 
                     if (!Actions.TryGetValue(actionId, out var action))
                     {
@@ -531,11 +661,12 @@ namespace SecretLabAPI.Actions
             PluginLoader.Plugins.ForEachValue(asm => RegisterActions(asm));
 
             var path = Path.Combine(PathManager.SecretLab.FullName, "actions");
+            var examplePath = Path.Combine(path, "example.txt");
 
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
 
-            File.WriteAllText(Path.Combine(path, "example.txt"),
+            File.WriteAllText(examplePath,
                 $"# This file serves as an example for custom action definitions\n" +
                 $"# Each file can contain multiple action definitions, each definition is separated by a comma before it's name, ex. :ID\n\n" +
                 $"# Actions are defined per-line like this:" +
@@ -552,87 +683,25 @@ namespace SecretLabAPI.Actions
                 $"# And as for parsing, lines starting with a # and empty lines are ignored\n" +
                 $"# Good luck!");
 
-            void ReadFile(string file, string prefix = "")
-            {
-                var read = File.ReadAllLines(file);
-
-                if (read.Length < 1)
-                    return;
-
-                var lines = read.Where(str => !string.IsNullOrWhiteSpace(str) && !str.StartsWith("#")).ToList();
-
-                if (lines.Count < 1)
-                    return;
-
-                var lastIndex = 0;
-
-                while (true)
-                {
-                    var startIndex = lines.FindIndex(lastIndex + 1, s => s.StartsWith(":"));
-                    var nextIndex = lines.FindIndex(startIndex + 1, s => s.StartsWith(":"));
-
-                    if (startIndex == -1)
-                        break;
-
-                    var id = lines[startIndex].Substring(1).Trim();
-
-                    if (!string.IsNullOrEmpty((prefix)))
-                        id = prefix + id;
-
-                    lastIndex = startIndex;
-
-                    var endIndex = nextIndex == -1
-                        ? lines.Count
-                        : nextIndex;
-
-                    var section = new List<string>();
-                    var actions = new List<CompiledAction>();
-
-                    for (var x = startIndex + 1; x < endIndex - 1; x++)
-                        section.Add(lines[x]);
-
-                    if (!section.ParseActions(actions))
-                        continue;
-
-                    var actionDelegate = new ActionDelegate((ref context) =>
-                    {
-                        actions.ExecuteActions(context.Player);
-                        return ActionResultFlags.SuccessDispose;
-                    });
-
-                    var lastAction = actions.LastOrDefault();
-
-                    if (lastAction is null)
-                    {
-                        ApiLog.Warn("ActionManager", $"Failed to load custom action &3{id}&r from &3{Path.GetFileName(file)}&r: No actions were defined.");
-                        continue;
-                    }
-
-                    var method = new ActionMethod(id,
-
-                        lastAction.Action.IsEvaluator,
-                        lastAction.Action.SaveArgumentsOverflow,
-
-                        actionDelegate,
-
-                        Array.Empty<ActionParameter>());
-
-                    Actions[Path.GetFileNameWithoutExtension(file)] = method;
-
-                    ApiLog.Info("ActionManager", $"Loaded custom action &3{Path.GetFileName(file)}&r");
-                }
-            }
-
             foreach (var file in Directory.GetFiles(path, "*.txt"))
             {
-                ReadFile(file);
+                if (file == examplePath)
+                    continue;
+                
+                var actions = ReadFromLines(File.ReadAllLines(file), null);
+                
+                actions.ForEach(act => Actions[act.Id] = act);
+            }
+            
+            foreach (var dir in Directory.GetDirectories(path))
+            {
+                var dirName = Path.GetDirectoryName(dir) + "/";
 
-                foreach (var dir in Directory.GetDirectories(path))
+                foreach (var subFile in Directory.GetFiles(dir, "*.txt"))
                 {
-                    var dirName = Path.GetDirectoryName(dir);
-
-                    foreach (var subFile in Directory.GetFiles(dir, "*.txt"))
-                        ReadFile(subFile, dirName + "/");
+                    var actions = ReadFromLines(File.ReadAllLines(subFile), dirName);
+                    
+                    actions.ForEach(act => Actions[act.Id] = act);
                 }
             }
 

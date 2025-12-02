@@ -161,8 +161,8 @@ namespace SecretLabAPI.Actions.API
         /// in the current action.</exception>
         public T GetValue<T>(int index)
         {
-            if (index < 0 || index >= Actions.Count)
-                throw new IndexOutOfRangeException($"Action index {index} is out of range.");
+            if (index < 0 || index >= Current.Parameters.Length)
+                throw new IndexOutOfRangeException($"Parameter index {index} is out of range.");
 
             return Current.Parameters[index].GetValue<T>();
         }
@@ -183,7 +183,7 @@ namespace SecretLabAPI.Actions.API
             var index = Current.Action.Parameters.FindIndex(p => p.Name == key);
 
             if (index == -1)
-                throw new Exception($"Parameter with key '{key}' not found.");
+                throw new($"Parameter with key '{key}' not found.");
 
             return GetValue<T>(index);
         }
@@ -203,7 +203,7 @@ namespace SecretLabAPI.Actions.API
             var index = Current.Action.Parameters.FindIndex(p => p.Name == key);
 
             if (index == -1)
-                throw new Exception($"Parameter with key '{key}' not found.");
+                throw new($"Parameter with key '{key}' not found.");
 
             return GetValue(index);
         }
@@ -227,8 +227,8 @@ namespace SecretLabAPI.Actions.API
 
             if (key[0] == '$')
                 return GetMemory<T>(key.Substring(1));
-            else
-                return GetValue<T>(key);
+            
+            return GetValue<T>(key);
         }
 
         /// <summary>
@@ -255,12 +255,10 @@ namespace SecretLabAPI.Actions.API
                 if (obj is T variableValue)
                     return variableValue;
 
-                throw new Exception($"Memory variable '{key}' is not of type {typeof(T).FullName}.");
+                throw new($"Memory variable '{key}' is not of type {typeof(T).FullName}.");
             }
-            else
-            {
-                return GetValue<T>(index);
-            }
+            
+            return GetValue<T>(index);
         }
 
         /// <summary>
@@ -284,12 +282,10 @@ namespace SecretLabAPI.Actions.API
                 if (obj is string variableValue)
                     return variableValue;
 
-                throw new Exception($"Memory variable '{key}' is not of type {typeof(string).FullName}.");
+                throw new($"Memory variable '{key}' is not of type {typeof(string).FullName}.");
             }
-            else
-            {
-                return GetValue(index);
-            }
+            
+            return GetValue(index);
         }
 
         /// <summary>
@@ -309,8 +305,8 @@ namespace SecretLabAPI.Actions.API
 
             if (key[0] == '$')
                 return GetMemory<string>(key.Substring(1));
-            else
-                return GetValue(key);
+            
+            return GetValue(key);
         }
 
         /// <summary>
@@ -338,15 +334,13 @@ namespace SecretLabAPI.Actions.API
                 if (obj is T variableValue)
                     return variableValue;
 
-                throw new Exception($"Metadata variable '{key}' is not of type {typeof(T).FullName}.");
+                throw new($"Metadata variable '{key}' is not of type {typeof(T).FullName}.");
             }
-            else
-            {
-                var value = factory();
 
-                Current.Metadata[key] = value!;
-                return value;
-            }
+            var value = factory();
+
+            Current.Metadata[key] = value!;
+            return value;
         }
 
         /// <summary>

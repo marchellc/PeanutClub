@@ -1,4 +1,6 @@
-﻿namespace SecretLabAPI.Actions.Extensions
+﻿using SecretLabAPI.Actions.Enums;
+
+namespace SecretLabAPI.Actions.Extensions
 {
     /// <summary>
     /// Provides extension methods for evaluating and interpreting bitwise flags in ActionResultFlags values.

@@ -4,6 +4,7 @@ using MEC;
 
 using SecretLabAPI.Actions.API;
 using SecretLabAPI.Actions.Attributes;
+using SecretLabAPI.Actions.Enums;
 
 namespace SecretLabAPI.Actions.Functions.Blocks
 {

@@ -1,9 +1,10 @@
 ﻿using LabExtended.Extensions;
 
 using NorthwoodLib.Pools;
-using System.Text.RegularExpressions;
+
+using SecretLabAPI.Utilities;
+
 using UnityEngine;
-using UnityEngine.Windows;
 
 namespace SecretLabAPI.Extensions
 {
@@ -19,6 +20,51 @@ namespace SecretLabAPI.Extensions
         {
             { "$EmojiChart", "📊" }
         };
+
+        /// <summary>
+        /// Attempts to parse a delimited string into an array of enum values of a specified type.
+        /// </summary>
+        /// <typeparam name="T">The enum type of elements in the resulting array. Must be a value type and an enumeration type.</typeparam>
+        /// <param name="str">The input string containing delimited values to parse. If the string is null or empty, the method returns <see langword="false"/>.</param>
+        /// <param name="array">When this method returns, contains the array of parsed enum values if parsing succeeds; otherwise, is set to <see langword="null"/>.</param>
+        /// <returns>
+        /// <see langword="true"/> if all parts of the input string are successfully parsed into enum values and the array is populated; otherwise, <see langword="false"/>.
+        /// </returns>
+        public static bool TryParseEnumArray<T>(this string str, out T[] array) where T : struct, Enum
+            => TryParseArray<T>(str, Enum.TryParse, out array);
+
+        /// <summary>
+        /// Attempts to parse a delimited string into an array of values of a specified type using a custom parsing function.
+        /// </summary>
+        /// <typeparam name="T">The type of elements in the resulting array. Must be a value type or an enumeration type.</typeparam>
+        /// <param name="str">The input string containing delimited values to parse. If the string is null or empty, the method returns <see langword="false"/>.</param>
+        /// <param name="tryParseDelegate">A delegate function that attempts to parse a string into a value of type <typeparamref name="T"/>.</param>
+        /// <param name="array">When this method returns, contains the array of parsed values if parsing succeeds; otherwise, is set to <see langword="null"/>.</param>
+        /// <returns>
+        /// <see langword="true"/> if all parts of the input string are successfully parsed and the array is populated; otherwise, <see langword="false"/>.
+        /// </returns>
+        public static bool TryParseArray<T>(this string str, TryParseDelegate<T> tryParseDelegate, out T[] array)
+        {
+            if (string.IsNullOrEmpty(str))
+            {
+                array = null!;
+                return false;
+            }
+
+            var parts = str.SplitOutsideQuotes(',');
+            
+            array = new T[parts.Length];
+
+            for (var i = 0; i < parts.Length; i++)
+            {
+                if (!tryParseDelegate(parts[i], out var result))
+                    return false;
+
+                array[i] = result;
+            }
+
+            return true;
+        }
 
         /// <summary>
         /// Splits the input string into substrings based on the specified separator character, allowing the separator
@@ -118,6 +164,7 @@ namespace SecretLabAPI.Extensions
                     var currentItemString = trimSplits
                         ? currentItem.ToString().Trim()
                         : currentItem.ToString();
+                    
                     currentItem.Clear();
 
                     if (string.IsNullOrEmpty(currentItemString) && ignoreEmptyResults)
@@ -141,7 +188,7 @@ namespace SecretLabAPI.Extensions
                         break;
 
                     case '"':
-                        currentItem.Append(currentChar);
+                        // currentItem.Append(currentChar);
                         quotesOpen = !quotesOpen;
                         break;
                 }

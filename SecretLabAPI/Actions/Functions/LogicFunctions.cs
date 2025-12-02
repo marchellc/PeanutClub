@@ -9,7 +9,7 @@ using SecretLabAPI.Actions.API;
 using SecretLabAPI.Actions.Attributes;
 
 using System.Collections;
-
+using SecretLabAPI.Actions.Enums;
 using UnityEngine;
 
 namespace SecretLabAPI.Actions.Functions
@@ -19,6 +19,86 @@ namespace SecretLabAPI.Actions.Functions
     /// </summary>
     public static class LogicFunctions
     {
+        /// <summary>
+        /// Iterates through a list of players and executes a specified action for each player within the context provided.
+        /// </summary>
+        /// <remarks>
+        /// The method ensures the action is compiled and cached before execution. If a list of players is specified,
+        /// the action is executed in context of each player in the list. Errors during execution are logged, and
+        /// resources are disposed of appropriately.
+        /// </remarks>
+        /// <param name="context">A reference to the action context containing metadata, parameters, and player information.
+        /// This must include the action ID and the player list variable.</param>
+        /// <returns>A value indicating the result of the action execution. Returns ActionResultFlags.SuccessDispose if the
+        /// action completes successfully, or another value if specific errors occur.</returns>
+        [Action("ForEach", "Executes an action.", false, true)]
+        [ActionParameter("ID", "The ID of the action to execute.")]
+        [ActionParameter("Players", "The name of the player list variable")]
+        public static ActionResultFlags ForEach(ref ActionContext context)
+        {
+            context.EnsureCompiled((index, p) =>
+            {
+                return index switch
+                {
+                    0 or 1 => p.EnsureCompiled(string.Empty),
+
+                    _ => false
+                };
+            });
+
+            var actionId = context.GetValue(0);
+            
+            var playerVar = context.GetValue(1);
+            var players = context.GetValue<List<ExPlayer>>(playerVar);
+
+            var argsOverflow = context.GetMetadata<List<string>>("ArgsOverflow", () => new());
+
+            var compiledAction = context.GetMetadata("CompiledExecute", () =>
+            {
+                if (ActionManager.Actions.TryGetValue(actionId, out var action))
+                    return action.CompileAction(argsOverflow.ToArray())!;
+                
+                ApiLog.Error("ActionManager", $"Could not execute the &3Execute&r action: Action &1{actionId}&r could not be found");
+                return null!;
+
+            });
+
+            if (compiledAction is null)
+            {
+                ApiLog.Error("ActionManager", $"Could not execute the &3Execute&r action: Action &1{actionId}&r could not be compiled");
+                return ActionResultFlags.StopDispose;
+            }
+
+            var subList = ListPool<CompiledAction>.Shared.Rent(1);
+            var subContext = new ActionContext(subList, players[0]);
+
+            subList.Add(compiledAction);
+
+            for (var i = 0; i < players.Count; i++)
+            {
+                if (i != 0)
+                {
+                    subContext.Player = players[i];
+                    subContext.Memory.Clear();
+                }
+                
+                try
+                {
+                    compiledAction.Action.Delegate(ref subContext);
+                }
+                catch (Exception ex)
+                {
+                    ApiLog.Error("ActionManager",
+                        $"Error while executing action &3{compiledAction.Action.Id}&r:\n{ex}");
+                }
+            }
+
+            ListPool<CompiledAction>.Shared.Return(subList);
+
+            subContext.Dispose();
+            return ActionResultFlags.SuccessDispose;
+        }
+        
         /// <summary>
         /// Executes the specified action within the provided action context, compiling and invoking the action as
         /// needed.
@@ -31,10 +111,10 @@ namespace SecretLabAPI.Actions.Functions
         /// <returns>A value indicating the result of the action execution. Returns ActionResultFlags.SuccessDispose if the
         /// action executes successfully; otherwise, returns ActionResultFlags.StopDispose if the action cannot be found
         /// or compiled.</returns>
-        [Action("Execute", "Executes an action.", false, true)]
+        [Action("For", "Executes an action.", false, true)]
         [ActionParameter("ID", "The ID of the action to execute.")]
         [ActionParameter("Player", "The name of the player variable")]
-        public static ActionResultFlags ExecuteFor(ref ActionContext context)
+        public static ActionResultFlags For(ref ActionContext context)
         {
             context.EnsureCompiled((index, p) =>
             {
@@ -226,7 +306,8 @@ namespace SecretLabAPI.Actions.Functions
         /// to the context output.</returns>
         [Action("Select", "Selects a random item or multiple items from a collection.")]
         [ActionParameter("Variable", "Name of the source collection variable.")]
-        [ActionParameter("Amount", "The amount of items to select from the collection. Setting this to one (default) will return a singular object, while setting it to more than one will return a list.")]
+        [ActionParameter("Amount", "The amount of items to select from the collection. Setting this to one (default) will return a singular object, " +
+                                   "while setting it to more than one will return a list.")]
         public static ActionResultFlags Select(ref ActionContext context)
         {
             context.EnsureCompiled((index, p) =>

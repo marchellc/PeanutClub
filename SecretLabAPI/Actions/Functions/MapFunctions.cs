@@ -1,8 +1,9 @@
 ﻿using LabExtended.API;
-
+using MapGeneration;
 using SecretLabAPI.Actions.API;
 using SecretLabAPI.Actions.Attributes;
-
+using SecretLabAPI.Actions.Enums;
+using SecretLabAPI.Extensions;
 using UnityEngine;
 
 using Utils;
@@ -18,6 +19,46 @@ namespace SecretLabAPI.Actions.Functions
     /// be triggered programmatically, such as in custom game modes or automated events.</remarks>
     public static class MapFunctions
     {
+        /// <summary>
+        /// Flickers the lights in specified zones or across the map, turning them off for a specified duration.
+        /// </summary>
+        /// <remarks>
+        /// This method controls the lighting in the map and can impact gameplay based on the zones and duration
+        /// parameters. If the whitelist flag is set to true, only the specified zones will be affected; otherwise,
+        /// the zones will be excluded, and all other zones will flicker.
+        /// </remarks>
+        /// <param name="context">The action context containing parameters such as duration, zones, and whitelist flag.
+        /// Ensure the context is compiled before use to access these values.</param>
+        /// <returns>An ActionResultFlags value indicating the result. Returns SuccessDispose if the lights flickered successfully.</returns>
+        [Action("FlickerLights", "Flickers lights on the map.")]
+        [ActionParameter("Duration", "How long the lights will be turned off for (in seconds).")]
+        [ActionParameter("Zones", "The list of zones to flicker lights in.")]
+        [ActionParameter("Whitelist", "Whether or not the zones parameter should be used as a whitelist.")]
+        public static ActionResultFlags FlickerLights(ref ActionContext context)
+        {
+            context.EnsureCompiled((index, p) =>
+            {
+                return index switch
+                {
+                    0 => p.EnsureCompiled(float.TryParse, 0f),
+                    1 => p.EnsureCompiled(StringExtensions.TryParseEnumArray, Array.Empty<FacilityZone>()),
+                    2 => p.EnsureCompiled(bool.TryParse, false),
+                    
+                    _ => false
+                };
+            });
+            
+            var duration = context.GetValue<float>(0);
+            var zones = context.GetValue<FacilityZone[]>(1);
+            var whitelist = context.GetValue<bool>(2);
+            
+            ExMap.FlickerLights(duration, whitelist && zones.Length > 0
+                                           ? zones
+                                           : EnumUtils<FacilityZone>.Values.Except(zones).ToArray());
+
+            return ActionResultFlags.SuccessDispose;
+        }
+        
         /// <summary>
         /// Spawns an explosion of the specified type at the position of each player in the current action context.
         /// </summary>
@@ -107,6 +148,7 @@ namespace SecretLabAPI.Actions.Functions
         [ActionParameter("Amount", "The amount of projectiles to spawn.")]
         [ActionParameter("Force", "The force to apply to the projectile.")]
         [ActionParameter("Fuse", "The fuse time of the projectile.")]
+        [ActionParameter("Velocity", "Multiplier for the player's velocity.")]
         public static ActionResultFlags SpawnProjectile(ref ActionContext context)
         {
             context.EnsureCompiled((index, p) =>
@@ -117,6 +159,7 @@ namespace SecretLabAPI.Actions.Functions
                     1 => p.EnsureCompiled(int.TryParse, 1),
                     2 => p.EnsureCompiled(float.TryParse, 10f),
                     3 => p.EnsureCompiled(float.TryParse, 3f),
+                    4 => p.EnsureCompiled(float.TryParse, 1f),
 
                     _ => false
                 };
@@ -126,7 +169,7 @@ namespace SecretLabAPI.Actions.Functions
             var amount = context.GetMemoryOrValue<int>("Amount", 1);
             var force = context.GetMemoryOrValue<float>("Force", 2);
             var fuse = context.GetMemoryOrValue<float>("Fuse", 3);
-            var velocity = context.GetValue<float>(4);
+            var velocity = context.GetMemoryOrValue<float>("Velocity",4);
 
             var vectorVelocity = context.Player.Velocity;
 

@@ -33,7 +33,7 @@ namespace SecretLabAPI.Actions.API
         public T GetValue<T>()
         {
             if (!IsCompiled)
-                throw new Exception("Parameter is not compiled.");
+                throw new("Parameter is not compiled.");
 
             return (T)Value;
         }
@@ -60,18 +60,16 @@ namespace SecretLabAPI.Actions.API
                 IsCompiled = true;
                 return true;
             }
-            else
+
+            if (defaultValue != null)
             {
-                if (defaultValue != null)
-                {
-                    Value = defaultValue;
+                Value = defaultValue;
 
-                    IsCompiled = true;
-                    return true;
-                }
-
-                throw new Exception($"Parameter could not be compiled from source '{Source}'");
+                IsCompiled = true;
+                return true;
             }
+
+            throw new($"Parameter could not be compiled from source '{Source}'");
         }
 
         /// <summary>
@@ -105,20 +103,16 @@ namespace SecretLabAPI.Actions.API
                 IsCompiled = true;
                 return true;
             }
-            else
+
+            if (defaultValue != null)
             {
-                ApiLog.Warn("ActionManager", $"Failed to compile parameter &3{typeof(T)}&r from source &6{Source}&r!");
+                Value = defaultValue;
 
-                if (defaultValue != null)
-                {
-                    Value = defaultValue;
-
-                    IsCompiled = true;
-                    return true;
-                }
-
-                throw new Exception($"Parameter could not be compiled from source '{Source}'");
+                IsCompiled = true;
+                return true;
             }
+
+            throw new($"Parameter could not be compiled from source '{Source}'");
         }
     }
 }
